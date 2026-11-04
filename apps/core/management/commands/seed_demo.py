@@ -15,7 +15,7 @@ DEMO_PASSWORD = "ErgoDemo2026!"
 DEMO_USERS = (
     ("admin@ergopostura.test", "Ana", "Administradora", Role.ADMIN),
     ("ingeniero@ergopostura.test", "Andrés", "Ríos", Role.ENGINEER),
-    ("evaluador@ergopostura.test", "Laura", "Gómez", Role.EVALUATOR),
+    ("evaluador@ergopostura.test", "Laura", "Bermúdez", Role.EVALUATOR),
     ("empresa@ergopostura.test", "Marta", "Salazar", Role.COMPANY),
     ("consulta@ergopostura.test", "Carlos", "Mejía", Role.RESULTS),
     ("tareas@ergopostura.test", "Sofía", "Duque", Role.TASKS),
