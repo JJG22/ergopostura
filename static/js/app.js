@@ -21,6 +21,11 @@
       return;
     }
 
+    if (event.target.closest("[data-print]")) {
+      window.print();
+      return;
+    }
+
     if (event.target.closest("[data-toast-close]")) {
       event.target.closest(".toast").remove();
       return;

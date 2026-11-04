@@ -31,7 +31,12 @@ NAV_ITEMS = (
             Capability.EVALUATION_VIEW_OWN,
         ),
     ),
-    NavItem("Usuarios","admin:accounts_user_changelist", "users", "admin", (Capability.USER_MANAGE,)),
+    NavItem("Indicadores", "indicators:home", "chart-column", "indicators", (Capability.INDICATORS_VIEW,)),
+    NavItem(
+        "Tareas pendientes", "tasks:list", "layout-list", "tasks",
+        (Capability.TASK_VIEW_ALL, Capability.TASK_VIEW_OWN, Capability.EVALUATION_MANAGE),
+    ),
+    NavItem("Usuarios", "admin:accounts_user_changelist", "users", "admin", (Capability.USER_MANAGE,)),
 )
 
 

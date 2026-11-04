@@ -24,6 +24,12 @@ class Capability(StrEnum):
     # Aplicar RULA: lo hacen el ingeniero industrial y el evaluador.
     EVALUATION_MANAGE = "evaluation.manage"
     EVALUATION_REOPEN = "evaluation.reopen"
+    # El alcance de los datos lo siguen dando las evaluaciones que el usuario puede ver.
+    INDICATORS_VIEW = "indicators.view"
+    # Recomendaciones de evaluaciones terminadas por atender.
+    TASK_VIEW_ALL = "task.view_all"
+    TASK_VIEW_OWN = "task.view_own"
+    TASK_ATTEND = "task.attend"
 
 
 ROLE_CAPABILITIES: dict[str, frozenset[Capability]] = {
@@ -35,6 +41,7 @@ ROLE_CAPABILITIES: dict[str, frozenset[Capability]] = {
             Capability.VISIT_VIEW_ALL,
             Capability.EVALUATION_VIEW_ALL,
             Capability.EVALUATION_MANAGE,
+            Capability.INDICATORS_VIEW,
         }
     ),
     # RF-006: la empresa registra sus visitas acordadas.
@@ -44,14 +51,16 @@ ROLE_CAPABILITIES: dict[str, frozenset[Capability]] = {
             Capability.VISIT_VIEW_OWN,
             Capability.VISIT_MANAGE,
             Capability.EVALUATION_VIEW_OWN,
+            Capability.INDICATORS_VIEW,
+            Capability.TASK_VIEW_OWN,
+            Capability.TASK_ATTEND,
         }
     ),
     Role.EVALUATOR: frozenset(
         {Capability.VISIT_VIEW_ALL, Capability.EVALUATION_VIEW_ALL, Capability.EVALUATION_MANAGE}
     ),
-    Role.RESULTS: frozenset({Capability.EVALUATION_VIEW_COMPLETED}),
-    # Sin permisos hasta definir sus tareas (D8).
-    Role.TASKS: frozenset(),
+    Role.RESULTS: frozenset({Capability.EVALUATION_VIEW_COMPLETED, Capability.INDICATORS_VIEW}),
+    Role.TASKS: frozenset({Capability.TASK_VIEW_ALL, Capability.TASK_ATTEND}),
 }
 
 

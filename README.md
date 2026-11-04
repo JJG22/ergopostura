@@ -21,8 +21,8 @@ Abre http://localhost:8000. Todos los usuarios de demostración usan la clave `E
 | ingeniero@ergopostura.test | Ingeniero industrial | Todas las empresas, que puede crear y editar; visitas en solo lectura; aplica RULA |
 | empresa@ergopostura.test | Empresa | Solo su empresa, sin editar; registra y edita sus visitas; ve sus evaluaciones terminadas |
 | evaluador@ergopostura.test | Evaluador | Todas las visitas en solo lectura; aplica RULA; sin acceso al módulo de empresas |
-| consulta@ergopostura.test | Consulta de resultados | Evaluaciones terminadas de todas las empresas |
-| tareas@ergopostura.test | Responsable de tarea | Su panel; módulo pendiente |
+| consulta@ergopostura.test | Consulta de resultados | Evaluaciones terminadas e indicadores de todas las empresas |
+| tareas@ergopostura.test | Responsable de tarea | Recomendaciones por atender de todas las empresas, sin acceso a las fotografías |
 
 `seed_demo` crea datos ficticios y se niega a ejecutarse con `DEBUG` desactivado.
 
@@ -62,6 +62,8 @@ apps/
   companies/       Empresa > sede > área > puesto, y reglas del NIT
   visits/          Visitas acordadas
   evaluations/     Evaluación, posturas, fotografías, análisis y recomendaciones
+  indicators/      Indicadores por empresa y comparación entre áreas
+  tasks/           Tareas pendientes del proceso
   rula/            Cálculo del método RULA, sin dependencias de Django
   dashboard/       Un panel por rol
 templates/         HTML por módulo
@@ -115,9 +117,9 @@ Para extender el sistema sin modificar lo que ya funciona:
 | RF-023 a 025 (consulta y resumen) | Listo |
 | RNF-003 (fidelidad al método) | Implementado; faltan casos de referencia aprobados |
 | RF-004 (contexto del trabajador) | Campo de texto opcional, sin datos personales; falta acordar el contenido |
-| RF-026, 027 (indicadores y comparación) | Bloqueado por la decisión D6 |
-| RF-028 (descarga del informe) | Opcional, espera la decisión D7 |
-| RF-029 (tareas pendientes) | Bloqueado por la decisión D8 |
+| RF-026, 027 (indicadores y comparación) | Listo |
+| RF-028 (informe imprimible y en PDF) | Listo |
+| RF-029 (tareas pendientes) | Listo |
 
 ## Decisiones tomadas
 
@@ -128,6 +130,9 @@ Para extender el sistema sin modificar lo que ya funciona:
 | D3, puntuaciones | Las calcula el sistema a partir de lo que registra el evaluador |
 | D4, semáforo | Nivel 1 verde, niveles 2 y 3 amarillo, nivel 4 rojo; siempre con el texto del nivel |
 | D5, recomendaciones | Las escribe el evaluador después de ver el resultado |
+| D6, indicadores | Puestos por color de riesgo, por empresa y por área. Cuenta la evaluación terminada más reciente de cada puesto y su postura de mayor riesgo; no se promedia ni se hace ranking |
+| D7, informe | Vista para imprimir o guardar como PDF desde el navegador, solo de evaluaciones terminadas |
+| D8, tareas | Evaluaciones en curso de cada profesional y recomendaciones por atender, que marcan la empresa o el responsable de tarea |
 | D9, cuentas de trabajadores | El trabajador es la persona evaluada y no usa el sistema |
 | Quién aplica RULA | El ingeniero industrial o el evaluador |
 

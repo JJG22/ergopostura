@@ -171,17 +171,25 @@ class AccessControlTests(TestCase):
         self.client.force_login(make_user(role=Role.EVALUATOR))
         response = self.client.get(reverse("dashboard:home"))
         labels = [item["label"] for item in response.context["nav_items"]]
-        self.assertEqual(labels, ["Panel principal", "Visitas", "Evaluaciones"])
+        self.assertEqual(labels, ["Panel principal", "Visitas", "Evaluaciones", "Tareas pendientes"])
 
         self.client.force_login(make_user(role=Role.TASKS))
         response = self.client.get(reverse("dashboard:home"))
         labels = [item["label"] for item in response.context["nav_items"]]
-        self.assertEqual(labels, ["Panel principal"])
+        self.assertEqual(labels, ["Panel principal", "Tareas pendientes"])
+
+        self.client.force_login(make_user(role=Role.RESULTS))
+        response = self.client.get(reverse("dashboard:home"))
+        labels = [item["label"] for item in response.context["nav_items"]]
+        self.assertEqual(labels, ["Panel principal", "Evaluaciones", "Indicadores"])
 
         self.client.force_login(make_user(role=Role.ADMIN))
         response = self.client.get(reverse("dashboard:home"))
         labels = [item["label"] for item in response.context["nav_items"]]
-        self.assertEqual(labels, ["Panel principal", "Empresas", "Visitas", "Evaluaciones", "Usuarios"])
+        self.assertEqual(
+            labels,
+            ["Panel principal", "Empresas", "Visitas", "Evaluaciones", "Indicadores", "Tareas pendientes", "Usuarios"],
+        )
 
     def test_session_expired_in_modal_redirects_whole_page(self):
         response = self.client.get(reverse("companies:create"), **HTMX)
