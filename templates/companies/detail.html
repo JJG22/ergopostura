@@ -1,0 +1,102 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}{{ company.name }} · ErgoPostura{% endblock %}
+{% block crumb %}{{ company.name }}{% endblock %}
+{% block content %}
+<div class="page">
+  {% if 'company.view_all' in caps %}
+    <a class="back-link page-back" href="{% url 'companies:list' %}">{% icon 'arrow-left' %} Volver a empresas</a>
+  {% endif %}
+
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">EMPRESA</p>
+      <h1 class="title title-1">{{ company.name }}</h1>
+      <p>NIT {{ company.nit_display }} · {{ company.city }}, {{ company.department }} · {% if company.is_active %}Empresa activa{% else %}Empresa inactiva{% endif %}</p>
+    </div>
+  </div>
+
+  <div class="entity-stats">
+    <span>{% icon 'building-complex' %}<strong>{{ counts.sites }}</strong> sede{{ counts.sites|pluralize:",s" }}</span>
+    <span>{% icon 'layout-list' %}<strong>{{ counts.areas }}</strong> área{{ counts.areas|pluralize:",s" }}</span>
+    <span>{% icon 'users' %}<strong>{{ counts.positions }}</strong> puesto{{ counts.positions|pluralize:",s" }}</span>
+  </div>
+
+  <div class="hierarchy-layout">
+    <div class="card tree-card">
+      <div class="section-head">
+        <div>
+          <h2 class="title title-2">Estructura de la empresa</h2>
+          <p>Sedes, áreas y puestos</p>
+        </div>
+      </div>
+      <div class="tree">
+        <a href="?nodo=empresa"{% if selection.key == 'empresa' %} class="selected"{% endif %}>
+          {% icon 'building-complex' %}
+          <span><strong>{{ company.name }}</strong><small>Empresa</small></span>
+        </a>
+        {% for site in company.sites.all %}
+          <div class="tree-group">
+            <a href="?nodo={{ site.node_key }}"{% if selection.key == site.node_key %} class="selected"{% endif %}>
+              {% icon 'map-pin' %}
+              <span><strong>{{ site.name }}</strong><small>{{ site.city }}, {{ site.department }}</small></span>
+            </a>
+            <div class="tree-children">
+              {% for area in site.areas.all %}
+                <a href="?nodo={{ area.node_key }}"{% if selection.key == area.node_key %} class="selected"{% endif %}>
+                  {% icon 'layout-list' %}
+                  <span><strong>{{ area.name }}</strong><small>{{ area.positions.all|length }} puesto{{ area.positions.all|length|pluralize:",s" }}</small></span>
+                </a>
+                <div class="tree-children">
+                  {% for position in area.positions.all %}
+                    <a href="?nodo={{ position.node_key }}"{% if selection.key == position.node_key %} class="selected"{% endif %}>
+                      {% icon 'users' %}
+                      <span><strong>{{ position.name }}</strong><small>Puesto de trabajo</small></span>
+                    </a>
+                  {% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty">
+            <div class="empty-icon">{% icon 'map-pin' %}</div>
+            <strong>Aún no hay sedes</strong>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card detail-panel">
+      <div class="detail-panel-head">
+        <span class="detail-icon">{% icon selection.icon %}</span>
+        <div>
+          <p class="eyebrow">{{ selection.kind }}</p>
+          <h2 class="title title-2">{{ selection.name }}</h2>
+        </div>
+      </div>
+
+      <div class="breadcrumb-path">
+        {% for part in selection.path %}
+          {% if forloop.last %}<strong>{{ part }}</strong>{% else %}<span>{{ part }}</span>{% icon 'chevron-right' %}{% endif %}
+        {% endfor %}
+      </div>
+
+      <dl class="detail-list">
+        {% for label, value in selection.details %}
+          <div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
+        {% endfor %}
+      </dl>
+
+      {% if 'company.manage' in caps %}
+        <div class="panel-actions">
+          <a class="btn btn-secondary" href="{{ selection.edit_url }}" hx-get="{{ selection.edit_url }}" hx-target="#modal-root" hx-swap="innerHTML">Editar</a>
+          {% if selection.add_url and company.is_active %}
+            <a class="btn btn-primary" href="{{ selection.add_url }}" hx-get="{{ selection.add_url }}" hx-target="#modal-root" hx-swap="innerHTML">{% icon 'plus' %}<span>{{ selection.add_label }}</span></a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
