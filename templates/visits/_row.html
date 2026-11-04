@@ -1,0 +1,14 @@
+{% load ui %}
+<div class="visit-row">
+  <span class="calendar-icon">{% icon 'calendar-days' %}</span>
+  <div>
+    <strong>{{ visit.company.name }}</strong>
+    <span>{{ visit.scheduled_at|date:"d/m/Y" }} · {{ visit.scheduled_at|time:"g:i a" }}</span>
+    <small>{% icon 'map-pin' %}{{ visit.site.name }} · {{ visit.area.name }} · {{ visit.position.name }}</small>
+    {% if visit.contact_name %}<small>{% icon 'users' %}{{ visit.contact_name }}</small>{% endif %}
+  </div>
+  {% if status_label %}<span class="status {{ status_class }}">{{ status_label }}</span>{% endif %}
+  {% if show_edit and 'visit.manage' in caps %}
+    <a class="btn btn-tertiary" href="{% url 'visits:update' visit.pk %}" hx-get="{% url 'visits:update' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">Editar</a>
+  {% endif %}
+</div>
