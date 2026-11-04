@@ -1,0 +1,27 @@
+<div class="card">
+  <div class="section-head">
+    <div>
+      <h2 class="title title-2">Empresas recientes</h2>
+      <p>Últimas empresas registradas</p>
+    </div>
+    <a class="btn btn-tertiary" href="{% url 'companies:list' %}">Ver todas</a>
+  </div>
+  {% if recent_companies %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Empresa</th><th>NIT</th><th>Sedes</th></tr></thead>
+        <tbody>
+          {% for company in recent_companies %}
+            <tr>
+              <td><a href="{% url 'companies:detail' company.pk %}"><strong>{{ company.name }}</strong></a></td>
+              <td>{{ company.nit_display }}</td>
+              <td>{{ company.site_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="card-copy">Aún no hay empresas registradas.</p>
+  {% endif %}
+</div>

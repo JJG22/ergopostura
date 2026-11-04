@@ -1,0 +1,25 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block content %}
+<div class="page">
+  {% include "dashboard/_head.html" with subtitle="Información de tu empresa." %}
+  <div class="metric-grid">
+    <div class="card"><small>Sedes</small><strong class="metric">{{ counts.sites }}</strong></div>
+    <div class="card"><small>Áreas</small><strong class="metric">{{ counts.areas }}</strong></div>
+    <div class="card"><small>Puestos de trabajo</small><strong class="metric">{{ counts.positions }}</strong></div>
+  </div>
+  <div class="quick-grid two">
+    <a class="quick-card" href="{% url 'companies:detail' company.pk %}">
+      <span>{% icon 'building-complex' %}</span>
+      <div><strong>{{ company.name }}</strong><small>Consulta la estructura de tu empresa</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+    <a class="quick-card" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML">
+      <span>{% icon 'calendar-days' %}</span>
+      <div><strong>Registrar visita</strong><small>Deja constancia de una visita acordada</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+  </div>
+  {% include "dashboard/_upcoming_visits.html" %}
+</div>
+{% endblock %}

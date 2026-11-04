@@ -1,0 +1,21 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block content %}
+<div class="page">
+  {% include "dashboard/_head.html" with subtitle="Organiza las empresas y su estructura de trabajo." %}
+  <div class="quick-grid two">
+    <a class="quick-card featured" href="{% url 'companies:create' %}" hx-get="{% url 'companies:create' %}" hx-target="#modal-root" hx-swap="innerHTML">
+      <span>{% icon 'plus' %}</span>
+      <div><strong>Registrar empresa</strong><small>Agrega una nueva empresa</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+    <a class="quick-card" href="{% url 'companies:list' %}">
+      <span>{% icon 'building-complex' %}</span>
+      <div><strong>Ver empresas</strong><small>Consulta sedes, áreas y puestos</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+  </div>
+  {% include "dashboard/_totals.html" %}
+  {% include "dashboard/_recent_companies.html" %}
+</div>
+{% endblock %}

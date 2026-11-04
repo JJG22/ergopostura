@@ -1,0 +1,26 @@
+{% extends "layouts/app.html" %}
+{% block title %}Panel de administración · ErgoPostura{% endblock %}
+{% block crumb %}Panel de administración{% endblock %}
+{% block content %}
+<div class="page">
+  {% include "dashboard/_head.html" with subtitle="Vista general de todo el sistema." %}
+  {% include "dashboard/_totals.html" %}
+  <div class="dashboard-grid">
+    {% include "dashboard/_recent_companies.html" %}
+    <div class="card">
+      <div class="section-head">
+        <div>
+          <h2 class="title title-2">Usuarios por rol</h2>
+          <p>Cuentas activas</p>
+        </div>
+        <a class="btn btn-tertiary" href="{% url 'admin:accounts_user_changelist' %}">Gestionar</a>
+      </div>
+      <dl class="detail-list">
+        {% for row in users_by_role %}
+          <div class="role-row"><dt>{{ row.label }}</dt><dd>{{ row.total }}</dd></div>
+        {% endfor %}
+      </dl>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block content %}
+<div class="page">
+  {% include "dashboard/_head.html" with subtitle=request.user.get_role_display %}
+  <div class="card">
+    <div class="empty">
+      <div class="empty-icon">{% icon 'clipboard-check' %}</div>
+      <strong>Tu espacio de trabajo está listo</strong>
+      <p>{{ pending_message }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

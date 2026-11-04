@@ -1,0 +1,7 @@
+{% extends "layouts/app.html" %}
+{% block content %}
+<div class="page">
+  {% include "dashboard/_head.html" with subtitle="Este es el panorama de tus visitas." %}
+  {% include "dashboard/_upcoming_visits.html" %}
+</div>
+{% endblock %}
