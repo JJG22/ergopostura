@@ -16,7 +16,7 @@ from apps.visits.models import Visit
 
 from . import selectors, services
 from .forms import EvaluationForm, PostureForm, RecommendationForm, RulaAssessmentForm
-from .models import PosturePhoto, Recommendation, RulaAssessment
+from .models import Evaluation, PosturePhoto, Recommendation, RulaAssessment
 from .photos import InvalidPhoto
 
 VIEW_CAPABILITIES = (
@@ -72,6 +72,19 @@ class EvaluationDetailView(CapabilityRequiredMixin, DetailView):
             recommendation_form=RecommendationForm(),
         )
         return context
+
+
+class EvaluationReportView(CapabilityRequiredMixin, DetailView):
+    """Informe para imprimir o guardar como PDF (RF-028). Solo de evaluaciones terminadas."""
+
+    required_capabilities = VIEW_CAPABILITIES
+    template_name = "evaluations/report.html"
+    context_object_name = "evaluation"
+
+    def get_queryset(self):
+        return selectors.with_details(
+            selectors.visible_evaluations(self.request.user).filter(status=Evaluation.Status.COMPLETED)
+        )
 
 
 class EvaluationCreateView(ManageMixin, ModalFormMixin, CreateView):

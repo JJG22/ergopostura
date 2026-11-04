@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load ui risk %}
+{% block title %}Informe {{ evaluation.code }} · ErgoPostura{% endblock %}
+{% block body %}
+<div class="report-page">
+  <div class="report-actions no-print">
+    <a class="back-link" href="{% url 'evaluations:detail' evaluation.pk %}">{% icon 'arrow-left' %} Volver a la evaluación</a>
+    <button type="button" class="btn btn-primary btn-text" data-print>{% icon 'download' %}<span>Imprimir o guardar PDF</span></button>
+  </div>
+
+  <article class="card print-report">
+    <header class="report-brand">
+      <span class="brand-mark">{% icon 'activity' %}</span>
+      <strong>ErgoPostura</strong>
+      <span class="status status-teal">{{ evaluation.code }}</span>
+    </header>
+
+    <h1 class="title title-1">Informe de evaluación ergonómica</h1>
+    <p>{{ evaluation.company.name }} · NIT {{ evaluation.company.nit_display }}</p>
+
+    <div class="report-result">
+      <span><small>SEDE</small>{{ evaluation.position.area.site.name }}</span>
+      <span><small>ÁREA</small>{{ evaluation.position.area.name }}</span>
+      <span><small>PUESTO</small>{{ evaluation.position.name }}</span>
+      <span><small>FECHA</small>{{ evaluation.evaluated_on|date:"d/m/Y" }}</span>
+      <span><small>EVALUADOR</small>{{ evaluation.evaluator }}</span>
+      <span><small>MAYOR RIESGO</small>{% risk_badge evaluation.worst_score %}</span>
+    </div>
+
+    <h2 class="title title-2">Actividad observada</h2>
+    <p class="detail-text">{{ evaluation.activity_description|linebreaksbr }}</p>
+    {% if evaluation.worker_context %}<p class="detail-text">{{ evaluation.worker_context|linebreaksbr }}</p>{% endif %}
+    <p class="detail-text">
+      Carga: {% if evaluation.carries_load %}sí{% if evaluation.load_weight_kg %}, {{ evaluation.load_weight_kg|floatformat:"-2" }} kg{% else %}, peso no conocido{% endif %}{% else %}no{% endif %}.
+      Movimientos repetitivos: {% if evaluation.repetitive_movements %}sí{% if evaluation.repetition_notes %}, {{ evaluation.repetition_notes }}{% endif %}{% else %}no{% endif %}.
+    </p>
+
+    {% for posture in evaluation.postures.all %}
+      {% with result=posture.result %}
+        <section class="report-posture">
+          <h2 class="title title-2">Postura {{ forloop.counter }}: {{ posture.name }}</h2>
+          <p class="detail-text">{{ posture.get_side_display }} · {{ posture.duration_value|floatformat:"-2" }} {{ posture.get_duration_unit_display|lower }} en la postura</p>
+
+          <div class="report-posture-grid">
+            <img src="{% url 'evaluations:photo' result.photo_id %}" alt="Fotografía analizada de {{ posture.name }}">
+            <div>
+              <div class="result-inline">
+                <strong class="grand-score grand-score-{{ result.action.traffic_light }}">{{ result.grand_score }}</strong>
+                <div>
+                  {% risk_badge result.grand_score %}
+                  <p>{{ result.action.description }}</p>
+                </div>
+              </div>
+              <table class="score-table">
+                <tbody>
+                  <tr><th scope="row">Brazo</th><td>{{ result.partial_scores.upper_arm }}</td><th scope="row">Cuello</th><td>{{ result.partial_scores.neck }}</td></tr>
+                  <tr><th scope="row">Antebrazo</th><td>{{ result.partial_scores.lower_arm }}</td><th scope="row">Tronco</th><td>{{ result.partial_scores.trunk }}</td></tr>
+                  <tr><th scope="row">Muñeca</th><td>{{ result.partial_scores.wrist }}</td><th scope="row">Piernas</th><td>{{ result.partial_scores.legs }}</td></tr>
+                  <tr><th scope="row">Giro de muñeca</th><td>{{ result.partial_scores.wrist_twist }}</td><th scope="row">Músculo y carga B</th><td>+{{ result.partial_scores.muscle_b }} / +{{ result.partial_scores.load_b }}</td></tr>
+                  <tr><th scope="row">Músculo y carga A</th><td>+{{ result.partial_scores.muscle_a }} / +{{ result.partial_scores.load_a }}</td><th scope="row">Puntaje D</th><td>{{ result.partial_scores.score_d }}</td></tr>
+                  <tr><th scope="row">Puntaje C</th><td>{{ result.partial_scores.score_c }}</td><th scope="row">Puntaje final</th><td>{{ result.grand_score }}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <h3 class="title title-3">Recomendaciones</h3>
+          {% if posture.recommendations.all %}
+            <ol class="report-list">
+              {% for recommendation in posture.recommendations.all %}<li>{{ recommendation.text }}</li>{% endfor %}
+            </ol>
+          {% else %}
+            <p class="detail-text">Sin recomendaciones: la postura es aceptable si no se mantiene ni se repite durante periodos largos.</p>
+          {% endif %}
+        </section>
+      {% endwith %}
+    {% endfor %}
+
+    <footer class="report-footer">
+      Método: {{ evaluation.postures.all.0.result.method }}. RULA es una guía para priorizar la investigación de los puestos y no reemplaza el criterio profesional.
+      Evaluación terminada el {{ evaluation.completed_at|date:"d/m/Y" }}.
+    </footer>
+  </article>
+</div>
+{% endblock %}

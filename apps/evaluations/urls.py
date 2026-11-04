@@ -9,6 +9,7 @@ urlpatterns = [
     path("nueva/", views.EvaluationCreateView.as_view(), name="create"),
     path("opciones/", views.EvaluationCascadeView.as_view(), name="cascade"),
     path("<int:pk>/", views.EvaluationDetailView.as_view(), name="detail"),
+    path("<int:pk>/informe/", views.EvaluationReportView.as_view(), name="report"),
     path("<int:pk>/editar/", views.EvaluationUpdateView.as_view(), name="update"),
     path("<int:pk>/terminar/", views.EvaluationCompleteView.as_view(), name="complete"),
     path("<int:pk>/reabrir/", views.EvaluationReopenView.as_view(), name="reopen"),
