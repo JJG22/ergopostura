@@ -30,7 +30,7 @@ class RoleDashboardTests(TestCase):
             Role.COMPANY: "dashboard/company.html",
             Role.EVALUATOR: "dashboard/evaluator.html",
             Role.RESULTS: "dashboard/results.html",
-            Role.TASKS: "dashboard/pending.html",
+            Role.TASKS: "dashboard/tasks.html",
         }
         for role, template in expected.items():
             self.client.force_login(make_user(role=role))

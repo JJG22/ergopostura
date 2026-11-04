@@ -1,0 +1,51 @@
+{% load risk %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Tarea</th>
+        <th>Empresa y puesto</th>
+        <th>Evaluación relacionada</th>
+        <th>Riesgo</th>
+        <th>{% if attended %}Atendida{% else %}Estado{% endif %}</th>
+        {% if actions %}<th></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for recommendation in recommendations %}
+        {% with evaluation=recommendation.posture.evaluation %}
+          <tr>
+            <td class="task-text"><strong>{{ recommendation.text }}</strong><span>{{ recommendation.posture.name }}</span></td>
+            <td><strong>{{ evaluation.company.name }}</strong><span>{{ evaluation.position.name }}</span></td>
+            <td>
+              {% if can_open_evaluation %}<a href="{% url 'evaluations:detail' evaluation.pk %}">{{ evaluation.code }}</a>
+              {% else %}{{ evaluation.code }}{% endif %}
+            </td>
+            <td>{% risk_badge recommendation.posture.assessment.grand_score %}</td>
+            <td>
+              {% if attended %}
+                <strong>{{ recommendation.attended_at|date:"d/m/Y" }}</strong>
+                <span>{% if recommendation.attended_by %}{{ recommendation.attended_by }}{% endif %}</span>
+              {% else %}
+                <span class="status status-amber">Pendiente</span>
+              {% endif %}
+            </td>
+            {% if actions %}
+              <td class="task-action">
+                {% if attended %}
+                  <form method="post" action="{% url 'tasks:reopen' recommendation.pk %}">
+                    {% csrf_token %}<button class="btn btn-tertiary">Marcar pendiente</button>
+                  </form>
+                {% else %}
+                  <form method="post" action="{% url 'tasks:attend' recommendation.pk %}">
+                    {% csrf_token %}<button class="btn btn-secondary">Marcar atendida</button>
+                  </form>
+                {% endif %}
+              </td>
+            {% endif %}
+          </tr>
+        {% endwith %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

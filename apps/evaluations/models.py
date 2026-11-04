@@ -257,6 +257,17 @@ class Recommendation(TimeStampedModel):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="recommendations", editable=False
     )
+    # Seguimiento (RF-029). Cambiar este estado no altera el resultado de la evaluacion.
+    attended_at = models.DateTimeField("atendida el", null=True, blank=True, editable=False)
+    attended_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="atendida por",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="attended_recommendations",
+        editable=False,
+    )
 
     class Meta:
         verbose_name = "recomendación"

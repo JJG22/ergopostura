@@ -7,6 +7,7 @@ from apps.accounts.selectors import users_by_role
 from apps.companies import selectors as company_selectors
 from apps.companies.structure import structure_counts
 from apps.evaluations.selectors import visible_evaluations
+from apps.tasks.selectors import pending_recommendations
 from apps.visits.selectors import upcoming_visits
 
 
@@ -58,8 +59,9 @@ def _results_context(user) -> dict:
     return {"recent_evaluations": _recent_evaluations(user)}
 
 
-def _pending_context(message: str) -> Callable[[object], dict]:
-    return lambda user: {"pending_message": message}
+def _tasks_context(user) -> dict:
+    pending = pending_recommendations(user)
+    return {"pending_count": pending.count(), "recommendations": pending[:5]}
 
 
 PANELS: dict[str, Panel] = {
@@ -68,10 +70,7 @@ PANELS: dict[str, Panel] = {
     Role.COMPANY: Panel("dashboard/company.html", _company_context),
     Role.EVALUATOR: Panel("dashboard/evaluator.html", _evaluator_context),
     Role.RESULTS: Panel("dashboard/results.html", _results_context),
-    Role.TASKS: Panel(
-        "dashboard/pending.html",
-        _pending_context("Tus tareas pendientes aparecerán aquí cuando se habilite este módulo."),
-    ),
+    Role.TASKS: Panel("dashboard/tasks.html", _tasks_context),
 }
 
 

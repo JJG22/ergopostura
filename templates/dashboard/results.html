@@ -1,7 +1,15 @@
 {% extends "layouts/app.html" %}
+{% load ui %}
 {% block content %}
 <div class="page">
   {% include "dashboard/_head.html" with subtitle="Resultados de las evaluaciones terminadas." %}
+  <div class="quick-grid two">
+    <a class="quick-card featured" href="{% url 'indicators:home' %}">
+      <span>{% icon 'chart-column' %}</span>
+      <div><strong>Ver indicadores</strong><small>Compara empresas y áreas</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+  </div>
   {% include "dashboard/_recent_evaluations.html" %}
 </div>
 {% endblock %}

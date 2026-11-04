@@ -89,6 +89,7 @@
           <div class="recommendation-row">
             <b>{{ forloop.counter }}</b>
             <p>{{ recommendation.text }}</p>
+            {% if recommendation.attended_at %}<span class="status status-teal">Atendida</span>{% endif %}
             {% if can_edit %}
               <form method="post" action="{% url 'evaluations:recommendation_delete' recommendation.pk %}" data-confirm="¿Eliminar esta recomendación?">
                 {% csrf_token %}<button class="icon-btn" aria-label="Eliminar recomendación">{% icon 'x' %}</button>
