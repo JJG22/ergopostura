@@ -1,3 +1,5 @@
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
 from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
@@ -6,6 +8,19 @@ from django.shortcuts import redirect
 
 def is_htmx(request) -> bool:
     return request.headers.get("HX-Request") == "true"
+
+
+def full_reload_url(url: str) -> str:
+    """Prepara una URL para HX-Redirect de modo que siempre recargue la pagina.
+
+    Si solo cambia el #fragmento, el navegador se desplaza sin recargar y el usuario no
+    ve lo que acaba de guardar. Por eso el destino viaja en ?foco= y lo resuelve app.js.
+    """
+    parts = urlsplit(url)
+    if not parts.fragment:
+        return url
+    query = urlencode([*parse_qsl(parts.query), ("foco", parts.fragment)])
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, ""))
 
 
 class ModalFormMixin:
@@ -52,5 +67,5 @@ class ModalFormMixin:
         messages.success(self.request, self.success_title)
         url = self.get_success_url()
         if is_htmx(self.request):
-            return HttpResponse(status=204, headers={"HX-Redirect": url})
+            return HttpResponse(status=204, headers={"HX-Redirect": full_reload_url(url)})
         return redirect(url)

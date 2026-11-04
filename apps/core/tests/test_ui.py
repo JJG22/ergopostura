@@ -12,6 +12,18 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from apps.accounts.models import Role, User
 from apps.companies.models import Company
 from apps.core.templatetags.ui import _icons, icon
+from apps.core.views import full_reload_url
+
+
+class FullReloadUrlTests(SimpleTestCase):
+    def test_moves_the_fragment_so_the_browser_reloads(self):
+        self.assertEqual(full_reload_url("/evaluaciones/1/#postura-2"), "/evaluaciones/1/?foco=postura-2")
+
+    def test_keeps_the_existing_query(self):
+        self.assertEqual(full_reload_url("/a/?x=1#b"), "/a/?x=1&foco=b")
+
+    def test_leaves_other_urls_alone(self):
+        self.assertEqual(full_reload_url("/a/?x=1"), "/a/?x=1")
 
 
 class IconTests(SimpleTestCase):
