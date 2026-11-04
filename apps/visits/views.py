@@ -1,10 +1,9 @@
-from django.shortcuts import render
 from django.urls import reverse
-from django.views import View
 from django.views.generic import CreateView, ListView, UpdateView
 
 from apps.accounts.mixins import CapabilityRequiredMixin
 from apps.accounts.permissions import Capability
+from apps.companies.cascade import PositionCascadeView
 from apps.core.views import ModalFormMixin
 
 from . import selectors
@@ -62,9 +61,6 @@ class VisitUpdateView(VisitFormViewMixin, UpdateView):
         return selectors.visible_visits(self.request.user)
 
 
-class VisitCascadeView(VisitManageMixin, View):
-    """Vuelve a dibujar los campos cuando cambia la empresa, la sede o el area."""
-
-    def get(self, request):
-        form = VisitForm(initial=request.GET.dict(), user=request.user)
-        return render(request, "core/partials/form_fields.html", {"form": form})
+class VisitCascadeView(PositionCascadeView):
+    required_capabilities = (Capability.VISIT_MANAGE,)
+    form_class = VisitForm
