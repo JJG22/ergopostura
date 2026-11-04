@@ -27,11 +27,19 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--password", default=DEMO_PASSWORD)
+        parser.add_argument(
+            "--allow-production",
+            action="store_true",
+            help="Permite ejecutarlo sin DEBUG; exige una clave distinta a la publicada en el repositorio.",
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
         if not settings.DEBUG:
-            raise CommandError("seed_demo solo se ejecuta con DEBUG activo.")
+            if not options["allow_production"]:
+                raise CommandError("seed_demo solo se ejecuta con DEBUG activo.")
+            if options["password"] == DEMO_PASSWORD:
+                raise CommandError("En producción no se permite la clave de demostración publicada.")
 
         coffee = self._company("Café Montaña S.A.S.", "900123456", "Armenia", "Quindío")
         plant, _ = Site.objects.get_or_create(

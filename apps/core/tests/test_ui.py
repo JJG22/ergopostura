@@ -1,6 +1,8 @@
+import os
 import re
-from pathlib import Path
 from io import StringIO
+from pathlib import Path
+from unittest import mock
 
 from django.conf import settings
 from django.core.management import CommandError, call_command
@@ -40,3 +42,42 @@ class SeedDemoTests(TestCase):
     def test_refuses_to_run_outside_debug(self):
         with self.assertRaises(CommandError):
             call_command("seed_demo", stdout=StringIO())
+
+    @override_settings(DEBUG=False)
+    def test_production_never_accepts_the_published_password(self):
+        with self.assertRaisesMessage(CommandError, "clave de demostración"):
+            call_command("seed_demo", allow_production=True, stdout=StringIO())
+
+    @override_settings(DEBUG=False)
+    def test_production_seed_uses_the_given_password(self):
+        call_command("seed_demo", allow_production=True, password="Otra-clave-privada-2026", stdout=StringIO())
+        user = User.objects.get(email="admin@ergopostura.test")
+        self.assertTrue(user.check_password("Otra-clave-privada-2026"))
+
+
+class EnsureAdminTests(TestCase):
+    ENV = {"DJANGO_ADMIN_EMAIL": "Jefe@Empresa.com", "DJANGO_ADMIN_PASSWORD": "Una-clave-larga-2026"}
+
+    def test_creates_admin_once_and_does_not_reset_it(self):
+        with mock.patch.dict(os.environ, self.ENV):
+            call_command("ensure_admin", stdout=StringIO())
+        user = User.objects.get(email="jefe@empresa.com")
+        self.assertEqual(user.role, Role.ADMIN)
+
+        with mock.patch.dict(os.environ, {**self.ENV, "DJANGO_ADMIN_PASSWORD": "Otra-clave-larga-2026"}):
+            call_command("ensure_admin", stdout=StringIO())
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("Una-clave-larga-2026"))
+
+    def test_does_nothing_without_variables(self):
+        with mock.patch.dict(os.environ, clear=False):
+            os.environ.pop("DJANGO_ADMIN_EMAIL", None)
+            os.environ.pop("DJANGO_ADMIN_PASSWORD", None)
+            call_command("ensure_admin", stdout=StringIO())
+        self.assertFalse(User.objects.exists())
+
+    def test_rejects_a_weak_password(self):
+        with mock.patch.dict(os.environ, {**self.ENV, "DJANGO_ADMIN_PASSWORD": "123"}):
+            with self.assertRaises(CommandError):
+                call_command("ensure_admin", stdout=StringIO())
+        self.assertFalse(User.objects.exists())

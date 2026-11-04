@@ -1,3 +1,5 @@
+import os
+
 from .base import *  # noqa: F403
 from .base import MIDDLEWARE, list_env, required_env
 
@@ -8,6 +10,12 @@ DEBUG = False
 SECRET_KEY = required_env("DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = list_env("DJANGO_ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = list_env("DJANGO_CSRF_TRUSTED_ORIGINS")
+
+# Render publica el dominio del servicio en esta variable.
+render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if render_host:
+    ALLOWED_HOSTS.append(render_host)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render_host}")
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
