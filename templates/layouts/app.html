@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block body %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">{% icon 'activity' %}</span>
+      <span>ErgoPostura</span>
+    </div>
+    <nav aria-label="Navegación principal">
+      <small>ESPACIO DE TRABAJO</small>
+      {% for item in nav_items %}
+        <a href="{{ item.url }}"{% if item.active %} class="active" aria-current="page"{% endif %}>
+          {% icon item.icon %}<span>{{ item.label }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-card static">
+        <span class="avatar">{{ request.user.initials }}</span>
+        <span>
+          <strong>{{ request.user }}</strong>
+          <small>{{ request.user.get_role_display }}</small>
+        </span>
+      </div>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit">{% icon 'log-out' %}<span>Cerrar sesión</span></button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="main-shell">
+    <header class="topbar">
+      <div class="crumb">
+        <button type="button" class="icon-btn" data-sidebar-toggle aria-label="Abrir menú">{% icon 'menu' %}</button>
+        <span>ErgoPostura</span>
+        {% icon 'chevron-right' %}
+        <strong>{% block crumb %}Panel principal{% endblock %}</strong>
+      </div>
+      <div class="top-actions">{% block top_actions %}{% endblock %}</div>
+    </header>
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<div id="modal-root"></div>
+
+{% for message in messages %}
+  <div class="toast" role="status">
+    <span>{% icon 'check' %}</span>
+    <div>
+      <strong>{{ message }}</strong>
+      <small>Los datos se guardaron correctamente.</small>
+    </div>
+    <button type="button" class="icon-btn" data-toast-close aria-label="Cerrar">{% icon 'x' %}</button>
+  </div>
+{% endfor %}
+{% endblock %}

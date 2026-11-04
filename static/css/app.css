@@ -1,0 +1,72 @@
+/* Complementos de design-system.css (exportado del diseno de Figma, no se edita).
+   El prototipo navega con <button>; aqui se navega con enlaces reales, asi que
+   estas reglas replican las mismas medidas para <a>. */
+
+.sidebar nav a,
+.sidebar-bottom form > button {
+  color: #475569;
+  text-align: left;
+  background: 0 0;
+  border: 0;
+  border-radius: 8px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 3px 0;
+  padding: 10px 12px;
+  font-weight: 500;
+  display: flex;
+}
+.sidebar nav a:hover,
+.sidebar-bottom form > button:hover { color: #0f172a; background: #f1f5f9; }
+.sidebar nav a.active { color: #115e59; background: #ccfbf1; font-weight: 600; }
+
+.user-card.static { cursor: default; padding-bottom: 8px; }
+.user-card.static:hover { background: 0 0; }
+
+.tree a {
+  color: #475569;
+  text-align: left;
+  border-radius: 8px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 7px 10px;
+  display: flex;
+}
+.tree a:hover { background: #f8fafc; }
+.tree a.selected { color: #115e59; background: #ccfbf1; }
+.tree a > svg { flex: none; width: 16px; }
+.tree a > span:not(.tree-line) { flex-direction: column; flex: 1; min-width: 0; display: flex; }
+.tree a strong { color: inherit; font-size: 12px; }
+.tree a small { color: #64748b; font-size: 10px; }
+
+.tabs a { color: #64748b; border-bottom: 2px solid #0000; padding: 16px 2px 13px; font-weight: 600; }
+.tabs a.active { color: #0f766e; border-color: #0f766e; }
+.tabs { margin-bottom: 8px; }
+.visit-row small svg { flex: none; }
+.field select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+.form-grid.single { grid-template-columns: 1fr; }
+.field--textarea { grid-column: 1 / -1; }
+.field.has-error input,
+.field.has-error select,
+.field.has-error textarea { border-color: #b91c1c; }
+.field-check { grid-column: 1 / -1; }
+.field ul.errorlist { display: none; }
+.form-error { color: #991b1b; background: #fee2e2; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; font-size: 13px; }
+
+.page-narrow { width: min(620px, 100% - 28px); }
+.nav-scrim { display: none; }
+.breadcrumb-path { flex-wrap: wrap; }
+.detail-list dd { overflow-wrap: anywhere; }
+.btn { cursor: pointer; }
+.empty a { margin-top: 14px; }
+.empty-icon svg { width: 24px; height: 24px; }
+.dashboard-grid table { min-width: 0; }
+.detail-list > .role-row { grid-template-columns: 1fr auto; gap: 12px; }
+
+.error-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; text-align: center; }
+.error-page .card { width: min(460px, 100%); }
+.error-page p { color: #64748b; margin: 8px 0 20px; }

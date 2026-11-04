@@ -1,0 +1,16 @@
+{% load ui %}
+{% csrf_token %}
+{% for error in form.non_field_errors %}
+  <div class="form-error" role="alert">{{ error }}</div>
+{% endfor %}
+{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+<div id="form-fields">
+  {% include "core/partials/form_fields.html" %}
+</div>
+{% if note %}
+  <div class="modal-note">{% icon 'circle-exclamation-point' %}<span>{{ note }}</span></div>
+{% endif %}
+<div class="modal-actions">
+  <a class="btn btn-secondary" href="{{ cancel_url }}" data-modal-close>Cancelar</a>
+  <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+</div>
