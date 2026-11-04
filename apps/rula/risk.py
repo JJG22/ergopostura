@@ -1,9 +1,10 @@
 """Nivel de accion de RULA (RF-020) y su representacion en el semaforo (RF-021, RNF-004).
 
 Los niveles de accion son del metodo. La correspondencia con los colores es una decision
-del proyecto (D4) y esta PENDIENTE DE APROBACION: se tomo la lectura literal de RF-021,
-donde el rojo se reserva para "intervencion inmediata". Si se aprueba otra, solo cambia
-la columna de color de ACTION_LEVELS.
+del proyecto (D4): se sigue la lectura literal de RF-021, donde el rojo se reserva para
+"intervencion inmediata", el unico caso del nivel 4. Para no suavizar el nivel 3, la vista
+de resultados siempre muestra el texto del nivel junto al color. El color no se guarda en
+la base de datos, asi que cambiar esta tabla no requiere migrar evaluaciones.
 """
 from dataclasses import dataclass
 from enum import StrEnum

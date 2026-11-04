@@ -1,0 +1,14 @@
+<div class="card dashboard-section">
+  <div class="section-head">
+    <div>
+      <h2 class="title title-2">Evaluaciones recientes</h2>
+      <p>Últimos registros ergonómicos</p>
+    </div>
+    <a class="btn btn-tertiary" href="{% url 'evaluations:list' %}">Ver todas</a>
+  </div>
+  {% if recent_evaluations %}
+    {% include "evaluations/_table.html" with evaluations=recent_evaluations %}
+  {% else %}
+    <p class="card-copy">Aún no hay evaluaciones.</p>
+  {% endif %}
+</div>

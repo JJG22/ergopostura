@@ -67,6 +67,70 @@
 .dashboard-grid table { min-width: 0; }
 .detail-list > .role-row { grid-template-columns: 1fr auto; gap: 12px; }
 
+.toast-error { border-color: #fecaca; }
+.toast-error > span { color: #dc2626; background: #fee2e2; }
+
+.dashboard-section { margin-top: 18px; }
+.detail-section { margin-bottom: 18px; }
+.detail-text { color: #475569; margin: 10px 0 0; overflow-wrap: anywhere; }
+.detail-risk-plain { border-color: #e2e8f0; margin: -10px 0 18px; }
+.postures-head { margin-top: 24px; align-items: center; }
+.row-actions { display: flex; align-items: center; gap: 4px; }
+.btn-tertiary-danger { color: #b91c1c; }
+.btn-tertiary-danger:hover { background: #fef2f2; }
+.posture-card { margin-bottom: 18px; scroll-margin-top: 80px; }
+.posture-content { min-width: 0; }
+.posture-number { flex: none; }
+.section-rule { border: 0; border-top: 1px solid #e2e8f0; margin: 22px 0; }
+
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 12px; }
+.photo-tile { position: relative; margin: 0; }
+.photo-tile img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; display: block; }
+.photo-tile figcaption { position: absolute; left: 6px; bottom: 6px; }
+.photo-tile form { position: absolute; top: 4px; right: 4px; }
+.photo-tile .icon-btn { width: 28px; height: 28px; background: #ffffffe6; }
+.photo-upload { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.photo-upload .field { flex: 1; min-width: 220px; }
+.photo-upload input[type="file"] { padding: 7px 9px; height: auto; }
+
+.result-inline .risk { margin-bottom: 4px; }
+.result-inline > strong.grand-score { font-size: 54px; line-height: 1; }
+.result-inline > strong.grand-score-verde { color: #16a34a; }
+.result-inline > strong.grand-score-amarillo { color: #ca8a04; }
+.result-inline > strong.grand-score-rojo { color: #dc2626; }
+.recommendation-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+.recommendation-row b { flex: none; color: #115e59; background: #ccfbf1; border-radius: 50%; display: grid; place-items: center; width: 28px; height: 28px; font-size: 11px; }
+.recommendation-row p { flex: 1; margin: 3px 0 0; color: #334155; overflow-wrap: anywhere; }
+.recommendation-form { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.recommendation-form .field { flex: 1; min-width: 220px; }
+.complete-panel { background: #fff; gap: 16px; flex-wrap: wrap; }
+.problem-list { margin: 6px 0 0; padding-left: 18px; list-style: disc; color: #854d0e; font-size: 13px; }
+
+.analysis-photo { align-self: start; position: sticky; top: 84px; }
+.photo-view-image { background: #0f172a; overflow: hidden; }
+.photo-view-image img { width: 100%; height: 100%; object-fit: contain; }
+.thumb-picker { border: 0; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.thumb-picker legend { font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 6px; padding: 0; }
+.thumb-option { cursor: pointer; }
+.thumb-option input { position: absolute; opacity: 0; }
+.thumb-option img { width: 64px; height: 54px; object-fit: cover; border-radius: 7px; border: 2px solid #cbd5e1; }
+.thumb-option input:checked + img { border-color: #0f766e; }
+.thumb-option input:focus-visible + img { outline: 2px solid #0f766e; outline-offset: 2px; }
+.assessment-groups { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.assessment-fields { margin-top: 14px; gap: 12px; }
+.assessment-fields .remember { align-items: flex-start; line-height: 1.4; }
+
+@media (width <= 760px) {
+  /* El diseno encoge los botones del encabezado a solo icono; estos son de texto. */
+  .page-head { flex-wrap: wrap; }
+  .page-head .btn.btn-text { width: auto; padding: 8px 14px; }
+  .fact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analysis-photo { position: static; }
+  .posture-card { display: block; }
+  .complete-panel { align-items: stretch; }
+  .complete-panel form .btn { width: 100%; }
+}
+
 .error-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; text-align: center; }
 .error-page .card { width: min(460px, 100%); }
 .error-page p { color: #64748b; margin: 8px 0 20px; }

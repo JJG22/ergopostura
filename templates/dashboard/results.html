@@ -1,0 +1,7 @@
+{% extends "layouts/app.html" %}
+{% block content %}
+<div class="page">
+  {% include "dashboard/_head.html" with subtitle="Resultados de las evaluaciones terminadas." %}
+  {% include "dashboard/_recent_evaluations.html" %}
+</div>
+{% endblock %}

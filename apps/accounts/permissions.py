@@ -16,20 +16,41 @@ class Capability(StrEnum):
     VISIT_VIEW_ALL = "visit.view_all"
     VISIT_VIEW_OWN = "visit.view_own"
     VISIT_MANAGE = "visit.manage"
+    # Evaluaciones en cualquier estado.
+    EVALUATION_VIEW_ALL = "evaluation.view_all"
+    # Solo evaluaciones terminadas: de todas las empresas o de la propia.
+    EVALUATION_VIEW_COMPLETED = "evaluation.view_completed"
+    EVALUATION_VIEW_OWN = "evaluation.view_own"
+    # Aplicar RULA: lo hacen el ingeniero industrial y el evaluador.
+    EVALUATION_MANAGE = "evaluation.manage"
+    EVALUATION_REOPEN = "evaluation.reopen"
 
 
 ROLE_CAPABILITIES: dict[str, frozenset[Capability]] = {
-    Role.ADMIN: frozenset(Capability),
+    Role.ADMIN: frozenset(Capability) - {Capability.EVALUATION_MANAGE},
     Role.ENGINEER: frozenset(
-        {Capability.COMPANY_VIEW_ALL, Capability.COMPANY_MANAGE, Capability.VISIT_VIEW_ALL}
+        {
+            Capability.COMPANY_VIEW_ALL,
+            Capability.COMPANY_MANAGE,
+            Capability.VISIT_VIEW_ALL,
+            Capability.EVALUATION_VIEW_ALL,
+            Capability.EVALUATION_MANAGE,
+        }
     ),
     # RF-006: la empresa registra sus visitas acordadas.
     Role.COMPANY: frozenset(
-        {Capability.COMPANY_VIEW_OWN, Capability.VISIT_VIEW_OWN, Capability.VISIT_MANAGE}
+        {
+            Capability.COMPANY_VIEW_OWN,
+            Capability.VISIT_VIEW_OWN,
+            Capability.VISIT_MANAGE,
+            Capability.EVALUATION_VIEW_OWN,
+        }
     ),
-    Role.EVALUATOR: frozenset({Capability.VISIT_VIEW_ALL}),
-    # Sin permisos hasta construir sus modulos: indicadores y tareas.
-    Role.RESULTS: frozenset(),
+    Role.EVALUATOR: frozenset(
+        {Capability.VISIT_VIEW_ALL, Capability.EVALUATION_VIEW_ALL, Capability.EVALUATION_MANAGE}
+    ),
+    Role.RESULTS: frozenset({Capability.EVALUATION_VIEW_COMPLETED}),
+    # Sin permisos hasta definir sus tareas (D8).
     Role.TASKS: frozenset(),
 }
 

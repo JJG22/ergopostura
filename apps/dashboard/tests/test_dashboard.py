@@ -29,7 +29,7 @@ class RoleDashboardTests(TestCase):
             Role.ENGINEER: "dashboard/engineer.html",
             Role.COMPANY: "dashboard/company.html",
             Role.EVALUATOR: "dashboard/evaluator.html",
-            Role.RESULTS: "dashboard/pending.html",
+            Role.RESULTS: "dashboard/results.html",
             Role.TASKS: "dashboard/pending.html",
         }
         for role, template in expected.items():

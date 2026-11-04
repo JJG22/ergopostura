@@ -1,0 +1,23 @@
+{% load risk %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Evaluación</th><th>Empresa</th><th>Área y puesto</th><th>Fecha</th><th>Riesgo</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for evaluation in evaluations %}
+        <tr>
+          <td><a href="{% url 'evaluations:detail' evaluation.pk %}"><strong>{{ evaluation.code }}</strong></a></td>
+          <td>{{ evaluation.company.name }}</td>
+          <td>{{ evaluation.position.area.name }} · {{ evaluation.position.name }}</td>
+          <td>{{ evaluation.evaluated_on|date:"d/m/Y" }}</td>
+          <td>{% risk_badge evaluation.worst_score %}</td>
+          <td>
+            {% if evaluation.is_draft %}<span class="status status-amber">{{ evaluation.get_status_display }}</span>
+            {% else %}<span class="status status-teal">{{ evaluation.get_status_display }}</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

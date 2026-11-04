@@ -35,6 +35,25 @@
     }
   });
 
+  document.addEventListener("submit", function (event) {
+    var message = event.target.getAttribute && event.target.getAttribute("data-confirm");
+    if (message && !window.confirm(message)) event.preventDefault();
+  });
+
+  document.addEventListener("change", function (event) {
+    var url = event.target.getAttribute && event.target.getAttribute("data-photo-preview");
+    var preview = document.getElementById("assessment-photo");
+    if (url && preview) preview.src = url;
+  });
+
+  var focusId = new URLSearchParams(window.location.search).get("foco");
+  var focusTarget = focusId && document.getElementById(focusId);
+  if (focusTarget) focusTarget.scrollIntoView();
+
+  var checkedPhoto = document.querySelector("[data-photo-preview]:checked");
+  var photoPreview = document.getElementById("assessment-photo");
+  if (checkedPhoto && photoPreview) photoPreview.src = checkedPhoto.getAttribute("data-photo-preview");
+
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") closeModal();
   });

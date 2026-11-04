@@ -1,0 +1,69 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Análisis RULA · ErgoPostura{% endblock %}
+{% block crumb %}Análisis RULA{% endblock %}
+{% block content %}
+<div class="page">
+  <a class="back-link page-back" href="{{ cancel_url }}">{% icon 'arrow-left' %} Volver a la evaluación</a>
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">ANÁLISIS RULA · {{ posture.get_side_display|upper }}</p>
+      <h1 class="title title-1">{{ posture.name }}</h1>
+      <p>Mide los ángulos sobre la fotografía y registra lo observado. El sistema calcula el resultado.</p>
+    </div>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}
+      <div class="form-error" role="alert">{{ error }}</div>
+    {% endfor %}
+
+    <div class="analysis-grid">
+      <div class="card analysis-photo">
+        <div class="photo-view photo-view-image">
+          <img id="assessment-photo" src="{% url 'evaluations:photo' photos.0.pk %}" alt="Fotografía analizada de {{ posture.name }}">
+        </div>
+        <fieldset class="thumb-picker">
+          <legend>Fotografía analizada</legend>
+          {% for photo in photos %}
+            <label class="thumb-option">
+              <input type="radio" name="photo" value="{{ photo.pk }}" data-photo-preview="{% url 'evaluations:photo' photo.pk %}"
+                {% if form.photo.value|stringformat:"s" == photo.pk|stringformat:"s" %}checked{% endif %}>
+              <img src="{% url 'evaluations:photo' photo.pk %}" alt="Fotografía {{ forloop.counter }}" loading="lazy">
+            </label>
+          {% endfor %}
+        </fieldset>
+        {% for error in form.photo.errors %}<small class="error-text" role="alert">{% icon 'circle-exclamation-point' %} {{ error }}</small>{% endfor %}
+      </div>
+
+      <div class="assessment-groups">
+        {% for title, fields in form.groups %}
+          <section class="card">
+            <h2 class="title title-3">{{ title }}</h2>
+            <div class="form-stack assessment-fields">
+              {% for field in fields %}
+                {% if field.widget_type == 'checkbox' %}
+                  <label class="remember">{{ field }} <span>{{ field.label }}</span></label>
+                {% else %}
+                  <div class="field{% if field.errors %} has-error{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<small class="error-text" role="alert">{% icon 'circle-exclamation-point' %} {{ error }}</small>{% endfor %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <a class="btn btn-secondary" href="{{ cancel_url }}">Cancelar</a>
+      <button type="submit" class="btn btn-primary">{% icon 'activity' %}<span>Calcular y guardar</span></button>
+    </div>
+  </form>
+</div>
+{% endblock %}

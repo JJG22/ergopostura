@@ -23,7 +23,15 @@ NAV_ITEMS = (
         "Visitas", "visits:list", "calendar-days", "visits",
         (Capability.VISIT_VIEW_ALL, Capability.VISIT_VIEW_OWN),
     ),
-    NavItem("Usuarios", "admin:accounts_user_changelist", "users", "admin", (Capability.USER_MANAGE,)),
+    NavItem(
+        "Evaluaciones", "evaluations:list", "clipboard-check", "evaluations",
+        (
+            Capability.EVALUATION_VIEW_ALL,
+            Capability.EVALUATION_VIEW_COMPLETED,
+            Capability.EVALUATION_VIEW_OWN,
+        ),
+    ),
+    NavItem("Usuarios","admin:accounts_user_changelist", "users", "admin", (Capability.USER_MANAGE,)),
 )
 
 

@@ -46,10 +46,18 @@ class PermissionPolicyTests(TestCase):
     def test_every_role_has_a_policy(self):
         self.assertEqual(set(ROLE_CAPABILITIES), set(Role))
 
-    def test_admin_has_every_capability(self):
+    def test_admin_sees_everything_but_does_not_apply_rula(self):
         admin = make_user(role=Role.ADMIN)
-        for capability in Capability:
-            self.assertTrue(has_capability(admin, capability))
+        for capability in set(Capability) - {Capability.EVALUATION_MANAGE}:
+            self.assertTrue(has_capability(admin, capability), capability)
+        self.assertFalse(has_capability(admin, Capability.EVALUATION_MANAGE))
+
+    def test_only_engineer_and_evaluator_apply_rula(self):
+        allowed = {
+            role for role, capabilities in ROLE_CAPABILITIES.items()
+            if Capability.EVALUATION_MANAGE in capabilities
+        }
+        self.assertEqual(allowed, {Role.ENGINEER, Role.EVALUATOR})
 
     def test_user_read_from_database_keeps_capabilities(self):
         pk = make_user(role=Role.ENGINEER).pk

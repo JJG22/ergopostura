@@ -1,7 +1,21 @@
 {% extends "layouts/app.html" %}
+{% load ui %}
 {% block content %}
 <div class="page">
-  {% include "dashboard/_head.html" with subtitle="Este es el panorama de tus visitas." %}
+  {% include "dashboard/_head.html" with subtitle="Este es el panorama de tus evaluaciones ergonómicas." %}
+  <div class="quick-grid two">
+    <a class="quick-card featured" href="{% url 'evaluations:create' %}">
+      <span>{% icon 'plus' %}</span>
+      <div><strong>Nueva evaluación</strong><small>Inicia un registro ergonómico</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+    <a class="quick-card" href="{% url 'visits:list' %}">
+      <span>{% icon 'calendar-days' %}</span>
+      <div><strong>Ver visitas</strong><small>Consulta las visitas programadas</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+  </div>
   {% include "dashboard/_upcoming_visits.html" %}
+  {% include "dashboard/_recent_evaluations.html" %}
 </div>
 {% endblock %}

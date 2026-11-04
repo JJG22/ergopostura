@@ -47,11 +47,11 @@
 <div id="modal-root"></div>
 
 {% for message in messages %}
-  <div class="toast" role="status">
-    <span>{% icon 'check' %}</span>
+  <div class="toast{% if message.level_tag == 'error' %} toast-error{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">
+    <span>{% if message.level_tag == 'error' %}{% icon 'circle-exclamation-point' %}{% else %}{% icon 'check' %}{% endif %}</span>
     <div>
       <strong>{{ message }}</strong>
-      <small>Los datos se guardaron correctamente.</small>
+      {% if message.level_tag != 'error' %}<small>Los datos se guardaron correctamente.</small>{% endif %}
     </div>
     <button type="button" class="icon-btn" data-toast-close aria-label="Cerrar">{% icon 'x' %}</button>
   </div>

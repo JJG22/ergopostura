@@ -6,6 +6,7 @@ from apps.accounts.models import Role
 from apps.accounts.selectors import users_by_role
 from apps.companies import selectors as company_selectors
 from apps.companies.structure import structure_counts
+from apps.evaluations.selectors import visible_evaluations
 from apps.visits.selectors import upcoming_visits
 
 
@@ -15,11 +16,16 @@ class Panel:
     build_context: Callable[[object], dict]
 
 
+def _recent_evaluations(user):
+    return visible_evaluations(user)[:5]
+
+
 def _admin_context(user) -> dict:
     return {
         "totals": company_selectors.structure_totals(user),
         "users_by_role": users_by_role(),
         "recent_companies": company_selectors.search_companies(user).order_by("-created_at")[:5],
+        "recent_evaluations": _recent_evaluations(user),
     }
 
 
@@ -27,6 +33,7 @@ def _engineer_context(user) -> dict:
     return {
         "totals": company_selectors.structure_totals(user),
         "recent_companies": company_selectors.search_companies(user).order_by("-created_at")[:5],
+        "recent_evaluations": _recent_evaluations(user),
     }
 
 
@@ -36,11 +43,19 @@ def _company_context(user) -> dict:
         "company": company,
         "counts": structure_counts(company) if company else None,
         "upcoming_visits": upcoming_visits(user)[:5],
+        "recent_evaluations": _recent_evaluations(user),
     }
 
 
 def _evaluator_context(user) -> dict:
-    return {"upcoming_visits": upcoming_visits(user)[:5]}
+    return {
+        "upcoming_visits": upcoming_visits(user)[:5],
+        "recent_evaluations": _recent_evaluations(user),
+    }
+
+
+def _results_context(user) -> dict:
+    return {"recent_evaluations": _recent_evaluations(user)}
 
 
 def _pending_context(message: str) -> Callable[[object], dict]:
@@ -52,10 +67,7 @@ PANELS: dict[str, Panel] = {
     Role.ENGINEER: Panel("dashboard/engineer.html", _engineer_context),
     Role.COMPANY: Panel("dashboard/company.html", _company_context),
     Role.EVALUATOR: Panel("dashboard/evaluator.html", _evaluator_context),
-    Role.RESULTS: Panel(
-        "dashboard/pending.html",
-        _pending_context("Los resultados e indicadores aparecerán aquí cuando se habilite este módulo."),
-    ),
+    Role.RESULTS: Panel("dashboard/results.html", _results_context),
     Role.TASKS: Panel(
         "dashboard/pending.html",
         _pending_context("Tus tareas pendientes aparecerán aquí cuando se habilite este módulo."),
