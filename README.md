@@ -17,14 +17,30 @@ Abre http://localhost:8000. Todos los usuarios de demostración usan la clave `E
 
 | Correo | Rol | Qué ve |
 |---|---|---|
-| admin@ergopostura.test | Administrador | Todo, incluidos los usuarios |
-| ingeniero@ergopostura.test | Ingeniero industrial | Todas las empresas, que puede crear y editar; visitas en solo lectura |
-| empresa@ergopostura.test | Empresa | Solo su empresa, sin editar; registra y edita sus visitas |
-| evaluador@ergopostura.test | Evaluador | Todas las visitas en solo lectura; sin acceso a empresas |
-| consulta@ergopostura.test | Consulta de resultados | Su panel; módulo pendiente |
+| admin@ergopostura.test | Administrador | Todo, incluidos los usuarios; no aplica RULA, pero puede reabrir evaluaciones |
+| ingeniero@ergopostura.test | Ingeniero industrial | Todas las empresas, que puede crear y editar; visitas en solo lectura; aplica RULA |
+| empresa@ergopostura.test | Empresa | Solo su empresa, sin editar; registra y edita sus visitas; ve sus evaluaciones terminadas |
+| evaluador@ergopostura.test | Evaluador | Todas las visitas en solo lectura; aplica RULA; sin acceso al módulo de empresas |
+| consulta@ergopostura.test | Consulta de resultados | Evaluaciones terminadas de todas las empresas |
 | tareas@ergopostura.test | Responsable de tarea | Su panel; módulo pendiente |
 
 `seed_demo` crea datos ficticios y se niega a ejecutarse con `DEBUG` desactivado.
+
+## Publicar en Render
+
+El archivo `render.yaml` define el servicio web y la base de datos.
+
+1. En Render, elige **New > Blueprint** y conecta este repositorio.
+2. Completa las variables que pide:
+   - `DJANGO_ADMIN_EMAIL` y `DJANGO_ADMIN_PASSWORD`: tu cuenta de administrador.
+   - `DEMO_SEED_PASSWORD` (opcional): crea las cuentas de demostración con esa clave. Debe ser distinta a la de este README.
+3. Cada `git push` a `main` vuelve a desplegar la aplicación.
+
+**Límites del plan gratis:**
+
+- El servicio se apaga tras 15 minutos sin tráfico y tarda cerca de un minuto en volver.
+- La base de datos tiene 1 GB y **expira 30 días después de crearla**; tras 14 días más de gracia, Render la borra.
+- No hay disco persistente. Por eso las fotografías se guardan en PostgreSQL.
 
 ## Comandos útiles
 
@@ -45,6 +61,7 @@ apps/
   accounts/        Usuarios, roles y política de permisos
   companies/       Empresa > sede > área > puesto, y reglas del NIT
   visits/          Visitas acordadas
+  evaluations/     Evaluación, posturas, fotografías, análisis y recomendaciones
   rula/            Cálculo del método RULA, sin dependencias de Django
   dashboard/       Un panel por rol
 templates/         HTML por módulo
@@ -78,6 +95,9 @@ Para extender el sistema sin modificar lo que ya funciona:
 - **Nombres sin repetir por nivel:** no puede haber dos sedes iguales en una empresa, ni dos áreas iguales en una sede, ni dos puestos iguales en un área. No distingue mayúsculas.
 - **Jerarquía coherente:** la empresa de un puesto se obtiene recorriendo la cadena; ese dato no se duplica (RNF-002).
 - **Visitas coherentes:** solo se guarda el puesto; la sede y la empresa salen de la jerarquía. No se aceptan fechas pasadas ni dos visitas al mismo puesto en la misma fecha y hora.
+- **Evaluaciones trazables:** solo su autor la modifica, y solo mientras está en curso. Terminada queda de solo lectura; únicamente el administrador puede reabrirla.
+- **Para terminar una evaluación:** toda postura debe tener su análisis RULA, y desde el nivel de acción 2, al menos una recomendación.
+- **Fotografías protegidas:** se guardan en PostgreSQL y solo las recibe quien puede ver la evaluación. Se reducen a 1600 px y se les quitan los metadatos, como la ubicación GPS.
 - **Nada se pierde por accidente:** no se puede borrar un nivel que tenga hijos (RNF-001).
 - **Acceso:** sin permiso se responde 403, y los datos de otra empresa responden 404.
 
@@ -88,13 +108,16 @@ Para extender el sistema sin modificar lo que ya funciona:
 | RF-001, 002, 003, 005 (empresas, sedes, áreas, puestos) | Listo |
 | RF-006 (visitas) | Listo |
 | RNF-001, 002 (persistencia e integridad) | Listo para lo construido; se extiende en cada módulo |
-| RF-017 a 020, RNF-003 (puntuación y nivel de riesgo RULA) | Motor de cálculo listo y probado; falta conectarlo a la evaluación |
-| RF-021, RNF-004 (semáforo) | Lógica lista; la correspondencia de colores espera aprobación (D4) |
-| RF-007 a 014 (evaluación, actividad, fotografías, posturas) | Siguiente |
-| RF-015, 016 (segmentos y ángulos) | Siguiente: registro manual de ángulos (D2) |
-| RF-023 a 025 (consulta y resumen) | Pendiente |
-| RF-022 (recomendaciones) | Bloqueado por la decisión D5 |
-| RF-004, 026 a 029 | Bloqueado por las decisiones D6 a D9 |
+| RF-007 a 014 (evaluación, actividad, fotografías, posturas) | Listo |
+| RF-015, 016 (segmentos y ángulos manuales) | Listo |
+| RF-017 a 021, RNF-004 (puntuación, riesgo y semáforo) | Listo |
+| RF-022 (recomendaciones del evaluador) | Listo |
+| RF-023 a 025 (consulta y resumen) | Listo |
+| RNF-003 (fidelidad al método) | Implementado; faltan casos de referencia aprobados |
+| RF-004 (contexto del trabajador) | Campo de texto opcional, sin datos personales; falta acordar el contenido |
+| RF-026, 027 (indicadores y comparación) | Bloqueado por la decisión D6 |
+| RF-028 (descarga del informe) | Opcional, espera la decisión D7 |
+| RF-029 (tareas pendientes) | Bloqueado por la decisión D8 |
 
 ## Decisiones tomadas
 
@@ -102,7 +125,11 @@ Para extender el sistema sin modificar lo que ya funciona:
 |---|---|
 | D1, método | RULA |
 | D2, medición de ángulos | Manual, en grados |
+| D3, puntuaciones | Las calcula el sistema a partir de lo que registra el evaluador |
+| D4, semáforo | Nivel 1 verde, niveles 2 y 3 amarillo, nivel 4 rojo; siempre con el texto del nivel |
+| D5, recomendaciones | Las escribe el evaluador después de ver el resultado |
 | D9, cuentas de trabajadores | El trabajador es la persona evaluada y no usa el sistema |
+| Quién aplica RULA | El ingeniero industrial o el evaluador |
 
 ## Método RULA
 
@@ -125,5 +152,4 @@ Algunas hojas de trabajo simplifican la carga y dan 3 puntos a cualquier carga d
 - **Tronco en extensión:** el artículo no lo puntúa, así que el sistema lo rechaza en vez de inventar un valor.
 - **Carga estática o repetida de menos de 2 kg:** el artículo no la define. El evaluador debe elegir una de las categorías publicadas.
 - **Brazo apoyado:** si el ajuste de -1 deja el puntaje en 0, se mantiene en 1, el mínimo de la tabla.
-- **Semáforo (D4):** nivel 1 verde, niveles 2 y 3 amarillo, nivel 4 rojo.
 - **Casos de referencia:** RNF-003 pide casos aprobados; hoy solo hay casos calculados a mano y ejemplos publicados.
