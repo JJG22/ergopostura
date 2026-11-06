@@ -95,6 +95,11 @@ class IndicatorViewTests(TestCase):
         self.client.logout()
         self.assertIn("/ingresar/", self.client.get(self.url)["Location"])
 
+    def test_admin_and_engineer_can_compare_companies(self):
+        for role in (Role.ADMIN, Role.ENGINEER, Role.RESULTS):
+            self.login(role)
+            self.assertTrue(self.client.get(self.url).context["shows_all_companies"], role)
+
     def test_totals_count_each_position_once_and_skip_drafts(self):
         self.login(Role.RESULTS)
         context = self.client.get(self.url).context

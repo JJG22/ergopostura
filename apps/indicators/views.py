@@ -11,9 +11,18 @@ class IndicatorsView(CapabilityRequiredMixin, TemplateView):
     required_capabilities = (Capability.INDICATORS_VIEW,)
     template_name = "indicators/home.html"
 
+    @property
+    def limited_to_own_company(self) -> bool:
+        """El administrador tambien tiene VIEW_OWN; lo que limita es no poder ver las demas."""
+        user = self.request.user
+        return not (
+            has_capability(user, Capability.EVALUATION_VIEW_ALL)
+            or has_capability(user, Capability.EVALUATION_VIEW_COMPLETED)
+        )
+
     def _selected_company_id(self, companies: dict[int, str]) -> int | None:
         user = self.request.user
-        if has_capability(user, Capability.EVALUATION_VIEW_OWN):
+        if self.limited_to_own_company:
             return user.company_id
         value = self.request.GET.get("empresa", "")
         # Solo se aceptan empresas presentes en los datos que el usuario ya puede ver.
@@ -29,7 +38,7 @@ class IndicatorsView(CapabilityRequiredMixin, TemplateView):
             totals=distribution(rows),
             company_count=len(companies),
             area_count=len({row.area_id for row in rows}),
-            shows_all_companies=not has_capability(self.request.user, Capability.EVALUATION_VIEW_OWN),
+            shows_all_companies=not self.limited_to_own_company,
             selected_company_id=selected_id,
             selected_company_name=companies.get(selected_id, ""),
             company_rows=[
