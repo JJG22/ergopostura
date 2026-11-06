@@ -8,9 +8,14 @@ from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase, override_settings
+from django.utils import timezone
 
 from apps.accounts.models import Role, User
 from apps.companies.models import Company
+from apps.core.demo import data as demo_data
+from apps.evaluations.models import Evaluation, Recommendation, RulaAssessment
+from apps.evaluations.services import completion_problems
+from apps.visits.models import Visit
 from apps.core.templatetags.ui import _icons, icon
 from apps.core.views import full_reload_url
 
@@ -45,10 +50,29 @@ class SeedDemoTests(TestCase):
     @override_settings(DEBUG=True)
     def test_creates_one_user_per_role_and_can_run_twice(self):
         call_command("seed_demo", stdout=StringIO())
+        totals = (Visit.objects.count(), Evaluation.objects.count(), Recommendation.objects.count())
         call_command("seed_demo", stdout=StringIO())
-        self.assertEqual(User.objects.count(), len(Role))
+        self.assertEqual((Visit.objects.count(), Evaluation.objects.count(), Recommendation.objects.count()), totals)
+        self.assertEqual(User.objects.count(), len(demo_data.USERS))
         self.assertEqual(set(User.objects.values_list("role", flat=True)), set(Role.values))
-        self.assertEqual(Company.objects.count(), 2)
+        self.assertEqual(Company.objects.count(), len(demo_data.COMPANIES))
+
+    @override_settings(DEBUG=True)
+    def test_demo_data_follows_the_business_rules(self):
+        call_command("seed_demo", stdout=StringIO())
+        self.assertEqual(set(RulaAssessment.objects.values_list("action_level", flat=True)), {1, 2, 3, 4})
+        for evaluation in Evaluation.objects.filter(status=Evaluation.Status.COMPLETED):
+            self.assertEqual(completion_problems(evaluation), [], evaluation)
+        self.assertTrue(Evaluation.objects.filter(status=Evaluation.Status.DRAFT).exists())
+        self.assertTrue(Recommendation.objects.filter(attended_at__isnull=False).exists())
+        self.assertTrue(Recommendation.objects.filter(attended_at__isnull=True).exists())
+        now = timezone.now()
+        self.assertTrue(Visit.objects.filter(scheduled_at__gt=now).exists())
+        self.assertTrue(Visit.objects.filter(scheduled_at__lt=now).exists())
+        inactive = Company.objects.get(is_active=False)
+        self.assertFalse(Visit.objects.filter(position__area__site__company=inactive, scheduled_at__gt=now).exists())
+        company_user = User.objects.get(email="empresa2@ergopostura.test")
+        self.assertEqual(company_user.company.nit, "890900123")
 
     @override_settings(DEBUG=False)
     def test_refuses_to_run_outside_debug(self):

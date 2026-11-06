@@ -23,8 +23,18 @@ Abre http://localhost:8000. Todos los usuarios de demostración usan la clave `E
 | evaluador@ergopostura.test | Evaluador | Todas las visitas en solo lectura; aplica RULA; sin acceso al módulo de empresas |
 | consulta@ergopostura.test | Consulta de resultados | Evaluaciones terminadas e indicadores de todas las empresas |
 | tareas@ergopostura.test | Responsable de tarea | Recomendaciones por atender de todas las empresas, sin acceso a las fotografías |
+| evaluador2@ergopostura.test | Evaluador | Igual que el otro evaluador; sirve para probar que cada uno edita solo sus evaluaciones |
+| empresa2@ergopostura.test | Empresa | Solo Textiles Antioquia S.A.; sirve para probar que una empresa no ve a otra |
 
-`seed_demo` crea datos ficticios y se niega a ejecutarse con `DEBUG` desactivado.
+`seed_demo` crea datos ficticios para probar el sistema a mano:
+
+- Seis empresas en cinco departamentos, una de ellas inactiva, con sus sedes, áreas y puestos.
+- Por cada puesto, una visita pasada con su evaluación terminada y otra futura, en horas distintas para llenar el calendario.
+- Evaluaciones con los cuatro niveles de acción de RULA, calculados con el motor real, y algunas en curso.
+- Recomendaciones atendidas y pendientes para el seguimiento.
+- En lugar de fotografías, figuras de perfil dibujadas con los ángulos de cada postura.
+
+Se puede ejecutar varias veces sin duplicar nada: solo completa los puestos que aún no tienen evaluaciones. Se niega a ejecutarse con `DEBUG` desactivado.
 
 ## Publicar en Render
 
