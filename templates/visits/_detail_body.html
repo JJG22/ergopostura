@@ -1,0 +1,26 @@
+{% load ui %}
+<div class="visit-detail">
+  <div class="visit-detail-head">
+    <span class="cal-swatch c{{ color }}" aria-hidden="true"></span>
+    <div>
+      <strong>{{ visit.company.name }}</strong>
+      <p>{{ visit.scheduled_at|date:"l j \d\e F \d\e Y"|capfirst }} · {{ visit.scheduled_at|time:"g:i a" }}</p>
+    </div>
+    {% if is_past %}<span class="status status-neutral">Pasada</span>{% else %}<span class="status status-teal">Programada</span>{% endif %}
+  </div>
+  <dl class="detail-list">
+    <div><dt>Sede</dt><dd>{{ visit.site.name }}</dd></div>
+    <div><dt>Área</dt><dd>{{ visit.area.name }}</dd></div>
+    <div><dt>Puesto de trabajo</dt><dd>{{ visit.position.name }}</dd></div>
+    <div><dt>Contacto de la empresa</dt><dd>{{ visit.contact_name|default:"Sin registrar" }}</dd></div>
+    <div><dt>Registrada por</dt><dd>{{ visit.created_by|default:"Sin registrar" }}</dd></div>
+  </dl>
+  <div class="modal-actions">
+    {% if 'evaluation.manage' in caps %}
+      <a class="btn btn-secondary" href="{% url 'evaluations:create' %}?visita={{ visit.pk }}">{% icon 'clipboard-check' %}<span>Evaluar</span></a>
+    {% endif %}
+    {% if 'visit.manage' in caps %}
+      <a class="btn btn-primary" href="{% url 'visits:update' visit.pk %}" hx-get="{% url 'visits:update' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">Editar</a>
+    {% endif %}
+  </div>
+</div>

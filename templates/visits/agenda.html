@@ -1,6 +1,6 @@
 {% extends "layouts/app.html" %}
 {% load ui %}
-{% block title %}Visitas · ErgoPostura{% endblock %}
+{% block title %}Agenda de visitas · ErgoPostura{% endblock %}
 {% block crumb %}Visitas{% endblock %}
 {% block content %}
 <div class="page">
@@ -9,17 +9,20 @@
       <h1 class="title title-1">Visitas</h1>
       <p>Consulta y registra las visitas acordadas con las empresas.</p>
     </div>
-    {% if 'visit.manage' in caps %}
-      <a class="btn btn-primary" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML" aria-label="Registrar visita">
-        {% icon 'plus' %}<span>Registrar visita</span>
-      </a>
-    {% endif %}
+    <div class="row-actions">
+      <a class="btn btn-secondary btn-text" href="{% url 'visits:list' %}">{% icon 'calendar-days' %}<span>Ver calendario</span></a>
+      {% if 'visit.manage' in caps %}
+        <a class="btn btn-primary" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML" aria-label="Registrar visita">
+          {% icon 'plus' %}<span>Registrar visita</span>
+        </a>
+      {% endif %}
+    </div>
   </div>
 
   <div class="card">
     <div class="tabs">
-      <a href="{% url 'visits:list' %}"{% if not showing_past %} class="active" aria-current="page"{% endif %}>Próximas</a>
-      <a href="{% url 'visits:list' %}?ver=pasadas"{% if showing_past %} class="active" aria-current="page"{% endif %}>Pasadas</a>
+      <a href="{% url 'visits:agenda' %}"{% if not showing_past %} class="active" aria-current="page"{% endif %}>Próximas</a>
+      <a href="{% url 'visits:agenda' %}?ver=pasadas"{% if showing_past %} class="active" aria-current="page"{% endif %}>Pasadas</a>
     </div>
 
     {% for visit in visits %}

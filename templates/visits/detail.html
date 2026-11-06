@@ -1,0 +1,14 @@
+{% extends "layouts/app.html" %}
+{% load static ui %}
+{% block title %}Visita · ErgoPostura{% endblock %}
+{% block crumb %}Visitas{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/calendar.css' %}">{% endblock %}
+{% block content %}
+<div class="page page-narrow">
+  <a class="back-link" href="{{ calendar_back_url }}">{% icon 'arrow-left' %}<span>Volver al calendario</span></a>
+  <div class="page-head"><h1 class="title title-1">Visita acordada</h1></div>
+  <div class="card">
+    {% include "visits/_detail_body.html" %}
+  </div>
+</div>
+{% endblock %}

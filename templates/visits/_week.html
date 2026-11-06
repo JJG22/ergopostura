@@ -1,0 +1,39 @@
+{% load l10n %}
+{% localize off %}
+<div class="cal-week-scroll">
+  <div class="cal-weekgrid">
+    <div class="cal-week-head">
+      <div class="cal-gutter"></div>
+      {% for day in period.days %}
+        <div class="cal-week-day{% if day.is_today %} is-today{% endif %}{% if day.is_past %} is-past{% endif %}">
+          <small>{{ day.weekday_name|slice:":3"|upper }}</small>
+          <strong{% if day.is_today %} aria-current="date"{% endif %}>{{ day.date.day }}</strong>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="cal-week-body" style="height: {{ period.grid_height }}px">
+      <div class="cal-hours" aria-hidden="true">
+        {% for row, label in period.hour_rows %}<span style="--i: {{ row }}">{{ label }}</span>{% endfor %}
+      </div>
+      {% for day in period.days %}
+        <div class="cal-col{% if day.is_today %} is-today{% endif %}{% if day.is_past %} is-past{% endif %}" aria-label="{{ day.weekday_name|capfirst }} {{ day.date|date:'j \d\e F' }}">
+          {% if 'visit.manage' in caps %}
+            {% for hour, row in day.open_slots %}
+              <a class="cal-slot" style="--i: {{ row }}" href="{% url 'visits:create' %}?vista=semana&amp;fecha={{ day.date|date:'Y-m-d' }}&amp;hora={{ hour }}" hx-get="{% url 'visits:create' %}?vista=semana&amp;fecha={{ day.date|date:'Y-m-d' }}&amp;hora={{ hour }}" hx-target="#modal-root" hx-swap="innerHTML" aria-label="Registrar visita el {{ day.date|date:'j \d\e F' }} a las {{ hour }}:00"></a>
+            {% endfor %}
+          {% endif %}
+          {% for event in day.events %}
+            <a class="cal-event c{{ event.color }}{% if day.is_past %} is-past{% endif %}" style="top: {{ event.top }}px; left: {{ event.left_percent }}%; width: calc({{ event.width_percent }}% - 4px)" href="{% url 'visits:detail' event.visit.pk %}" hx-get="{% url 'visits:detail' event.visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">
+              <strong>{{ event.visit.company.name }}</strong>
+              <small>{{ event.start|time:"g:i a" }} · {{ event.visit.position.name }}</small>
+            </a>
+          {% endfor %}
+          {% if day.is_today and period.now_top is not None %}
+            <div class="cal-now" style="top: {{ period.now_top }}px" aria-hidden="true"></div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endlocalize %}

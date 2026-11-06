@@ -1,0 +1,84 @@
+{% extends "layouts/app.html" %}
+{% load static ui %}
+{% block title %}Visitas · ErgoPostura{% endblock %}
+{% block crumb %}Visitas{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/calendar.css' %}">{% endblock %}
+{% block content %}
+<div class="page page-calendar">
+  <div class="page-head">
+    <div>
+      <h1 class="title title-1">Visitas</h1>
+      <p>Consulta y registra las visitas acordadas con las empresas.</p>
+    </div>
+    {% if 'visit.manage' in caps %}
+      <a class="btn btn-primary" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML" aria-label="Registrar visita">
+        {% icon 'plus' %}<span>Registrar visita</span>
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="cal-layout">
+    <section class="card cal-card" id="calendar" aria-labelledby="calendar-title">
+      <div class="cal-toolbar">
+        <a class="btn btn-secondary cal-today" href="{{ today_url }}" hx-get="{{ today_url }}" hx-target="#calendar" hx-select="#calendar" hx-swap="outerHTML" hx-push-url="true">Hoy</a>
+        <div class="cal-arrows">
+          <a class="icon-btn cal-prev" href="{{ previous_url }}" hx-get="{{ previous_url }}" hx-target="#calendar" hx-select="#calendar" hx-swap="outerHTML" hx-push-url="true" aria-label="{% if period.view == 'semana' %}Semana anterior{% else %}Mes anterior{% endif %}">{% icon 'chevron-right' %}</a>
+          <a class="icon-btn" href="{{ next_url }}" hx-get="{{ next_url }}" hx-target="#calendar" hx-select="#calendar" hx-swap="outerHTML" hx-push-url="true" aria-label="{% if period.view == 'semana' %}Semana siguiente{% else %}Mes siguiente{% endif %}">{% icon 'chevron-right' %}</a>
+        </div>
+        <h2 class="cal-title" id="calendar-title" aria-live="polite">{{ period.title|capfirst }}</h2>
+        <nav class="cal-views" aria-label="Vista del calendario">
+          <a href="{{ month_url }}" hx-get="{{ month_url }}" hx-target="#calendar" hx-select="#calendar" hx-swap="outerHTML" hx-push-url="true"{% if period.view == 'mes' %} class="active" aria-current="page"{% endif %}>Mes</a>
+          <a href="{{ week_url }}" hx-get="{{ week_url }}" hx-target="#calendar" hx-select="#calendar" hx-swap="outerHTML" hx-push-url="true"{% if period.view == 'semana' %} class="active" aria-current="page"{% endif %}>Semana</a>
+          <a href="{% url 'visits:agenda' %}">Agenda</a>
+        </nav>
+      </div>
+
+      {% if period.view == 'semana' %}
+        {% include "visits/_week.html" %}
+      {% else %}
+        {% include "visits/_month.html" %}
+      {% endif %}
+
+      <div class="cal-footer">
+        {% if legend %}
+          <ul class="cal-legend" aria-label="Empresas con visitas en este periodo">
+            {% for company, color in legend %}
+              <li><span class="cal-swatch c{{ color }}"></span>{{ company.name }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="cal-empty-note">No hay visitas en este periodo.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <aside class="card cal-side" aria-labelledby="upcoming-title">
+      <div class="section-head">
+        <div>
+          <h2 class="title title-2" id="upcoming-title">Próximas visitas</h2>
+          <p>Las {{ upcoming|length }} más cercanas</p>
+        </div>
+      </div>
+      {% for visit in upcoming %}
+        <a class="cal-upcoming" href="{% url 'visits:detail' visit.pk %}" hx-get="{% url 'visits:detail' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">
+          <span class="cal-upcoming-date c{{ visit.color }}">
+            <small>{{ visit.scheduled_at|date:"M"|upper }}</small>
+            <strong>{{ visit.scheduled_at|date:"j" }}</strong>
+          </span>
+          <span class="cal-upcoming-text">
+            <strong>{{ visit.company.name }}</strong>
+            <small>{{ visit.scheduled_at|date:"l"|capfirst }} · {{ visit.scheduled_at|time:"g:i a" }}</small>
+            <small>{{ visit.position.name }}</small>
+          </span>
+        </a>
+      {% empty %}
+        <div class="empty">
+          <div class="empty-icon">{% icon 'calendar-days' %}</div>
+          <strong>No hay visitas programadas</strong>
+        </div>
+      {% endfor %}
+      <a class="btn btn-tertiary cal-side-link" href="{% url 'visits:agenda' %}">Ver la agenda completa</a>
+    </aside>
+  </div>
+</div>
+{% endblock %}

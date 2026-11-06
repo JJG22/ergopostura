@@ -162,19 +162,21 @@ class VisitAccessTests(VisitTestCase):
         ]
 
     def test_anonymous_is_sent_to_login(self):
-        for url in [reverse("visits:list"), *self.manage_urls()]:
+        urls = [reverse("visits:list"), reverse("visits:agenda"), reverse("visits:detail", args=[self.visit.pk])]
+        for url in [*urls, *self.manage_urls()]:
             self.assertIn("/ingresar/", self.client.get(url)["Location"])
 
     def test_roles_that_read_all(self):
         for role in (Role.ADMIN, Role.ENGINEER, Role.EVALUATOR):
             self.client.force_login(make_user(role=role))
-            visits = self.client.get(reverse("visits:list")).context["visits"]
+            visits = self.client.get(reverse("visits:agenda")).context["visits"]
             self.assertEqual(len(visits), 2, role)
 
     def test_roles_without_access_get_403(self):
         for role in (Role.RESULTS, Role.TASKS):
             self.client.force_login(make_user(role=role))
-            self.assertEqual(self.client.get(reverse("visits:list")).status_code, 403, role)
+            for name in ("visits:list", "visits:agenda"):
+                self.assertEqual(self.client.get(reverse(name)).status_code, 403, role)
 
     def test_only_admin_and_company_can_manage(self):
         for role in (Role.ENGINEER, Role.EVALUATOR, Role.RESULTS, Role.TASKS):
@@ -188,16 +190,18 @@ class VisitAccessTests(VisitTestCase):
 
     def test_read_only_roles_do_not_see_actions(self):
         self.client.force_login(make_user(role=Role.EVALUATOR))
-        response = self.client.get(reverse("visits:list"))
-        self.assertNotContains(response, "Registrar visita")
-        self.assertNotContains(response, "Editar")
+        for url in (reverse("visits:list"), reverse("visits:detail", args=[self.visit.pk])):
+            response = self.client.get(url)
+            self.assertNotContains(response, "Registrar visita")
+            self.assertNotContains(response, "Editar")
 
     def test_company_user_only_sees_and_edits_its_own_visits(self):
         self.client.force_login(make_user(role=Role.COMPANY, company=self.company))
-        visits = self.client.get(reverse("visits:list")).context["visits"]
+        visits = self.client.get(reverse("visits:agenda")).context["visits"]
         self.assertEqual(list(visits), [self.visit])
-        response = self.client.get(reverse("visits:update", args=[self.foreign_visit.pk]))
-        self.assertEqual(response.status_code, 404)
+        for name in ("visits:update", "visits:detail"):
+            response = self.client.get(reverse(name, args=[self.foreign_visit.pk]))
+            self.assertEqual(response.status_code, 404, name)
 
     def test_forbidden_post_does_not_write(self):
         self.client.force_login(make_user(role=Role.ENGINEER))
@@ -214,7 +218,7 @@ class VisitViewTests(VisitTestCase):
     def test_create_from_modal_redirects_whole_page(self):
         response = self.client.post(reverse("visits:create"), self.payload(), **HTMX)
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(response["HX-Redirect"], reverse("visits:list"))
+        self.assertEqual(response["HX-Redirect"], f"{reverse('visits:list')}?fecha={future().date().isoformat()}")
         self.assertEqual(Visit.objects.get().created_by, self.user)
 
     def test_errors_stay_in_the_modal(self):
@@ -254,17 +258,17 @@ class VisitViewTests(VisitTestCase):
     def test_list_separates_upcoming_and_past(self):
         upcoming = make_visit(self.position, future())
         past = make_visit(self.position, timezone.now() - timedelta(days=2))
-        url = reverse("visits:list")
+        url = reverse("visits:agenda")
         self.assertEqual(list(self.client.get(url).context["visits"]), [upcoming])
         self.assertEqual(list(self.client.get(url, {"ver": "pasadas"}).context["visits"]), [past])
 
     def test_list_shows_time_in_colombia(self):
         make_visit(self.position, future())
-        self.assertContains(self.client.get(reverse("visits:list")), "9:00")
+        self.assertContains(self.client.get(reverse("visits:agenda")), "9:00")
 
     def test_list_query_count_does_not_grow_with_visits(self):
         for days in range(1, 6):
             make_visit(self.position, future(days))
         # sesion, usuario, conteo de la paginacion y visitas con su jerarquia
         with self.assertNumQueries(4):
-            self.client.get(reverse("visits:list"))
+            self.client.get(reverse("visits:agenda"))

@@ -62,7 +62,7 @@ apps/
   accounts/        Usuarios, roles y política de permisos
   geography/       Departamentos y municipios de api-colombia.com
   companies/       Empresa > sede > área > puesto, y reglas del NIT
-  visits/          Visitas acordadas
+  visits/          Visitas acordadas: calendario por mes o semana, y agenda
   evaluations/     Evaluación, posturas, fotografías, análisis y recomendaciones
   indicators/      Indicadores por empresa y comparación entre áreas
   tasks/           Tareas pendientes del proceso
@@ -99,6 +99,7 @@ Para extender el sistema sin modificar lo que ya funciona:
 - **Ubicación del catálogo oficial:** empresas y sedes eligen departamento y luego municipio, de los datos de [api-colombia.com](https://api-colombia.com). Se guarda una copia en `apps/geography/data/colombia.json` que la migración carga, así que los formularios funcionan aunque la API no responda. `sync_geography` la actualiza sin borrar nada, y un municipio en uso no se puede eliminar.
 - **Nombres sin repetir por nivel:** no puede haber dos sedes iguales en una empresa, ni dos áreas iguales en una sede, ni dos puestos iguales en un área. No distingue mayúsculas.
 - **Jerarquía coherente:** la empresa de un puesto se obtiene recorriendo la cadena; ese dato no se duplica (RNF-002).
+- **Calendario de visitas:** vista por mes y por semana, con un color por empresa. Quien registra visitas puede crear una desde un día o una hora libre; los días y horas pasados no lo ofrecen. Cada rol ve solo las visitas de su alcance.
 - **Visitas coherentes:** solo se guarda el puesto; la sede y la empresa salen de la jerarquía. No se aceptan fechas pasadas ni dos visitas al mismo puesto en la misma fecha y hora.
 - **Evaluaciones trazables:** solo su autor la modifica, y solo mientras está en curso. Terminada queda de solo lectura; únicamente el administrador puede reabrirla.
 - **Para terminar una evaluación:** toda postura debe tener su análisis RULA, y desde el nivel de acción 2, al menos una recomendación.

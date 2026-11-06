@@ -21,3 +21,7 @@ def upcoming_visits(user) -> QuerySet[Visit]:
 
 def past_visits(user) -> QuerySet[Visit]:
     return visible_visits(user).filter(scheduled_at__lt=timezone.now()).order_by("-scheduled_at", "-pk")
+
+
+def visits_between(user, start, end) -> QuerySet[Visit]:
+    return visible_visits(user).filter(scheduled_at__gte=start, scheduled_at__lt=end).order_by("scheduled_at", "pk")
