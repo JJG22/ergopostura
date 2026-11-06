@@ -47,6 +47,7 @@ El archivo `render.yaml` define el servicio web y la base de datos.
 ```powershell
 docker compose exec web python manage.py test --settings=config.settings.test
 docker compose exec web python manage.py makemigrations
+docker compose exec web python manage.py sync_geography   # actualiza municipios desde api-colombia.com
 docker compose logs -f web
 docker compose down        # conserva la base de datos
 docker compose down -v     # BORRA la base de datos
@@ -59,6 +60,7 @@ config/            Configuración por entorno (base, dev, prod, test) y URLs
 apps/
   core/            Piezas compartidas: formularios modales, navegación, iconos
   accounts/        Usuarios, roles y política de permisos
+  geography/       Departamentos y municipios de api-colombia.com
   companies/       Empresa > sede > área > puesto, y reglas del NIT
   visits/          Visitas acordadas
   evaluations/     Evaluación, posturas, fotografías, análisis y recomendaciones
@@ -94,6 +96,7 @@ Para extender el sistema sin modificar lo que ya funciona:
 
 - **NIT único:** se guarda solo el número base, así que `900.123.456-8`, `900123456-8` y `900123456` son la misma empresa. Se valida el dígito de verificación de la DIAN.
 - **Doble protección:** el formulario da un mensaje claro y la base de datos rechaza el duplicado aunque dos personas guarden a la vez.
+- **Ubicación del catálogo oficial:** empresas y sedes eligen departamento y luego municipio, de los datos de [api-colombia.com](https://api-colombia.com). Se guarda una copia en `apps/geography/data/colombia.json` que la migración carga, así que los formularios funcionan aunque la API no responda. `sync_geography` la actualiza sin borrar nada, y un municipio en uso no se puede eliminar.
 - **Nombres sin repetir por nivel:** no puede haber dos sedes iguales en una empresa, ni dos áreas iguales en una sede, ni dos puestos iguales en un área. No distingue mayúsculas.
 - **Jerarquía coherente:** la empresa de un puesto se obtiene recorriendo la cadena; ese dato no se duplica (RNF-002).
 - **Visitas coherentes:** solo se guarda el puesto; la sede y la empresa salen de la jerarquía. No se aceptan fechas pasadas ni dos visitas al mismo puesto en la misma fecha y hora.

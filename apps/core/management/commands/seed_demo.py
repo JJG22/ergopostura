@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Role
 from apps.companies.models import Area, Company, Position, Site
+from apps.geography.models import Municipality
 from apps.visits.models import Visit
 
 DEMO_PASSWORD = "ErgoDemo2026!"
@@ -43,10 +44,10 @@ class Command(BaseCommand):
 
         coffee = self._company("Café Montaña S.A.S.", "900123456", "Armenia", "Quindío")
         plant, _ = Site.objects.get_or_create(
-            company=coffee, name="Planta Armenia", defaults={"city": "Armenia", "department": "Quindío"}
+            company=coffee, name="Planta Armenia", defaults={"municipality": place("Armenia", "Quindío")}
         )
         warehouse, _ = Site.objects.get_or_create(
-            company=coffee, name="Bodega Calarcá", defaults={"city": "Calarcá", "department": "Quindío"}
+            company=coffee, name="Bodega Calarcá", defaults={"municipality": place("Calarcá", "Quindío")}
         )
         packing, _ = Area.objects.get_or_create(site=plant, name="Empaque")
         admin_area, _ = Area.objects.get_or_create(site=plant, name="Administración")
@@ -88,6 +89,10 @@ class Command(BaseCommand):
     @staticmethod
     def _company(name, nit, city, department):
         company, _ = Company.objects.get_or_create(
-            nit=nit, defaults={"name": name, "city": city, "department": department}
+            nit=nit, defaults={"name": name, "municipality": place(city, department)}
         )
         return company
+
+
+def place(name, department):
+    return Municipality.objects.get(name=name, department__name=department)

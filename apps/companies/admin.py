@@ -5,16 +5,19 @@ from .models import Area, Company, Position, Site
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ("name", "nit_display", "city", "department", "is_active")
-    list_filter = ("is_active", "department")
+    list_display = ("name", "nit_display", "municipality", "is_active")
+    list_filter = ("is_active", "municipality__department")
+    list_select_related = ("municipality__department",)
     search_fields = ("name", "nit")
+    autocomplete_fields = ("municipality",)
 
 
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ("name", "company", "city", "department")
-    list_select_related = ("company",)
+    list_display = ("name", "company", "municipality")
+    list_select_related = ("company", "municipality")
     search_fields = ("name", "company__name")
+    autocomplete_fields = ("municipality",)
 
 
 @admin.register(Area)

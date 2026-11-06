@@ -8,14 +8,22 @@ from django.urls import reverse
 from apps.accounts.models import Role
 from apps.companies.forms import CompanyForm
 from apps.companies.models import Area, Company, Position, Site
-from apps.core.tests.factories import make_area, make_company, make_position, make_site, make_user
+from apps.core.tests.factories import (
+    make_area,
+    make_company,
+    make_position,
+    make_site,
+    make_user,
+    municipality,
+)
 
-VALID_COMPANY = {
-    "name": "Café Montaña S.A.S.",
-    "nit": "900.123.456-8",
-    "city": "Armenia",
-    "department": "Quindío",
-}
+def location(name="Armenia", department="Quindío"):
+    place = municipality(name, department)
+    return {"department": place.department_id, "municipality": place.pk}
+
+
+def valid_company():
+    return {"name": "Café Montaña S.A.S.", "nit": "900.123.456-8", **location()}
 HTMX = {"HTTP_HX_REQUEST": "true"}
 
 
@@ -60,44 +68,44 @@ class DatabaseIntegrityTests(TestCase):
 class CompanyFormTests(TestCase):
     def test_duplicate_nit_message(self):
         make_company(nit="900123456")
-        form = CompanyForm(data=VALID_COMPANY)
+        form = CompanyForm(data=valid_company())
         self.assertFalse(form.is_valid())
         self.assertIn("Ya existe una empresa con este NIT.", form.errors["nit"])
 
     def test_same_nit_written_differently_is_still_a_duplicate(self):
         make_company(nit="900123456")
         for raw in ("900123456", "900123456-8", "900 123 456"):
-            form = CompanyForm(data={**VALID_COMPANY, "nit": raw})
+            form = CompanyForm(data={**valid_company(), "nit": raw})
             self.assertFalse(form.is_valid(), raw)
             self.assertIn("Ya existe una empresa con este NIT.", form.errors["nit"])
 
     def test_nit_is_saved_normalized(self):
-        form = CompanyForm(data=VALID_COMPANY)
+        form = CompanyForm(data=valid_company())
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.save().nit, "900123456")
 
     def test_missing_nit(self):
-        form = CompanyForm(data={**VALID_COMPANY, "nit": "  "})
+        form = CompanyForm(data={**valid_company(), "nit": "  "})
         self.assertIn("El NIT es obligatorio.", form.errors["nit"])
 
     def test_editing_a_company_keeps_its_own_nit(self):
         company = make_company(nit="900123456")
-        form = CompanyForm(data={**VALID_COMPANY, "is_active": "on"}, instance=company)
+        form = CompanyForm(data={**valid_company(), "is_active": "on"}, instance=company)
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_editing_cannot_take_the_nit_of_another_company(self):
         make_company(nit="900123456")
         other = make_company(nit="901234567")
-        form = CompanyForm(data=VALID_COMPANY, instance=other)
+        form = CompanyForm(data=valid_company(), instance=other)
         self.assertIn("Ya existe una empresa con este NIT.", form.errors["nit"])
 
     def test_new_company_has_no_active_field_and_starts_active(self):
-        form = CompanyForm(data=VALID_COMPANY)
+        form = CompanyForm(data=valid_company())
         self.assertNotIn("is_active", form.fields)
         self.assertTrue(form.save().is_active)
 
     def test_spaces_in_name_are_normalized(self):
-        form = CompanyForm(data={**VALID_COMPANY, "name": "  Café   Montaña  "})
+        form = CompanyForm(data={**valid_company(), "name": "  Café   Montaña  "})
         self.assertEqual(form.save().name, "Café Montaña")
 
 
@@ -147,7 +155,7 @@ class AccessControlTests(TestCase):
 
     def test_forbidden_post_does_not_write(self):
         self.client.force_login(make_user(role=Role.EVALUATOR))
-        response = self.client.post(reverse("companies:create"), {**VALID_COMPANY, "nit": "901234567"})
+        response = self.client.post(reverse("companies:create"), {**valid_company(), "nit": "901234567"})
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Company.objects.filter(nit="901234567").exists())
 
@@ -202,13 +210,13 @@ class CompanyViewTests(TestCase):
         self.client.force_login(make_user(role=Role.ENGINEER))
 
     def test_create_redirects_to_detail(self):
-        response = self.client.post(reverse("companies:create"), VALID_COMPANY)
+        response = self.client.post(reverse("companies:create"), valid_company())
         company = Company.objects.get(nit="900123456")
         self.assertRedirects(response, reverse("companies:detail", args=[company.pk]))
 
     def test_duplicate_nit_shows_error_and_creates_nothing(self):
         make_company(nit="900123456")
-        response = self.client.post(reverse("companies:create"), VALID_COMPANY)
+        response = self.client.post(reverse("companies:create"), valid_company())
         self.assertContains(response, "Ya existe una empresa con este NIT.")
         self.assertEqual(Company.objects.filter(nit="900123456").count(), 1)
 
@@ -219,14 +227,14 @@ class CompanyViewTests(TestCase):
         self.assertNotContains(modal, "<html")
 
         make_company(nit="900123456")
-        invalid = self.client.post(url, VALID_COMPANY, **HTMX)
+        invalid = self.client.post(url, valid_company(), **HTMX)
         self.assertEqual(invalid.status_code, 200)
         self.assertContains(invalid, 'class="overlay"')
         self.assertContains(invalid, "Ya existe una empresa con este NIT.")
 
     def test_htmx_success_redirects_whole_page(self):
         response = self.client.post(
-            reverse("companies:create"), {**VALID_COMPANY, "nit": "901234567"}, **HTMX
+            reverse("companies:create"), {**valid_company(), "nit": "901234567"}, **HTMX
         )
         self.assertEqual(response.status_code, 204)
         company = Company.objects.get(nit="901234567")
@@ -235,7 +243,7 @@ class CompanyViewTests(TestCase):
     def test_concurrent_duplicate_becomes_form_error_not_server_error(self):
         # Simula que otra persona guarda el mismo NIT entre la validacion y el guardado.
         with mock.patch.object(CompanyForm, "save", side_effect=IntegrityError):
-            response = self.client.post(reverse("companies:create"), VALID_COMPANY)
+            response = self.client.post(reverse("companies:create"), valid_company())
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Ya existe una empresa con este NIT.")
 
@@ -279,7 +287,7 @@ class StructureViewTests(TestCase):
         self.company = make_company()
 
     def site_data(self, name="Planta Armenia"):
-        return {"name": name, "city": "Armenia", "department": "Quindío"}
+        return {"name": name, **location()}
 
     def test_full_hierarchy_can_be_created(self):
         self.client.post(reverse("companies:site_create", args=[self.company.pk]), self.site_data())

@@ -12,8 +12,8 @@ from django.db.models import Q
 from django.db.models.functions import Lower
 
 from apps.core.models import TimeStampedModel
+from apps.geography.models import Municipality
 
-from .constants import DEPARTMENT_CHOICES
 from .nit import Nit
 
 
@@ -26,8 +26,9 @@ class Company(TimeStampedModel):
         validators=[RegexValidator(r"^[1-9][0-9]{5,9}$", "Escribe un NIT válido.")],
         error_messages={"unique": "Ya existe una empresa con este NIT."},
     )
-    city = models.CharField("ciudad", max_length=100)
-    department = models.CharField("departamento", max_length=60, choices=DEPARTMENT_CHOICES)
+    municipality = models.ForeignKey(
+        Municipality, verbose_name="municipio", on_delete=models.PROTECT, related_name="companies"
+    )
     is_active = models.BooleanField("empresa activa", default=True)
 
     class Meta:
@@ -58,8 +59,9 @@ class Site(TimeStampedModel):
         Company, verbose_name="empresa", on_delete=models.PROTECT, related_name="sites"
     )
     name = models.CharField("nombre", max_length=150)
-    city = models.CharField("ciudad", max_length=100)
-    department = models.CharField("departamento", max_length=60, choices=DEPARTMENT_CHOICES)
+    municipality = models.ForeignKey(
+        Municipality, verbose_name="municipio", on_delete=models.PROTECT, related_name="sites"
+    )
     address = models.CharField("dirección", max_length=200, blank=True)
 
     class Meta:

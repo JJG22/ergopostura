@@ -1,5 +1,7 @@
 from django import forms
 
+from apps.geography.forms import LocationFieldsMixin
+
 from .models import Area, Company, Position, Site
 from .nit import InvalidNit, Nit
 
@@ -8,7 +10,7 @@ def normalize_name(value: str) -> str:
     return " ".join(value.split())
 
 
-class CompanyForm(forms.ModelForm):
+class CompanyForm(LocationFieldsMixin, forms.ModelForm):
     # Campo de texto libre: acepta el NIT con puntos y guion, y guarda solo el numero base.
     # La unicidad la valida el modelo, sobre el valor ya normalizado.
     nit = forms.CharField(
@@ -20,11 +22,8 @@ class CompanyForm(forms.ModelForm):
 
     class Meta:
         model = Company
-        fields = ["name", "nit", "city", "department", "is_active"]
-        widgets = {
-            "name": forms.TextInput(attrs={"placeholder": "Ej. Café Montaña S.A.S."}),
-            "city": forms.TextInput(attrs={"placeholder": "Ej. Armenia"}),
-        }
+        fields = ["name", "nit", "municipality", "is_active"]
+        widgets = {"name": forms.TextInput(attrs={"placeholder": "Ej. Café Montaña S.A.S."})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,12 +32,10 @@ class CompanyForm(forms.ModelForm):
         else:
             # Una empresa nueva siempre nace activa.
             del self.fields["is_active"]
+        self.setup_location()
 
     def clean_name(self):
         return normalize_name(self.cleaned_data["name"])
-
-    def clean_city(self):
-        return normalize_name(self.cleaned_data["city"])
 
     def clean_nit(self):
         try:
@@ -73,20 +70,24 @@ class SiblingUniqueNameForm(forms.ModelForm):
         return name
 
 
-class SiteForm(SiblingUniqueNameForm):
+class SiteForm(LocationFieldsMixin, SiblingUniqueNameForm):
     parent_field = "company"
     duplicate_message = "Esta empresa ya tiene una sede con ese nombre."
 
     class Meta:
         model = Site
-        fields = ["name", "city", "department", "address"]
-        widgets = {
-            "name": forms.TextInput(attrs={"placeholder": "Ej. Planta Armenia"}),
-            "city": forms.TextInput(attrs={"placeholder": "Ej. Armenia"}),
-        }
+        fields = ["name", "municipality", "address"]
+        widgets = {"name": forms.TextInput(attrs={"placeholder": "Ej. Planta Armenia"})}
 
-    def clean_city(self):
-        return normalize_name(self.cleaned_data["city"])
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk and not self.is_bound:
+            # Lo usual es que la sede quede donde esta la empresa; el usuario lo puede cambiar.
+            company = getattr(self.instance, "company", None)
+            if company is not None:
+                self.initial.setdefault("municipality", company.municipality_id)
+                self.initial.setdefault("department", company.municipality.department_id)
+        self.setup_location()
 
 
 class AreaForm(SiblingUniqueNameForm):

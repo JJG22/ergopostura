@@ -31,8 +31,8 @@ def _company(company: Company) -> Selection:
         path=[company.name],
         details=[
             ("NIT", company.nit_display),
-            ("Ciudad", company.city),
-            ("Departamento", company.department),
+            ("Municipio", company.municipality.name),
+            ("Departamento", company.municipality.department.name),
             ("Estado", "Activa" if company.is_active else "Inactiva"),
         ],
         edit_url=reverse("companies:update", args=[company.pk]),
@@ -48,8 +48,8 @@ def _site(company: Company, site: Site) -> Selection:
         name=site.name,
         path=[company.name, site.name],
         details=[
-            ("Ciudad", site.city),
-            ("Departamento", site.department),
+            ("Municipio", site.municipality.name),
+            ("Departamento", site.municipality.department.name),
             ("Dirección", site.address or "Sin registrar"),
             ("Áreas", str(len(site.areas.all()))),
         ],

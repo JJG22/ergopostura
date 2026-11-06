@@ -36,7 +36,7 @@
               <tr>
                 <td><a href="{% url 'companies:detail' company.pk %}"><strong>{{ company.name }}</strong></a></td>
                 <td>{{ company.nit_display }}</td>
-                <td>{{ company.city }}, {{ company.department }}</td>
+                <td>{{ company.municipality.full_name }}</td>
                 <td>{{ company.site_count }}</td>
                 <td>
                   {% if company.is_active %}<span class="status status-teal">Activa</span>

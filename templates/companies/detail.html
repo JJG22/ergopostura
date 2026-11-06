@@ -12,7 +12,7 @@
     <div>
       <p class="eyebrow">EMPRESA</p>
       <h1 class="title title-1">{{ company.name }}</h1>
-      <p>NIT {{ company.nit_display }} · {{ company.city }}, {{ company.department }} · {% if company.is_active %}Empresa activa{% else %}Empresa inactiva{% endif %}</p>
+      <p>NIT {{ company.nit_display }} · {{ company.municipality.full_name }} · {% if company.is_active %}Empresa activa{% else %}Empresa inactiva{% endif %}</p>
     </div>
   </div>
 
@@ -39,7 +39,7 @@
           <div class="tree-group">
             <a href="?nodo={{ site.node_key }}"{% if selection.key == site.node_key %} class="selected"{% endif %}>
               {% icon 'map-pin' %}
-              <span><strong>{{ site.name }}</strong><small>{{ site.city }}, {{ site.department }}</small></span>
+              <span><strong>{{ site.name }}</strong><small>{{ site.municipality.full_name }}</small></span>
             </a>
             <div class="tree-children">
               {% for area in site.areas.all %}

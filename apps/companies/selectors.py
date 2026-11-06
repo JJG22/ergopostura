@@ -5,7 +5,7 @@ responde 404. Asi no se puede ver otra empresa cambiando el numero en la URL.
 """
 import re
 
-from django.db.models import Count, Q, QuerySet
+from django.db.models import Count, Prefetch, Q, QuerySet
 
 from apps.accounts.permissions import Capability, has_capability
 
@@ -36,7 +36,12 @@ def visible_positions(user) -> QuerySet[Position]:
 
 def search_companies(user, query: str = "") -> QuerySet[Company]:
     # Django ignora Meta.ordering al agrupar: sin este orden la paginacion seria inestable.
-    companies = visible_companies(user).annotate(site_count=Count("sites")).order_by("name", "pk")
+    companies = (
+        visible_companies(user)
+        .select_related("municipality__department")
+        .annotate(site_count=Count("sites"))
+        .order_by("name", "pk")
+    )
     query = query.strip()
     if not query:
         return companies
@@ -50,7 +55,10 @@ def search_companies(user, query: str = "") -> QuerySet[Company]:
 
 
 def with_structure(companies: QuerySet[Company]) -> QuerySet[Company]:
-    return companies.prefetch_related("sites__areas__positions")
+    sites = Site.objects.select_related("municipality__department")
+    return companies.select_related("municipality__department").prefetch_related(
+        Prefetch("sites", queryset=sites), "sites__areas__positions"
+    )
 
 
 def structure_totals(user) -> dict[str, int]:
