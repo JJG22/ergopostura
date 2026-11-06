@@ -1,0 +1,48 @@
+{% extends "admin/base.html" %}
+{% load static ui %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} · {% endif %}{{ title }} · ErgoPostura{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+{% endblock %}
+
+{# La aplicacion no tiene modo oscuro: el panel se ve igual que el resto del sistema. #}
+{% block dark-mode-vars %}{% endblock %}
+
+{% block branding %}
+  <a class="ep-brand" href="{% url 'admin:index' %}">
+    <span class="ep-brand-mark">{% icon 'activity' %}</span>
+    <span class="ep-brand-text"><strong>ErgoPostura</strong><small>Administración</small></span>
+  </a>
+{% endblock %}
+
+{% block welcome-msg %}
+  <span class="ep-user">
+    <span class="ep-avatar">{{ user.initials }}</span>
+    <span><strong>{{ user }}</strong><small>{{ user.get_role_display }}</small></span>
+  </span>
+{% endblock %}
+
+{% block userlinks %}
+  <a class="ep-link" href="{% url 'dashboard:home' %}">{% icon 'house' %}<span>Volver a ErgoPostura</span></a>
+  {% if user.has_usable_password %}
+    <a class="ep-link" href="{% url 'admin:password_change' %}">{% icon 'settings' %}<span>Cambiar contraseña</span></a>
+  {% endif %}
+  <form id="logout-form" method="post" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="ep-link">{% icon 'log-out' %}<span>Cerrar sesión</span></button>
+  </form>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+  <div class="ep-footer">ErgoPostura · Evaluaciones ergonómicas de puestos de trabajo</div>
+{% endblock %}

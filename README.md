@@ -116,6 +116,7 @@ Para extender el sistema sin modificar lo que ya funciona:
 - **Fotografías protegidas:** se guardan en PostgreSQL y solo las recibe quien puede ver la evaluación. Se reducen a 1600 px y se les quitan los metadatos, como la ubicación GPS.
 - **Nada se pierde por accidente:** no se puede borrar un nivel que tenga hijos (RNF-001).
 - **Acceso:** sin permiso se responde 403, y los datos de otra empresa responden 404.
+- **Panel de administración con la marca del sistema:** `/admin/` usa la paleta y el logo de ErgoPostura, el mismo inicio y cierre de sesión que el resto del sistema, y no muestra los grupos de Django, porque los permisos salen del rol.
 
 ## Avance frente a los requisitos
 

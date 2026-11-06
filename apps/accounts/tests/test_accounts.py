@@ -157,3 +157,24 @@ class UserAdminTests(TestCase):
         response = self.client.get(reverse("admin:accounts_user_changelist"))
         self.assertEqual(response.status_code, 302)
         self.assertIn("/admin/login/", response["Location"])
+
+
+class AdminPanelTests(TestCase):
+    def test_anonymous_goes_to_the_system_login_and_comes_back(self):
+        response = self.client.get("/admin/")
+        self.assertRedirects(response, "/admin/login/?next=/admin/", fetch_redirect_response=False)
+        login = self.client.get(response["Location"])
+        self.assertRedirects(login, f"{reverse('accounts:login')}?next=/admin/", fetch_redirect_response=False)
+
+    def test_logged_in_non_admin_gets_403_instead_of_a_redirect_loop(self):
+        self.client.force_login(make_user(role=Role.ENGINEER))
+        self.assertEqual(self.client.get("/admin/login/?next=/admin/").status_code, 403)
+
+    def test_panel_shows_the_system_brand_and_hides_unused_groups(self):
+        self.client.force_login(make_user(role=Role.ADMIN))
+        response = self.client.get("/admin/")
+        self.assertContains(response, "ErgoPostura")
+        self.assertContains(response, "admin.css")
+        self.assertNotContains(response, "Django")
+        self.assertNotContains(response, "/admin/auth/group/")
+        self.assertContains(response, reverse("accounts:logout"))
