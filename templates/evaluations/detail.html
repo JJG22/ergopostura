@@ -1,6 +1,7 @@
 {% extends "layouts/app.html" %}
-{% load ui risk %}
+{% load static ui risk %}
 {% block title %}{{ evaluation.code }} · ErgoPostura{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/pose-assist.css' %}">{% endblock %}
 {% block crumb %}{{ evaluation.code }}{% endblock %}
 {% block content %}
 <div class="page">

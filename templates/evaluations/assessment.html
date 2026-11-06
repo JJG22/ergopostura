@@ -1,7 +1,8 @@
 {% extends "layouts/app.html" %}
-{% load ui %}
+{% load static ui %}
 {% block title %}Análisis RULA · ErgoPostura{% endblock %}
 {% block crumb %}Análisis RULA{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/pose-assist.css' %}">{% endblock %}
 {% block content %}
 <div class="page">
   <a class="back-link page-back" href="{{ cancel_url }}">{% icon 'arrow-left' %} Volver a la evaluación</a>
@@ -15,14 +16,28 @@
 
   <form method="post" novalidate>
     {% csrf_token %}
+    {{ form.ai_suggestion }}
     {% for error in form.non_field_errors %}
       <div class="form-error" role="alert">{{ error }}</div>
     {% endfor %}
 
     <div class="analysis-grid">
       <div class="card analysis-photo">
-        <div class="photo-view photo-view-image">
+        <div class="photo-view photo-view-image pose-stage">
           <img id="assessment-photo" src="{% url 'evaluations:photo' photos.0.pk %}" alt="Fotografía analizada de {{ posture.name }}">
+          <canvas id="pose-overlay" hidden aria-hidden="true"></canvas>
+        </div>
+        <div class="pose-assist" data-pose-assist data-side="{{ posture.side }}">
+          <div class="pose-assist-head">
+            <div>
+              <strong>Sugerir ángulos con IA</strong>
+              <small>Detecta el cuerpo en la fotografía y propone los cinco ángulos del lado {{ posture.get_side_display|lower|cut:"lado " }}. Funciona mejor con una foto de perfil. La foto no sale de tu equipo.</small>
+            </div>
+            <button type="button" class="btn btn-secondary" data-pose-run>{% icon 'activity' %}<span>Sugerir</span></button>
+          </div>
+          <p class="pose-status" data-pose-status role="status" aria-live="polite"></p>
+          <div class="pose-result" data-pose-result></div>
+          <p class="pose-note">Es una ayuda para medir: revisa cada valor sobre la fotografía. Giros, inclinaciones laterales, abducción y apoyos no se ven de perfil; regístralos tú.</p>
         </div>
         <fieldset class="thumb-picker">
           <legend>Fotografía analizada</legend>
@@ -66,4 +81,8 @@
     </div>
   </form>
 </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{% static 'js/pose-angles.js' %}"></script>
+  <script src="{% static 'js/pose-assist.js' %}"></script>
 {% endblock %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% load ui risk %}
+{% load static ui risk %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/pose-assist.css' %}">{% endblock %}
 {% block title %}Informe {{ evaluation.code }} · ErgoPostura{% endblock %}
 {% block body %}
 <div class="report-page">
@@ -61,6 +62,7 @@
                   <tr><th scope="row">Puntaje C</th><td>{{ result.partial_scores.score_c }}</td><th scope="row">Puntaje final</th><td>{{ result.grand_score }}</td></tr>
                 </tbody>
               </table>
+              {% include "evaluations/_ai_trace.html" %}
             </div>
           </div>
 

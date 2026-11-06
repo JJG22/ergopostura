@@ -1,0 +1,22 @@
+{% if result.ai_suggestion.angles %}
+  <div class="ai-trace">
+    <p>
+      <strong>Ángulos medidos con apoyo de IA.</strong>
+      La detección de pose propuso estos valores{% if result.ai_on_other_photo %} sobre otra fotografía de la postura{% endif %} y el evaluador registró los de la derecha.
+      El puntaje se calcula solo con los valores registrados.
+      {% if result.ai_suggestion.frontal %}La fotografía parecía tomada de frente, así que la sugerencia era poco fiable.{% endif %}
+    </p>
+    <table>
+      <thead><tr><th scope="col">Ángulo</th><th scope="col">Sugerido</th><th scope="col">Registrado</th></tr></thead>
+      <tbody>
+        {% for row in result.ai_comparison %}
+          <tr>
+            <th scope="row">{{ row.label }}</th>
+            <td>{% if row.suggested is None %}No detectado{% else %}{{ row.suggested|floatformat:"-1" }}°{% endif %}</td>
+            <td{% if row.changed %} class="changed"{% endif %}>{{ row.registered|floatformat:"-1" }}°{% if row.changed %} · corregido{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}

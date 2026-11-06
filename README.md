@@ -126,7 +126,7 @@ Para extender el sistema sin modificar lo que ya funciona:
 | RF-006 (visitas) | Listo |
 | RNF-001, 002 (persistencia e integridad) | Listo para lo construido; se extiende en cada módulo |
 | RF-007 a 014 (evaluación, actividad, fotografías, posturas) | Listo |
-| RF-015, 016 (segmentos y ángulos manuales) | Listo |
+| RF-015, 016 (segmentos y ángulos manuales) | Listo, con sugerencia opcional de ángulos con IA |
 | RF-017 a 021, RNF-004 (puntuación, riesgo y semáforo) | Listo |
 | RF-022 (recomendaciones del evaluador) | Listo |
 | RF-023 a 025 (consulta y resumen) | Listo |
@@ -150,6 +150,16 @@ Para extender el sistema sin modificar lo que ya funciona:
 | D8, tareas | Evaluaciones en curso de cada profesional y recomendaciones por atender, que marcan la empresa o el responsable de tarea |
 | D9, cuentas de trabajadores | El trabajador es la persona evaluada y no usa el sistema |
 | Quién aplica RULA | El ingeniero industrial o el evaluador |
+
+## Sugerencia de ángulos con IA
+
+En la pantalla de análisis RULA, el botón **Sugerir** detecta el cuerpo en la fotografía con [MediaPipe Pose](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker) y propone los cinco ángulos del lado evaluado.
+
+- **Corre en el navegador.** La fotografía no se envía a ningún servicio. La librería (versión fija 0.10.14, desde jsDelivr) y el modelo (desde Google) se descargan solo al pulsar el botón; sin internet, se registran los ángulos a mano.
+- **No reemplaza al evaluador (D2).** Los valores llenan el formulario marcados como «Sugerido por IA» y nada se guarda hasta que el evaluador pulsa *Calcular y guardar*. El puntaje lo siguen dando las tablas del artículo, con los valores registrados.
+- **Queda constancia (RNF-003).** Se guarda lo sugerido aparte de lo registrado, y el detalle y el informe muestran qué ángulos corrigió el evaluador.
+- **Límites:** necesita una foto de perfil del lado evaluado y avisa si parece de frente. Giros, inclinaciones laterales, abducción y apoyos no se ven de perfil y los registra el evaluador.
+- El cálculo está en `static/js/pose-angles.js`, separado de la interfaz (`pose-assist.js`).
 
 ## Método RULA
 

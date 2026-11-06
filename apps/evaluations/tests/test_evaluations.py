@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from io import BytesIO
 from unittest import mock
@@ -584,3 +585,52 @@ class FlowTests(TestCase):
             make_assessment(make_posture(self.evaluation, f"Postura {index}"))
         with self.assertNumQueries(len(one_posture)):
             self.client.get(self.detail)
+
+
+class AiSuggestionTests(TestCase):
+    """La sugerencia de la IA solo deja constancia: nunca cambia lo que registra el evaluador."""
+
+    def setUp(self):
+        self.user = make_user(role=Role.EVALUATOR)
+        self.posture = make_posture(make_evaluation(self.user))
+
+    def suggestion(self, **angles):
+        values = {"upper_arm_angle": 32.5, "lower_arm_angle": 110, "wrist_angle": 10, "neck_angle": 15, "trunk_angle": 30}
+        return json.dumps({"photo": 1, "side": "derecho", "model": "mediapipe-pose-lite@0.10.14", "angles": {**values, **angles}})
+
+    def test_suggestion_is_stored_apart_and_scores_use_registered_values(self):
+        assessment = make_assessment(self.posture, ai_suggestion=self.suggestion(upper_arm_angle=95))
+        self.assertEqual(assessment.ai_suggestion["angles"]["upper_arm_angle"], 95)
+        self.assertEqual(assessment.grand_score, 6)  # el mismo del caso calculado a mano
+        changed = {row["label"]: row["changed"] for row in assessment.ai_comparison}
+        self.assertTrue(changed["Ángulo del brazo"])
+        self.assertFalse(changed["Ángulo del tronco"])
+
+    def test_malformed_or_hostile_values_are_discarded(self):
+        for raw in ("no es json", "[1, 2]", json.dumps({"angles": "x"}), json.dumps({"angles": {"trunk_angle": True}})):
+            self.assertEqual(make_assessment(make_posture(self.posture.evaluation, raw[:20]), ai_suggestion=raw).ai_suggestion, {}, raw)
+        assessment = make_assessment(
+            make_posture(self.posture.evaluation, "Fuera de rango"),
+            ai_suggestion=json.dumps({"angles": {"trunk_angle": 999, "neck_angle": "15", "wrist_angle": 7.3}, "side": "<b>", "photo": "1"}),
+        )
+        self.assertEqual(
+            assessment.ai_suggestion["angles"],
+            {"upper_arm_angle": None, "lower_arm_angle": None, "wrist_angle": 7.5, "neck_angle": None, "trunk_angle": None},
+        )
+        self.assertIsNone(assessment.ai_suggestion["side"])
+        self.assertFalse(assessment.ai_suggestion["frontal"])
+        self.assertIsNone(assessment.ai_suggestion["photo"])
+
+    def test_without_suggestion_nothing_is_stored(self):
+        self.assertEqual(make_assessment(self.posture).ai_suggestion, {})
+
+    def test_page_offers_the_assistant_and_detail_shows_the_trace(self):
+        self.client.force_login(self.user)
+        make_assessment(self.posture, ai_suggestion=self.suggestion(neck_angle=25))
+        page = self.client.get(reverse("evaluations:assessment", args=[self.posture.pk]))
+        self.assertContains(page, "data-pose-assist")
+        self.assertContains(page, 'data-side="derecho"')
+        self.assertContains(page, "pose-assist.js")
+        detail = self.client.get(reverse("evaluations:detail", args=[self.posture.evaluation.pk]))
+        self.assertContains(detail, "Ángulos medidos con apoyo de IA")
+        self.assertContains(detail, "corregido")

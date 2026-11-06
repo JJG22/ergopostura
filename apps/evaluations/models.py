@@ -209,6 +209,10 @@ class RulaAssessment(TimeStampedModel):
     )
     body_load = models.CharField("Carga o fuerza", max_length=30, choices=LOAD_CHOICES, default=Load.NONE_OR_LIGHT_INTERMITTENT.name)
 
+    # Lo que propuso la deteccion de pose sobre la fotografia, si el evaluador la pidio.
+    # Se conserva aparte de los angulos registrados para saber que confirmo o corrigio el.
+    ai_suggestion = models.JSONField("sugerencia de la IA", default=dict, blank=True, editable=False)
+
     partial_scores = models.JSONField("puntajes parciales", default=dict, editable=False)
     grand_score = models.PositiveSmallIntegerField(
         "puntaje final", validators=[MinValueValidator(1), MaxValueValidator(7)], editable=False
@@ -231,6 +235,31 @@ class RulaAssessment(TimeStampedModel):
     @property
     def action(self):
         return action_level_for(self.grand_score)
+
+    ANGLE_FIELDS = ("upper_arm_angle", "lower_arm_angle", "wrist_angle", "neck_angle", "trunk_angle")
+
+    @property
+    def ai_comparison(self) -> list[dict]:
+        """Por cada angulo: lo sugerido por la IA, lo registrado y si el evaluador lo cambio."""
+        suggested = (self.ai_suggestion or {}).get("angles") or {}
+        rows = []
+        for name in self.ANGLE_FIELDS:
+            value = suggested.get(name)
+            registered = getattr(self, name)
+            rows.append(
+                {
+                    "label": self._meta.get_field(name).verbose_name,
+                    "suggested": value,
+                    "registered": registered,
+                    "changed": value is not None and float(registered) != float(value),
+                }
+            )
+        return rows
+
+    @property
+    def ai_on_other_photo(self) -> bool:
+        photo = (self.ai_suggestion or {}).get("photo")
+        return bool(photo) and photo != self.photo_id
 
     def recalculate(self):
         result = calculate(rula_input_from(self.__dict__))

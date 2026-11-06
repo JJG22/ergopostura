@@ -1,3 +1,6 @@
+import json
+import math
+
 from django import forms
 from django.utils import timezone
 
@@ -122,10 +125,15 @@ class RulaAssessmentForm(forms.ModelForm):
         model = RulaAssessment
         exclude = ["posture"]
 
+    # La llena el navegador si el evaluador pide la sugerencia de angulos con IA.
+    ai_suggestion = forms.CharField(required=False, widget=forms.HiddenInput)
+
     def __init__(self, *args, posture, photos, **kwargs):
         super().__init__(*args, **kwargs)
         self.instance.posture = posture
         self.fields["photo"].queryset = photos
+        if self.instance.ai_suggestion:
+            self.initial["ai_suggestion"] = json.dumps(self.instance.ai_suggestion)
         for name, help_text in self.ANGLE_HELP.items():
             field = self.fields[name]
             field.help_text = help_text
@@ -134,6 +142,40 @@ class RulaAssessmentForm(forms.ModelForm):
     @property
     def groups(self):
         return [(title, [self[name] for name in names]) for title, names in self.GROUPS]
+
+    def clean_ai_suggestion(self):
+        """Solo se guarda una sugerencia con la forma esperada; lo demas se descarta.
+
+        Viene del navegador, asi que se trata como dato no confiable: no afecta el calculo,
+        solo deja constancia de lo que se propuso.
+        """
+        raw = self.cleaned_data.get("ai_suggestion") or ""
+        try:
+            data = json.loads(raw) if raw else {}
+        except ValueError:
+            return {}
+        if not isinstance(data, dict) or not isinstance(data.get("angles"), dict):
+            return {}
+        angles = {}
+        for name in RulaAssessment.ANGLE_FIELDS:
+            value = data["angles"].get(name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                angles[name] = None
+            elif math.isfinite(value) and -180 <= value <= 180:
+                angles[name] = round(float(value) * 2) / 2
+            else:
+                angles[name] = None
+        if all(value is None for value in angles.values()):
+            return {}
+        photo = data.get("photo")
+        model = data.get("model")
+        return {
+            "angles": angles,
+            "photo": photo if isinstance(photo, int) and not isinstance(photo, bool) else None,
+            "side": data.get("side") if data.get("side") in ("derecho", "izquierdo") else None,
+            "model": model[:60] if isinstance(model, str) else "",
+            "frontal": data.get("frontal") is True,
+        }
 
     def clean(self):
         cleaned = super().clean()
@@ -146,6 +188,7 @@ class RulaAssessmentForm(forms.ModelForm):
         return cleaned
 
     def save(self, commit=True):
+        self.instance.ai_suggestion = self.cleaned_data.get("ai_suggestion") or {}
         self.instance.recalculate()
         return super().save(commit=commit)
 
