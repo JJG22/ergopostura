@@ -38,9 +38,12 @@ Se puede ejecutar varias veces sin duplicar nada: solo completa los puestos que 
 
 ## Publicar en Render
 
+La aplicación publicada está en **https://ergopostura.onrender.com**.
+
+
 El archivo `render.yaml` define el servicio web y la base de datos.
 
-1. En Render, elige **New > Blueprint** y conecta este repositorio.
+1. En Render, elige **New > Blueprint** y conecta este repositorio. No lo crees como *Web Service* suelto: así no lee `render.yaml`, y queda sin base de datos ni variables.
 2. Completa las variables que pide:
    - `DJANGO_ADMIN_EMAIL` y `DJANGO_ADMIN_PASSWORD`: tu cuenta de administrador.
    - `DEMO_SEED_PASSWORD` (opcional): crea las cuentas de demostración con esa clave. Debe ser distinta a la de este README.
@@ -49,7 +52,8 @@ El archivo `render.yaml` define el servicio web y la base de datos.
 **Límites del plan gratis:**
 
 - El servicio se apaga tras 15 minutos sin tráfico y tarda cerca de un minuto en volver.
-- La base de datos tiene 1 GB y **expira 30 días después de crearla**; tras 14 días más de gracia, Render la borra.
+- La base de datos tiene 1 GB y **expira 30 días después de crearla**; tras 14 días más de gracia, Render la borra. La actual se creó el 6 de noviembre de 2026.
+- Solo se permite **una base gratis por cuenta**: para crear otra hay que borrar la anterior.
 - No hay disco persistente. Por eso las fotografías se guardan en PostgreSQL.
 
 ## Comandos útiles
