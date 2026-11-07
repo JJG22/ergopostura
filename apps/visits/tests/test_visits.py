@@ -1,27 +1,34 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from unittest import mock
 
 from django.db import IntegrityError, transaction
+from django.db.models import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Role
-from apps.core.tests.factories import make_area, make_company, make_position, make_site, make_user
+from apps.core.tests.factories import (
+    at,
+    make_company,
+    make_contract,
+    make_site,
+    make_user,
+    make_visit,
+)
+from apps.visits import rules
 from apps.visits.forms import VisitForm
 from apps.visits.models import Visit
 
 HTMX = {"HTTP_HX_REQUEST": "true"}
 
 
-def future(days=5):
-    return timezone.localtime(timezone.now() + timedelta(days=days)).replace(
-        hour=9, minute=0, second=0, microsecond=0
-    )
-
-
-def make_visit(position=None, when=None, **fields):
-    return Visit.objects.create(position=position or make_position(), scheduled_at=when or future(), **fields)
+def next_weekday(weekday: int, after: date | None = None) -> date:
+    """El proximo dia de la semana pedido (0 = lunes), al menos dos dias despues de hoy."""
+    day = (after or timezone.localdate()) + timedelta(days=2)
+    while day.weekday() != weekday:
+        day += timedelta(days=1)
+    return day
 
 
 class VisitTestCase(TestCase):
@@ -29,246 +36,250 @@ class VisitTestCase(TestCase):
     def setUpTestData(cls):
         cls.company = make_company(name="Mi empresa")
         cls.site = make_site(cls.company)
-        cls.area = make_area(cls.site)
-        cls.position = make_position(cls.area)
-        cls.foreign_position = make_position(make_area(make_site(make_company(name="Ajena")), name="Ajena"))
+        cls.contract = make_contract(cls.company)
+        cls.foreign = make_company(name="Ajena")
+        cls.foreign_site = make_site(cls.foreign, name="Sede ajena")
+        make_contract(cls.foreign)
+        cls.member = make_user(role=Role.COMPANY, company=cls.company)
+        cls.engineer = make_user(role=Role.ENGINEER)
+        cls.tuesday = next_weekday(1)
 
-    def payload(self, **changes):
-        when = future()
-        data = {
-            "date": when.strftime("%Y-%m-%d"),
+    def data(self, **changes):
+        return {
+            "date": self.tuesday.isoformat(),
             "time": "09:00",
-            "company": self.company.pk,
+            "duration_minutes": "120",
             "site": self.site.pk,
-            "area": self.area.pk,
-            "position": self.position.pk,
+            "purpose": "Evaluar empaque",
             "contact_name": "Marta Salazar",
+            **changes,
         }
-        return {**data, **changes}
+
+    def form(self, user=None, instance=None, **changes):
+        return VisitForm(data=self.data(**changes), user=user or self.member, instance=instance)
 
 
-class VisitModelTests(VisitTestCase):
-    def test_company_and_site_come_from_the_hierarchy(self):
-        visit = make_visit(self.position)
-        self.assertEqual((visit.company, visit.site, visit.area), (self.company, self.site, self.area))
+class VisitRuleTests(VisitTestCase):
+    def errors(self, **changes):
+        form = self.form(**changes)
+        self.assertFalse(form.is_valid())
+        return " ".join(form.non_field_errors())
 
-    def test_duplicate_is_rejected_by_database(self):
-        when = future()
-        make_visit(self.position, when)
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            make_visit(self.position, when)
-
-    def test_position_with_visits_cannot_be_deleted(self):
-        make_visit(self.position)
-        from django.db.models import ProtectedError
-
-        with self.assertRaises(ProtectedError):
-            self.position.delete()
-
-
-class VisitFormTests(VisitTestCase):
-    def setUp(self):
-        self.admin = make_user(role=Role.ADMIN)
-        self.company_user = make_user(role=Role.COMPANY, company=self.company)
-
-    def test_valid_visit_saves_local_time_and_author(self):
-        form = VisitForm(data=self.payload(), user=self.admin)
+    def test_valid_visit_saves_local_time_and_who_scheduled_it(self):
+        form = self.form()
         self.assertTrue(form.is_valid(), form.errors)
         visit = form.save()
         self.assertEqual(timezone.localtime(visit.scheduled_at).hour, 9)
-        self.assertEqual(visit.created_by, self.admin)
-        self.assertEqual(visit.position, self.position)
+        self.assertEqual(visit.requested_by, self.member)
+        self.assertEqual(visit.status, Visit.Status.SCHEDULED)
+        self.assertEqual(visit.company, self.company)
 
-    def test_past_date_is_rejected(self):
-        yesterday = (timezone.localdate() - timedelta(days=1)).strftime("%Y-%m-%d")
-        form = VisitForm(data=self.payload(date=yesterday), user=self.admin)
-        self.assertIn("La fecha y la hora de la visita ya pasaron.", form.errors["date"])
+    def test_needs_one_hour_of_notice(self):
+        soon = timezone.localtime() + timedelta(minutes=30)
+        with mock.patch.object(rules, "WORK_START", soon.time().replace(hour=0)), \
+                mock.patch.object(rules, "WORK_END", soon.time().replace(hour=23, minute=59)):
+            message = self.errors(date=soon.date().isoformat(), time=soon.strftime("%H:%M"), duration_minutes="60")
+        self.assertIn("una hora de anticipación", message)
 
-    def test_duplicate_shows_a_clear_message(self):
-        make_visit(self.position, future())
-        form = VisitForm(data=self.payload(), user=self.admin)
-        self.assertIn("Ya hay una visita registrada", form.non_field_errors()[0])
+    def test_sundays_and_after_hours_are_rejected(self):
+        self.assertIn("lunes a sábado", self.errors(date=next_weekday(6).isoformat()))
+        self.assertIn("terminar a más tardar", self.errors(time="17:00"))
+        self.assertIn("empezar desde", self.errors(time="06:00"))
 
-    def test_same_time_in_other_position_is_allowed(self):
-        make_visit(make_position(self.area, name="Otro puesto"), future())
-        self.assertTrue(VisitForm(data=self.payload(), user=self.admin).is_valid())
+    def test_date_outside_the_contract_is_rejected(self):
+        late = next_weekday(1, after=self.contract.end_date)
+        self.assertIn("contrato vigente", self.errors(date=late.isoformat()))
 
-    def test_position_of_another_area_is_rejected(self):
-        other = make_position(make_area(self.site, name="Otra área"), name="Otro")
-        form = VisitForm(data=self.payload(position=other.pk), user=self.admin)
-        self.assertIn("position", form.errors)
-
-    def test_area_of_another_site_is_rejected(self):
-        other = make_area(make_site(self.company, name="Otra sede"), name="Otra")
-        form = VisitForm(data=self.payload(area=other.pk), user=self.admin)
-        self.assertIn("area", form.errors)
-
-    def test_inactive_company_is_not_offered(self):
-        inactive = make_company(name="Inactiva", is_active=False)
-        form = VisitForm(data=self.payload(company=inactive.pk), user=self.admin)
-        self.assertIn("company", form.errors)
-
-    def test_company_user_has_no_company_field_and_stays_in_its_company(self):
-        form = VisitForm(data=self.payload(), user=self.company_user)
-        self.assertNotIn("company", form.fields)
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.save().company, self.company)
-
-    def test_company_user_cannot_send_a_foreign_position(self):
-        area = self.foreign_position.area
-        form = VisitForm(
-            data=self.payload(site=area.site.pk, area=area.pk, position=self.foreign_position.pk),
-            user=self.company_user,
-        )
+    def test_company_without_contract_cannot_schedule(self):
+        company = make_company(name="Sin contrato")
+        site = make_site(company)
+        user = make_user(role=Role.COMPANY, company=company)
+        form = VisitForm(data=self.data(site=site.pk), user=user)
         self.assertFalse(form.is_valid())
-        self.assertIn("site", form.errors)
-        self.assertIn("position", form.errors)
+        self.assertIn("contrato vigente", " ".join(form.non_field_errors()))
 
-    def test_garbage_ids_do_not_crash(self):
-        form = VisitForm(data=self.payload(company="x", site="'; DROP", area="", position="None"), user=self.admin)
-        self.assertFalse(form.is_valid())
+    def test_overlap_with_any_company_is_rejected(self):
+        make_visit(self.foreign_site, at(self.tuesday, 10))
+        self.assertIn("ya tiene una visita", self.errors(time="09:00"))
+        self.assertTrue(self.form(time="12:00").is_valid())
 
-    def test_past_visit_can_be_corrected_without_changing_its_date(self):
-        past = timezone.localtime(timezone.now() - timedelta(days=3)).replace(second=0, microsecond=0)
-        visit = make_visit(self.position, past)
-        form = VisitForm(
-            data=self.payload(
-                date=past.strftime("%Y-%m-%d"), time=past.strftime("%H:%M"), contact_name="Otro contacto"
-            ),
-            instance=visit,
-            user=self.admin,
-        )
+    def test_cancelled_visits_free_their_slot(self):
+        make_visit(self.foreign_site, at(self.tuesday, 9), status=Visit.Status.CANCELLED)
+        self.assertTrue(self.form().is_valid())
+
+    def test_back_to_back_visits_are_allowed(self):
+        make_visit(self.foreign_site, at(self.tuesday, 7))
+        self.assertTrue(self.form(time="09:00").is_valid())
+
+    def test_site_of_another_company_is_rejected(self):
+        self.assertIn("site", self.form(site=self.foreign_site.pk).errors)
+
+    def test_rescheduling_does_not_collide_with_itself(self):
+        visit = make_visit(self.site, at(self.tuesday, 9), duration_minutes=120)
+        form = self.form(instance=visit, time="10:00")
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.save().contact_name, "Otro contacto")
 
-    def test_editing_loads_the_whole_chain(self):
-        form = VisitForm(instance=make_visit(self.position), user=self.admin)
-        self.assertEqual(form.initial["company"], self.company.pk)
-        self.assertEqual(form.initial["site"], self.site.pk)
-        self.assertEqual(form.initial["area"], self.area.pk)
-        self.assertIn(self.position, form.fields["position"].queryset)
+    def test_editing_only_the_purpose_skips_the_schedule_rules(self):
+        # Aunque la fecha ya no cumpla una regla nueva, cambiar el motivo no obliga a moverla.
+        visit = make_visit(self.site, at(self.tuesday, 9), duration_minutes=120)
+        visit.duration_minutes = 120
+        with mock.patch.object(rules, "WORK_START", rules.WORK_START.replace(hour=10)):
+            form = self.form(instance=visit, purpose="Otro motivo")
+            self.assertTrue(form.is_valid(), form.errors)
+
+    def test_database_checks_completed_and_cancelled_states(self):
+        visit = make_visit(self.site)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Visit.objects.filter(pk=visit.pk).update(status=Visit.Status.COMPLETED)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Visit.objects.filter(pk=visit.pk).update(status=Visit.Status.CANCELLED)
+
+    def test_site_with_visits_cannot_be_deleted(self):
+        make_visit(self.site)
+        with self.assertRaises(ProtectedError):
+            self.site.delete()
 
 
 class VisitAccessTests(VisitTestCase):
-    def setUp(self):
-        self.visit = make_visit(self.position)
-        self.foreign_visit = make_visit(self.foreign_position)
-
-    def manage_urls(self):
-        return [
-            reverse("visits:create"),
-            reverse("visits:cascade"),
-            reverse("visits:update", args=[self.visit.pk]),
-        ]
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.visit = make_visit(cls.site, at(cls.tuesday, 9))
+        cls.foreign_visit = make_visit(cls.foreign_site, at(cls.tuesday, 14))
 
     def test_anonymous_is_sent_to_login(self):
-        urls = [reverse("visits:list"), reverse("visits:agenda"), reverse("visits:detail", args=[self.visit.pk])]
-        for url in [*urls, *self.manage_urls()]:
+        for url in (reverse("visits:list"), reverse("visits:create"), reverse("visits:detail", args=[self.visit.pk])):
             self.assertIn("/ingresar/", self.client.get(url)["Location"])
 
-    def test_roles_that_read_all(self):
-        for role in (Role.ADMIN, Role.ENGINEER, Role.EVALUATOR):
-            self.client.force_login(make_user(role=role))
-            visits = self.client.get(reverse("visits:agenda")).context["visits"]
-            self.assertEqual(len(visits), 2, role)
-
-    def test_roles_without_access_get_403(self):
-        for role in (Role.RESULTS, Role.TASKS):
-            self.client.force_login(make_user(role=role))
-            for name in ("visits:list", "visits:agenda"):
-                self.assertEqual(self.client.get(reverse(name)).status_code, 403, role)
-
-    def test_only_admin_and_company_can_manage(self):
-        for role in (Role.ENGINEER, Role.EVALUATOR, Role.RESULTS, Role.TASKS):
-            self.client.force_login(make_user(role=role))
-            for url in self.manage_urls():
-                self.assertEqual(self.client.get(url).status_code, 403, f"{role} {url}")
-        for user in (make_user(role=Role.ADMIN), make_user(role=Role.COMPANY, company=self.company)):
+    def test_only_the_company_schedules(self):
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.get(reverse("visits:create")).status_code, 200)
+        for user in (self.engineer, make_user(role=Role.ADMIN)):
             self.client.force_login(user)
-            for url in self.manage_urls():
-                self.assertEqual(self.client.get(url).status_code, 200, f"{user.role} {url}")
+            self.assertEqual(self.client.get(reverse("visits:create")).status_code, 403, user.role)
+            self.assertEqual(self.client.post(reverse("visits:create"), self.data()).status_code, 403)
+        self.assertEqual(Visit.objects.count(), 2)
 
-    def test_read_only_roles_do_not_see_actions(self):
-        self.client.force_login(make_user(role=Role.EVALUATOR))
-        for url in (reverse("visits:list"), reverse("visits:detail", args=[self.visit.pk])):
-            response = self.client.get(url)
-            self.assertNotContains(response, "Registrar visita")
-            self.assertNotContains(response, "Editar")
+    def test_company_only_sees_and_changes_its_visits(self):
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.get(reverse("visits:detail", args=[self.foreign_visit.pk])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("visits:update", args=[self.foreign_visit.pk])).status_code, 404)
+        self.assertEqual(
+            self.client.post(reverse("visits:cancel", args=[self.foreign_visit.pk]), {"cancellation_reason": "x"}).status_code,
+            404,
+        )
 
-    def test_company_user_only_sees_and_edits_its_own_visits(self):
-        self.client.force_login(make_user(role=Role.COMPANY, company=self.company))
-        visits = self.client.get(reverse("visits:agenda")).context["visits"]
-        self.assertEqual(list(visits), [self.visit])
-        for name in ("visits:update", "visits:detail"):
-            response = self.client.get(reverse(name, args=[self.foreign_visit.pk]))
-            self.assertEqual(response.status_code, 404, name)
+    def test_support_sees_no_visits(self):
+        self.client.force_login(make_user(role=Role.ADMIN))
+        self.assertEqual(self.client.get(reverse("visits:detail", args=[self.visit.pk])).status_code, 403)
+        self.assertEqual(self.client.get(reverse("visits:agenda")).status_code, 403)
 
-    def test_forbidden_post_does_not_write(self):
-        self.client.force_login(make_user(role=Role.ENGINEER))
-        before = Visit.objects.count()
-        self.assertEqual(self.client.post(reverse("visits:create"), self.payload()).status_code, 403)
-        self.assertEqual(Visit.objects.count(), before)
+    def test_engineer_cannot_reschedule(self):
+        self.client.force_login(self.engineer)
+        self.assertEqual(self.client.get(reverse("visits:update", args=[self.visit.pk])).status_code, 403)
+
+    def test_company_cannot_mark_a_visit_as_done(self):
+        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.post(reverse("visits:complete", args=[past.pk])).status_code, 403)
+        past.refresh_from_db()
+        self.assertTrue(past.is_scheduled)
 
 
-class VisitViewTests(VisitTestCase):
-    def setUp(self):
-        self.user = make_user(role=Role.ADMIN)
-        self.client.force_login(self.user)
-
-    def test_create_from_modal_redirects_whole_page(self):
-        response = self.client.post(reverse("visits:create"), self.payload(), **HTMX)
+class VisitLifecycleTests(VisitTestCase):
+    def test_company_schedules_from_the_modal_and_returns_to_the_calendar(self):
+        self.client.force_login(self.member)
+        response = self.client.post(reverse("visits:create"), self.data(), **HTMX)
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(response["HX-Redirect"], f"{reverse('visits:list')}?fecha={future().date().isoformat()}")
-        self.assertEqual(Visit.objects.get().created_by, self.user)
+        self.assertIn(f"fecha={self.tuesday.isoformat()}", response["HX-Redirect"])
+        self.assertEqual(Visit.objects.get().requested_by, self.member)
 
     def test_errors_stay_in_the_modal(self):
-        response = self.client.post(reverse("visits:create"), self.payload(position=""), **HTMX)
+        self.client.force_login(self.member)
+        response = self.client.post(reverse("visits:create"), self.data(time="05:00"), **HTMX)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'class="overlay"')
+        self.assertContains(response, "empezar desde")
+        self.assertFalse(Visit.objects.exists())
 
-    def test_concurrent_duplicate_becomes_form_error(self):
-        with mock.patch.object(VisitForm, "save", side_effect=IntegrityError):
-            response = self.client.post(reverse("visits:create"), self.payload())
-        self.assertContains(response, "Ya hay una visita registrada")
+    def test_slot_taken_at_the_same_moment_becomes_a_form_error(self):
+        self.client.force_login(self.member)
+        # Simula que otra empresa guardo ese horario justo despues de validar el formulario.
+        with mock.patch.object(rules, "overlapping_visit", side_effect=[None, Visit()]):
+            response = self.client.post(reverse("visits:create"), self.data(), **HTMX)
+        self.assertContains(response, "acaba de tomar ese horario")
+        self.assertFalse(Visit.objects.exists())
 
-    def test_cascade_offers_only_children_of_the_selection(self):
-        other_site = make_site(make_company(name="Otra"), name="Sede de otra")
-        response = self.client.get(reverse("visits:cascade"), {"company": self.company.pk}, **HTMX)
-        self.assertContains(response, self.site.name)
-        self.assertNotContains(response, other_site.name)
-        self.assertContains(response, "Selecciona primero una sede")
+    def test_company_reschedules_and_cancels_with_a_reason(self):
+        visit = make_visit(self.site, at(self.tuesday, 9))
+        self.client.force_login(self.member)
+        self.client.post(reverse("visits:update", args=[visit.pk]), self.data(time="13:00"))
+        visit.refresh_from_db()
+        self.assertEqual(timezone.localtime(visit.scheduled_at).hour, 13)
 
-    def test_cascade_keeps_what_was_typed(self):
-        response = self.client.get(
-            reverse("visits:cascade"), {"company": self.company.pk, "contact_name": "Marta", "time": "10:30"}, **HTMX
-        )
-        self.assertContains(response, 'value="Marta"')
-        self.assertContains(response, 'value="10:30"')
+        self.assertContains(self.client.post(reverse("visits:cancel", args=[visit.pk]), {"cancellation_reason": ""}), "obligatorio")
+        self.client.post(reverse("visits:cancel", args=[visit.pk]), {"cancellation_reason": "Inventario"})
+        visit.refresh_from_db()
+        self.assertEqual(visit.status, Visit.Status.CANCELLED)
+        self.assertEqual(visit.cancelled_by, self.member)
 
-    def test_changing_company_clears_stale_children(self):
-        other = make_company(name="Otra")
-        response = self.client.get(
-            reverse("visits:cascade"),
-            {"company": other.pk, "site": self.site.pk, "area": self.area.pk, "position": self.position.pk},
-            **HTMX,
-        )
-        self.assertNotContains(response, self.site.name)
-        self.assertNotContains(response, self.area.name)
+    def test_company_cannot_cancel_a_visit_that_already_started(self):
+        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
+        self.client.force_login(self.member)
+        response = self.client.post(reverse("visits:cancel", args=[past.pk]), {"cancellation_reason": "Tarde"})
+        self.assertEqual(response.status_code, 404)
 
-    def test_list_separates_upcoming_and_past(self):
-        upcoming = make_visit(self.position, future())
-        past = make_visit(self.position, timezone.now() - timedelta(days=2))
+    def test_engineer_records_a_past_visit_and_can_then_evaluate(self):
+        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
+        self.client.force_login(self.engineer)
+        detail = self.client.get(reverse("visits:detail", args=[past.pk]))
+        self.assertContains(detail, "Por cerrar")
+        self.assertContains(detail, "Registrar realizada")
+        self.client.post(reverse("visits:complete", args=[past.pk]), {"completion_notes": "Todo bien"})
+        past.refresh_from_db()
+        self.assertTrue(past.is_completed)
+        self.assertEqual(past.completed_by, self.engineer)
+        self.assertContains(self.client.get(reverse("visits:detail", args=[past.pk])), "Nueva evaluación")
+
+    def test_future_visit_cannot_be_marked_as_done(self):
+        visit = make_visit(self.site, at(self.tuesday, 9))
+        self.client.force_login(self.engineer)
+        self.assertEqual(self.client.post(reverse("visits:complete", args=[visit.pk])).status_code, 404)
+
+    def test_engineer_can_cancel_a_visit_that_did_not_happen(self):
+        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
+        self.client.force_login(self.engineer)
+        self.client.post(reverse("visits:cancel", args=[past.pk]), {"cancellation_reason": "La planta estaba cerrada"})
+        past.refresh_from_db()
+        self.assertEqual(past.status, Visit.Status.CANCELLED)
+
+    def test_agenda_tabs(self):
+        upcoming = make_visit(self.site, at(self.tuesday, 9))
+        to_close = make_visit(self.site, at(timezone.localdate() - timedelta(days=2), 9))
+        done = make_visit(self.site, at(timezone.localdate() - timedelta(days=3), 9), status=Visit.Status.COMPLETED)
+        self.client.force_login(self.engineer)
         url = reverse("visits:agenda")
         self.assertEqual(list(self.client.get(url).context["visits"]), [upcoming])
-        self.assertEqual(list(self.client.get(url, {"ver": "pasadas"}).context["visits"]), [past])
+        self.assertEqual(list(self.client.get(url, {"ver": "por_cerrar"}).context["visits"]), [to_close])
+        self.assertEqual(list(self.client.get(url, {"ver": "historial"}).context["visits"]), [done])
+        # La empresa no tiene la pestana de cierre: ve las proximas.
+        self.client.force_login(self.member)
+        self.assertEqual(list(self.client.get(url, {"ver": "por_cerrar"}).context["visits"]), [upcoming])
 
-    def test_list_shows_time_in_colombia(self):
-        make_visit(self.position, future())
-        self.assertContains(self.client.get(reverse("visits:agenda")), "9:00")
 
-    def test_list_query_count_does_not_grow_with_visits(self):
-        for days in range(1, 6):
-            make_visit(self.position, future(days))
-        # sesion, usuario, conteo de la paginacion y visitas con su jerarquia
-        with self.assertNumQueries(4):
-            self.client.get(reverse("visits:agenda"))
+class VisitEvaluationsTests(VisitTestCase):
+    def test_company_only_sees_completed_evaluations_of_the_visit(self):
+        from apps.evaluations.models import Evaluation
+        from apps.core.tests.factories import make_area, make_position
+
+        visit = make_visit(self.site, at(timezone.localdate() - timedelta(days=2)), status=Visit.Status.COMPLETED)
+        position = make_position(make_area(self.site))
+        common = {"position": position, "visit": visit, "evaluator": self.engineer,
+                  "evaluated_on": timezone.localdate(), "activity_description": "x"}
+        draft = Evaluation.objects.create(**common)
+        done = Evaluation.objects.create(**common, status=Evaluation.Status.COMPLETED, completed_at=timezone.now())
+        self.client.force_login(self.member)
+        listed = list(self.client.get(reverse("visits:detail", args=[visit.pk])).context["evaluations"])
+        self.assertEqual(listed, [done])
+        self.client.force_login(self.engineer)
+        listed = list(self.client.get(reverse("visits:detail", args=[visit.pk])).context["evaluations"])
+        self.assertEqual(listed, [draft, done])

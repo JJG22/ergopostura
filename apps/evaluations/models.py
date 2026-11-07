@@ -11,7 +11,7 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Lower
 
-from apps.companies.models import Position
+from apps.companies.models import Position, Worker
 from apps.core.models import TimeStampedModel
 from apps.rula.risk import action_level_for
 from apps.rula.scoring import Load, RulaInput, calculate
@@ -26,17 +26,22 @@ class Evaluation(TimeStampedModel):
     position = models.ForeignKey(
         Position, verbose_name="puesto de trabajo", on_delete=models.PROTECT, related_name="evaluations"
     )
+    # Toda evaluacion nace de una visita realizada: es la observacion en campo que la sustenta.
     visit = models.ForeignKey(
-        Visit,
-        verbose_name="visita",
-        on_delete=models.SET_NULL,
+        Visit, verbose_name="visita realizada", on_delete=models.PROTECT, related_name="evaluations"
+    )
+    worker = models.ForeignKey(
+        Worker,
+        verbose_name="trabajador observado",
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="evaluations",
+        help_text="Opcional. Quien realizaba la actividad durante la observación.",
     )
     evaluator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name="evaluador",
+        verbose_name="ingeniero evaluador",
         on_delete=models.PROTECT,
         related_name="evaluations",
     )

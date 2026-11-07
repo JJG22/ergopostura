@@ -10,18 +10,16 @@ from .models import Evaluation, Posture, PosturePhoto, Recommendation
 
 def visible_evaluations(user) -> QuerySet[Evaluation]:
     evaluations = (
-        Evaluation.objects.select_related("position__area__site__company", "evaluator", "visit")
+        Evaluation.objects.select_related("position__area__site__company", "evaluator", "visit", "worker")
         # Una evaluacion muestra su peor postura. Nunca se promedian puntajes (RF-019).
         .annotate(worst_score=Max("postures__assessment__grand_score"))
         .order_by("-evaluated_on", "-pk")
     )
     if has_capability(user, Capability.EVALUATION_VIEW_ALL):
         return evaluations
-    completed = evaluations.filter(status=Evaluation.Status.COMPLETED)
-    if has_capability(user, Capability.EVALUATION_VIEW_COMPLETED):
-        return completed
     if has_capability(user, Capability.EVALUATION_VIEW_OWN) and user.company_id:
-        return completed.filter(position__area__site__company_id=user.company_id)
+        # La empresa ve solo resultados definitivos, nunca una evaluacion en curso.
+        return evaluations.filter(status=Evaluation.Status.COMPLETED).filter(position__area__site__company_id=user.company_id)
     return evaluations.none()
 
 

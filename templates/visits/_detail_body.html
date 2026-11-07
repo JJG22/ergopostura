@@ -4,23 +4,44 @@
     <span class="cal-swatch c{{ color }}" aria-hidden="true"></span>
     <div>
       <strong>{{ visit.company.name }}</strong>
-      <p>{{ visit.scheduled_at|date:"l j \d\e F \d\e Y"|capfirst }} · {{ visit.scheduled_at|time:"g:i a" }}</p>
+      <p>{{ visit.scheduled_at|date:"l j \d\e F \d\e Y"|capfirst }} · {{ visit.scheduled_at|time:"g:i a" }} – {{ visit.ends_at|time:"g:i a" }}</p>
     </div>
-    {% if is_past %}<span class="status status-neutral">Pasada</span>{% else %}<span class="status status-teal">Programada</span>{% endif %}
+    {% include "visits/_level.html" %}
   </div>
   <dl class="detail-list">
-    <div><dt>Sede</dt><dd>{{ visit.site.name }}</dd></div>
-    <div><dt>Área</dt><dd>{{ visit.area.name }}</dd></div>
-    <div><dt>Puesto de trabajo</dt><dd>{{ visit.position.name }}</dd></div>
-    <div><dt>Contacto de la empresa</dt><dd>{{ visit.contact_name|default:"Sin registrar" }}</dd></div>
-    <div><dt>Registrada por</dt><dd>{{ visit.created_by|default:"Sin registrar" }}</dd></div>
+    <div><dt>Sede</dt><dd>{{ visit.site.name }} · {{ visit.site.municipality.name }}{% if visit.site.address %}<br><small>{{ visit.site.address }}</small>{% endif %}</dd></div>
+    <div><dt>Duración</dt><dd>{{ visit.get_duration_minutes_display }}</dd></div>
+    <div><dt>Motivo</dt><dd>{{ visit.purpose|linebreaksbr }}</dd></div>
+    <div><dt>Recibe</dt><dd>{{ visit.contact_name }}{% if visit.contact_phone %} · <a href="tel:{{ visit.contact_phone }}">{{ visit.contact_phone }}</a>{% endif %}</dd></div>
+    <div><dt>Agendada por</dt><dd>{{ visit.requested_by|default:"Sin registrar" }} · {{ visit.created_at|date:"j M Y, g:i a" }}</dd></div>
+    {% if visit.is_completed %}
+      <div><dt>Realizada</dt><dd>Registrada por {{ visit.completed_by|default:"el ingeniero" }} el {{ visit.completed_at|date:"j M Y, g:i a" }}</dd></div>
+      {% if visit.completion_notes %}<div><dt>Observaciones</dt><dd>{{ visit.completion_notes|linebreaksbr }}</dd></div>{% endif %}
+    {% elif visit.cancelled_at %}
+      <div><dt>Cancelada</dt><dd>Por {{ visit.cancelled_by|default:"Sin registrar" }} el {{ visit.cancelled_at|date:"j M Y, g:i a" }}</dd></div>
+      <div><dt>Motivo de cancelación</dt><dd>{{ visit.cancellation_reason }}</dd></div>
+    {% endif %}
+    {% if evaluations %}
+      <div><dt>Evaluaciones</dt><dd>{% for evaluation in evaluations %}<a href="{% url 'evaluations:detail' evaluation.pk %}">{{ evaluation.code }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</dd></div>
+    {% endif %}
   </dl>
-  <div class="modal-actions">
-    {% if 'evaluation.manage' in caps %}
-      <a class="btn btn-secondary" href="{% url 'evaluations:create' %}?visita={{ visit.pk }}">{% icon 'clipboard-check' %}<span>Evaluar</span></a>
-    {% endif %}
-    {% if 'visit.manage' in caps %}
-      <a class="btn btn-primary" href="{% url 'visits:update' visit.pk %}" hx-get="{% url 'visits:update' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">Editar</a>
-    {% endif %}
-  </div>
+  {% if level.key == 'por_cerrar' and can_complete %}
+    <div class="modal-note">{% icon 'circle-exclamation-point' %}<span>La hora de la visita ya pasó. Registra si se hizo para poder evaluar, o cancélala si no se realizó.</span></div>
+  {% endif %}
+  {% if can_cancel or can_reschedule or can_complete or can_evaluate %}
+    <div class="modal-actions">
+      {% if can_cancel %}
+        <a class="btn btn-tertiary btn-tertiary-danger" href="{% url 'visits:cancel' visit.pk %}" hx-get="{% url 'visits:cancel' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">Cancelar visita</a>
+      {% endif %}
+      {% if can_reschedule %}
+        <a class="btn btn-primary" href="{% url 'visits:update' visit.pk %}" hx-get="{% url 'visits:update' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">Reprogramar</a>
+      {% endif %}
+      {% if can_complete %}
+        <a class="btn btn-primary" href="{% url 'visits:complete' visit.pk %}" hx-get="{% url 'visits:complete' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">{% icon 'check' %}<span>Registrar realizada</span></a>
+      {% endif %}
+      {% if can_evaluate %}
+        <a class="btn btn-primary" href="{% url 'evaluations:create' %}?visita={{ visit.pk }}" hx-get="{% url 'evaluations:create' %}?visita={{ visit.pk }}" hx-target="#modal-root" hx-swap="innerHTML">{% icon 'clipboard-check' %}<span>Nueva evaluación</span></a>
+      {% endif %}
+    </div>
+  {% endif %}
 </div>

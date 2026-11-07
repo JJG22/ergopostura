@@ -13,7 +13,17 @@ from django.utils import timezone
 from PIL import Image
 
 from apps.accounts.models import Role
-from apps.core.tests.factories import make_area, make_company, make_position, make_site, make_user
+from apps.core.tests.factories import (
+    at,
+    completed_visit,
+    make_area,
+    make_company,
+    make_position,
+    make_site,
+    make_user,
+    make_visit,
+    make_worker,
+)
 from apps.evaluations import services
 from apps.evaluations.forms import EvaluationForm, PostureForm, RulaAssessmentForm
 from apps.evaluations.models import Evaluation, Posture, PosturePhoto, Recommendation, RulaAssessment
@@ -34,10 +44,11 @@ def upload(name="foto.jpg", content=None, content_type="image/jpeg"):
 
 
 def make_evaluation(user, position=None, **fields):
+    position = position or make_position()
     defaults = {"evaluated_on": timezone.localdate(), "activity_description": "Empaca cajas"}
-    return Evaluation.objects.create(
-        position=position or make_position(), evaluator=user, **{**defaults, **fields}
-    )
+    if "visit" not in fields:
+        fields["visit"] = completed_visit(position)
+    return Evaluation.objects.create(position=position, evaluator=user, **{**defaults, **fields})
 
 
 def make_posture(evaluation, name="Empaque en banda"):
@@ -113,17 +124,19 @@ class PhotoProcessingTests(TestCase):
 
 
 class EvaluationFormTests(TestCase):
+    """Sin visita realizada no hay evaluacion, y el puesto sale de la sede visitada."""
+
     def setUp(self):
-        self.user = make_user(role=Role.EVALUATOR)
+        self.user = make_user(role=Role.ENGINEER)
         self.position = make_position()
         self.area = self.position.area
         self.site = self.area.site
         self.company = self.site.company
+        self.visit = completed_visit(self.position, days_ago=3)
 
     def data(self, **changes):
         return {
-            "company": self.company.pk,
-            "site": self.site.pk,
+            "visit": self.visit.pk,
             "area": self.area.pk,
             "position": self.position.pk,
             "evaluated_on": timezone.localdate().isoformat(),
@@ -134,16 +147,40 @@ class EvaluationFormTests(TestCase):
     def form(self, **changes):
         return EvaluationForm(data=self.data(**changes), user=self.user)
 
-    def test_saves_with_evaluator_as_author(self):
+    def test_saves_with_engineer_as_author_and_the_visit(self):
         form = self.form()
         self.assertTrue(form.is_valid(), form.errors)
         evaluation = form.save()
         self.assertEqual(evaluation.evaluator, self.user)
+        self.assertEqual(evaluation.visit, self.visit)
         self.assertEqual(evaluation.company, self.company)
         self.assertTrue(evaluation.is_draft)
 
-    def test_future_date_is_rejected(self):
+    def test_visit_is_required(self):
+        self.assertIn("visit", self.form(visit="").errors)
+
+    def test_only_completed_visits_are_offered(self):
+        for status in (Visit.Status.SCHEDULED, Visit.Status.CANCELLED):
+            day = timezone.localdate() - timedelta(days=1)
+            visit = make_visit(site=self.site, scheduled_at=at(day, 15), status=status)
+            self.assertIn("visit", self.form(visit=visit.pk).errors, status)
+
+    def test_position_must_belong_to_the_visited_site(self):
+        other_site = make_site(self.company, name="Otra sede")
+        foreign = make_position(make_area(other_site, name="Bodega"), name="Auxiliar")
+        self.assertIn("position", self.form(position=foreign.pk).errors)
+        self.assertIn("area", self.form(area=foreign.area.pk, position=foreign.pk).errors)
+
+    def test_worker_must_belong_to_the_position(self):
+        mine = make_worker(self.position)
+        other = make_worker(make_position(self.area, name="Sellado"))
+        self.assertTrue(self.form(worker=mine.pk).is_valid())
+        self.assertIn("worker", self.form(worker=other.pk).errors)
+
+    def test_date_cannot_be_before_the_visit_or_future(self):
+        before = (timezone.localdate() - timedelta(days=5)).isoformat()
         tomorrow = (timezone.localdate() + timedelta(days=1)).isoformat()
+        self.assertIn("evaluated_on", self.form(evaluated_on=before).errors)
         self.assertIn("evaluated_on", self.form(evaluated_on=tomorrow).errors)
 
     def test_activity_is_required(self):
@@ -156,29 +193,21 @@ class EvaluationFormTests(TestCase):
     def test_unknown_weight_is_allowed(self):
         self.assertTrue(self.form(carries_load="on").is_valid())
 
-    def test_position_of_another_company_is_rejected(self):
-        foreign = make_position(make_area(make_site(make_company(name="Otra")), name="Otra"))
-        self.assertIn("position", self.form(position=foreign.pk).errors)
+    def test_visit_of_an_inactive_company_is_not_offered(self):
+        self.company.is_active = False
+        self.company.save()
+        self.assertIn("visit", self.form().errors)
 
-    def test_visit_of_another_position_is_rejected(self):
-        other = make_position(self.area, name="Otro puesto")
-        visit = Visit.objects.create(position=other, scheduled_at=timezone.now() + timedelta(days=1))
-        self.assertIn("visit", self.form(visit=visit.pk).errors)
-
-    def test_visit_of_the_same_position_is_accepted(self):
-        visit = Visit.objects.create(position=self.position, scheduled_at=timezone.now() + timedelta(days=1))
-        form = self.form(visit=visit.pk)
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.save().visit, visit)
-
-    def test_inactive_company_is_not_offered(self):
-        inactive = make_company(name="Inactiva", is_active=False)
-        self.assertIn("company", self.form(company=inactive.pk).errors)
+    def test_database_requires_a_visit(self):
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Evaluation.objects.create(
+                position=self.position, evaluator=self.user, evaluated_on=timezone.localdate(), activity_description="x"
+            )
 
 
 class PostureRulesTests(TestCase):
     def setUp(self):
-        self.user = make_user(role=Role.EVALUATOR)
+        self.user = make_user(role=Role.ENGINEER)
         self.evaluation = make_evaluation(self.user)
 
     def data(self, **changes):
@@ -207,7 +236,7 @@ class PostureRulesTests(TestCase):
 
 class AssessmentTests(TestCase):
     def setUp(self):
-        self.user = make_user(role=Role.EVALUATOR)
+        self.user = make_user(role=Role.ENGINEER)
         self.posture = make_posture(make_evaluation(self.user))
 
     def test_saved_scores_match_the_case_worked_by_hand(self):
@@ -281,7 +310,7 @@ class AssessmentTests(TestCase):
 
 class CompletionTests(TestCase):
     def setUp(self):
-        self.user = make_user(role=Role.EVALUATOR)
+        self.user = make_user(role=Role.ENGINEER)
         self.evaluation = make_evaluation(self.user)
 
     def test_needs_a_posture(self):
@@ -324,7 +353,7 @@ class AccessTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.author = make_user(role=Role.EVALUATOR)
+        cls.author = make_user(role=Role.ENGINEER)
         cls.company = make_company(name="Mi empresa")
         cls.position = make_position(make_area(make_site(cls.company)))
         cls.foreign_position = make_position(make_area(make_site(make_company(name="Ajena")), name="Ajena"))
@@ -363,16 +392,9 @@ class AccessTests(TestCase):
         ):
             self.assertIn("/ingresar/", self.client.get(url)["Location"])
 
-    def test_staff_roles_see_all_evaluations(self):
-        for role in (Role.ADMIN, Role.ENGINEER, Role.EVALUATOR):
-            self.login(role)
-            self.assertEqual(len(self.client.get(reverse("evaluations:list")).context["evaluations"]), 3, role)
-
-    def test_results_role_sees_only_completed(self):
-        self.login(Role.RESULTS)
-        listed = {e.pk for e in self.client.get(reverse("evaluations:list")).context["evaluations"]}
-        self.assertEqual(listed, {self.done.pk, self.foreign_done.pk})
-        self.assertEqual(self.client.get(self.detail(self.draft)).status_code, 404)
+    def test_engineer_sees_all_evaluations(self):
+        self.login(Role.ENGINEER)
+        self.assertEqual(len(self.client.get(reverse("evaluations:list")).context["evaluations"]), 3)
 
     def test_company_user_sees_only_its_completed_evaluations(self):
         self.login(Role.COMPANY, company=self.company)
@@ -381,17 +403,17 @@ class AccessTests(TestCase):
         self.assertEqual(self.client.get(self.detail(self.foreign_done)).status_code, 404)
         self.assertEqual(self.client.get(self.detail(self.draft)).status_code, 404)
 
-    def test_tasks_role_has_no_access(self):
-        self.login(Role.TASKS)
+    def test_support_has_no_access_to_evaluations(self):
+        self.login(Role.ADMIN)
         self.assertEqual(self.client.get(reverse("evaluations:list")).status_code, 403)
         self.assertEqual(self.client.get(self.detail(self.done)).status_code, 403)
+        self.assertEqual(self.client.get(reverse("evaluations:photo", args=[self.done_photo.pk])).status_code, 403)
 
-    def test_only_engineer_and_evaluator_can_create(self):
+    def test_only_the_engineer_can_create(self):
         url = reverse("evaluations:create")
-        for role in (Role.ENGINEER, Role.EVALUATOR):
-            self.login(role)
-            self.assertEqual(self.client.get(url).status_code, 200, role)
-        for role in (Role.ADMIN, Role.COMPANY, Role.RESULTS, Role.TASKS):
+        self.login(Role.ENGINEER)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        for role in (Role.ADMIN, Role.COMPANY):
             fields = {"company": self.company} if role == Role.COMPANY else {}
             self.login(role, **fields)
             self.assertEqual(self.client.get(url).status_code, 403, role)
@@ -406,7 +428,7 @@ class AccessTests(TestCase):
             self.assertEqual(self.client.get(reverse("evaluations:photo", args=[photo.pk])).status_code, 404)
 
     def test_another_evaluator_cannot_modify_a_draft(self):
-        self.login(Role.EVALUATOR)
+        self.login(Role.ENGINEER)
         for url, method in (
             (reverse("evaluations:update", args=[self.draft.pk]), "get"),
             (reverse("evaluations:posture_create", args=[self.draft.pk]), "get"),
@@ -431,17 +453,18 @@ class AccessTests(TestCase):
         self.assertNotContains(response, "Repetir análisis")
 
     def test_read_only_detail_hides_actions(self):
-        self.login(Role.RESULTS)
+        self.login(Role.COMPANY, company=self.company)
         response = self.client.get(self.detail(self.done))
         for text in ("Agregar postura", "Subir", "Nueva recomendación", "Terminar", "Reabrir"):
             self.assertNotContains(response, text)
         self.assertContains(response, "Ajustar")
 
-    def test_only_admin_reopens(self):
+    def test_only_the_engineer_reopens(self):
         url = reverse("evaluations:reopen", args=[self.done.pk])
+        for role, fields in ((Role.ADMIN, {}), (Role.COMPANY, {"company": self.company})):
+            self.login(role, **fields)
+            self.assertEqual(self.client.post(url).status_code, 403, role)
         self.client.force_login(self.author)
-        self.assertEqual(self.client.post(url).status_code, 403)
-        self.login(Role.ADMIN)
         self.assertContains(self.client.get(self.detail(self.done)), "Reabrir")
         self.client.post(url)
         self.done.refresh_from_db()
@@ -456,7 +479,7 @@ class AccessTests(TestCase):
 
 class FlowTests(TestCase):
     def setUp(self):
-        self.user = make_user(role=Role.EVALUATOR)
+        self.user = make_user(role=Role.ENGINEER)
         self.client.force_login(self.user)
         self.evaluation = make_evaluation(self.user)
         self.posture = make_posture(self.evaluation)
@@ -526,23 +549,22 @@ class FlowTests(TestCase):
         self.assertContains(response, "sustenta el análisis")
         self.assertEqual(PosturePhoto.objects.count(), 1)
 
-    def test_starting_from_a_visit_prefills_the_position(self):
-        visit = Visit.objects.create(position=self.evaluation.position, scheduled_at=timezone.now() + timedelta(days=1))
+    def test_starting_from_a_visit_selects_it_and_its_date(self):
+        visit = self.evaluation.visit
         response = self.client.get(reverse("evaluations:create"), {"visita": visit.pk})
         form = response.context["form"]
-        self.assertEqual(form.initial["position"], visit.position_id)
         self.assertEqual(form.initial["visit"], visit.pk)
-        self.assertIn(visit, form.fields["visit"].queryset)
+        self.assertEqual(form.initial["evaluated_on"], timezone.localdate(visit.scheduled_at))
+        self.assertIn(self.evaluation.position.area, form.fields["area"].queryset)
 
     def test_bad_visit_parameter_does_not_crash(self):
         for value in ("abc", "999999", "'; DROP"):
             self.assertEqual(self.client.get(reverse("evaluations:create"), {"visita": value}).status_code, 200)
 
-    def test_cascade_available_to_evaluator_without_company_module(self):
-        company = self.evaluation.company
-        response = self.client.get(reverse("evaluations:cascade"), {"company": company.pk})
-        self.assertContains(response, self.evaluation.position.area.site.name)
-        self.assertEqual(self.client.get(reverse("companies:list")).status_code, 403)
+    def test_cascade_offers_the_areas_of_the_visited_site(self):
+        visit = self.evaluation.visit
+        response = self.client.get(reverse("evaluations:cascade"), {"visit": visit.pk})
+        self.assertContains(response, self.evaluation.position.area.name)
 
     def test_worst_score_is_shown_not_an_average(self):
         make_assessment(self.posture)
@@ -591,7 +613,7 @@ class AiSuggestionTests(TestCase):
     """La sugerencia de la IA solo deja constancia: nunca cambia lo que registra el evaluador."""
 
     def setUp(self):
-        self.user = make_user(role=Role.EVALUATOR)
+        self.user = make_user(role=Role.ENGINEER)
         self.posture = make_posture(make_evaluation(self.user))
 
     def suggestion(self, **angles):

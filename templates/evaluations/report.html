@@ -24,7 +24,9 @@
       <span><small>ÁREA</small>{{ evaluation.position.area.name }}</span>
       <span><small>PUESTO</small>{{ evaluation.position.name }}</span>
       <span><small>FECHA</small>{{ evaluation.evaluated_on|date:"d/m/Y" }}</span>
-      <span><small>EVALUADOR</small>{{ evaluation.evaluator }}</span>
+      <span><small>INGENIERO</small>{{ evaluation.evaluator }}</span>
+      <span><small>VISITA</small>{{ evaluation.visit.scheduled_at|date:"d/m/Y" }}</span>
+      {% if evaluation.worker %}<span><small>TRABAJADOR</small>{{ evaluation.worker.full_name }}</span>{% endif %}
       <span><small>MAYOR RIESGO</small>{% risk_badge evaluation.worst_score %}</span>
     </div>
 

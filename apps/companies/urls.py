@@ -15,4 +15,6 @@ urlpatterns = [
     path("areas/<int:pk>/editar/", views.AreaUpdateView.as_view(), name="area_update"),
     path("areas/<int:parent_pk>/puestos/nuevo/", views.PositionCreateView.as_view(), name="position_create"),
     path("puestos/<int:pk>/editar/", views.PositionUpdateView.as_view(), name="position_update"),
+    path("puestos/<int:parent_pk>/trabajadores/nuevo/", views.WorkerCreateView.as_view(), name="worker_create"),
+    path("trabajadores/<int:pk>/editar/", views.WorkerUpdateView.as_view(), name="worker_update"),
 ]

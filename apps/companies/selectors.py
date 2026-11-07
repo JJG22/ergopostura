@@ -9,7 +9,7 @@ from django.db.models import Count, Prefetch, Q, QuerySet
 
 from apps.accounts.permissions import Capability, has_capability
 
-from .models import Area, Company, Position, Site
+from .models import Area, Company, Position, Site, Worker
 
 
 def visible_companies(user) -> QuerySet[Company]:
@@ -32,6 +32,12 @@ def visible_positions(user) -> QuerySet[Position]:
     return Position.objects.filter(
         area__site__company__in=visible_companies(user)
     ).select_related("area__site__company")
+
+
+def visible_workers(user) -> QuerySet[Worker]:
+    return Worker.objects.filter(
+        position__area__site__company__in=visible_companies(user)
+    ).select_related("position__area__site__company")
 
 
 def search_companies(user, query: str = "") -> QuerySet[Company]:
@@ -57,7 +63,7 @@ def search_companies(user, query: str = "") -> QuerySet[Company]:
 def with_structure(companies: QuerySet[Company]) -> QuerySet[Company]:
     sites = Site.objects.select_related("municipality__department")
     return companies.select_related("municipality__department").prefetch_related(
-        Prefetch("sites", queryset=sites), "sites__areas__positions"
+        Prefetch("sites", queryset=sites), "sites__areas__positions__workers"
     )
 
 

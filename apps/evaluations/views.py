@@ -12,7 +12,6 @@ from apps.accounts.mixins import CapabilityRequiredMixin
 from apps.accounts.permissions import Capability, has_capability
 from apps.companies.cascade import PositionCascadeView
 from apps.core.views import ModalFormMixin
-from apps.visits.models import Visit
 
 from . import selectors, services
 from .forms import EvaluationForm, PostureForm, RecommendationForm, RulaAssessmentForm
@@ -21,7 +20,6 @@ from .photos import InvalidPhoto
 
 VIEW_CAPABILITIES = (
     Capability.EVALUATION_VIEW_ALL,
-    Capability.EVALUATION_VIEW_COMPLETED,
     Capability.EVALUATION_VIEW_OWN,
 )
 
@@ -91,27 +89,18 @@ class EvaluationCreateView(ManageMixin, ModalFormMixin, CreateView):
     form_class = EvaluationForm
     title = "Nueva evaluación"
     submit_label = "Crear evaluación"
-    note = "Después agregarás las posturas, sus fotografías y el análisis RULA."
+    note = "Parte de una visita realizada. Después agregarás las posturas, sus fotografías y el análisis RULA."
     success_title = "Evaluación creada"
 
     def get_form_kwargs(self):
         return {**super().get_form_kwargs(), "user": self.request.user}
 
     def get_initial(self):
-        """Al iniciar desde una visita, precarga su puesto."""
+        """Al iniciar desde una visita, la deja elegida."""
         initial = super().get_initial()
         visit_id = self.request.GET.get("visita", "")
         if visit_id.isdigit():
-            visit = Visit.objects.select_related("position__area__site").filter(pk=visit_id).first()
-            if visit:
-                area = visit.position.area
-                initial.update(
-                    company=area.site.company_id,
-                    site=area.site_id,
-                    area=area.pk,
-                    position=visit.position_id,
-                    visit=visit.pk,
-                )
+            initial["visit"] = int(visit_id)
         return initial
 
     def get_cancel_url(self):

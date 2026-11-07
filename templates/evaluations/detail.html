@@ -19,7 +19,7 @@
       <div class="row-actions">
         <a class="btn btn-secondary btn-text" href="{% url 'evaluations:report' evaluation.pk %}">Ver informe</a>
         {% if can_reopen %}
-          <form method="post" action="{% url 'evaluations:reopen' evaluation.pk %}" data-confirm="¿Reabrir esta evaluación? Su autor podrá modificarla de nuevo.">
+          <form method="post" action="{% url 'evaluations:reopen' evaluation.pk %}" data-confirm="¿Reabrir esta evaluación? Volverá a estar en curso y la empresa dejará de verla hasta que la termines de nuevo.">
             {% csrf_token %}<button class="btn btn-secondary btn-text">Reabrir</button>
           </form>
         {% endif %}
@@ -38,8 +38,9 @@
     {% if evaluation.worker_context %}<p class="detail-text">{{ evaluation.worker_context|linebreaksbr }}</p>{% endif %}
     <div class="fact-grid">
       <span><small>FECHA</small>{{ evaluation.evaluated_on|date:"d/m/Y" }}</span>
-      <span><small>EVALUADOR</small>{{ evaluation.evaluator }}</span>
-      <span><small>VISITA</small>{% if evaluation.visit %}{{ evaluation.visit.scheduled_at|date:"d/m/Y" }}{% else %}Sin visita relacionada{% endif %}</span>
+      <span><small>INGENIERO</small>{{ evaluation.evaluator }}</span>
+      <span><small>VISITA</small><a href="{% url 'visits:detail' evaluation.visit_id %}">{{ evaluation.visit.scheduled_at|date:"d/m/Y" }}</a></span>
+      {% if evaluation.worker %}<span><small>TRABAJADOR OBSERVADO</small>{{ evaluation.worker.full_name }}</span>{% endif %}
       <span>
         <small>CARGA</small>
         {% if evaluation.carries_load %}Sí{% if evaluation.load_weight_kg %}, {{ evaluation.load_weight_kg|floatformat:"-2" }} kg{% else %}, peso no conocido{% endif %}{% else %}No{% endif %}

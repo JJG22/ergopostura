@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.dashboard.urls")),
     path("empresas/", include("apps.companies.urls")),
+    path("contratos/", include("apps.contracts.urls")),
     path("geografia/", include("apps.geography.urls")),
     path("visitas/", include("apps.visits.urls")),
     path("evaluaciones/", include("apps.evaluations.urls")),

@@ -1,21 +1,25 @@
+from datetime import timedelta
 from unittest import mock
 
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Role
 from apps.companies.forms import CompanyForm
-from apps.companies.models import Area, Company, Position, Site
+from apps.companies.models import Area, Company, Position, Site, Worker
 from apps.core.tests.factories import (
     make_area,
     make_company,
     make_position,
     make_site,
     make_user,
+    make_worker,
     municipality,
 )
+
 
 def location(name="Armenia", department="Quindío"):
     place = municipality(name, department)
@@ -141,20 +145,18 @@ class AccessControlTests(TestCase):
             self.assertEqual(response.status_code, 302, url)
             self.assertIn("/ingresar/", response["Location"])
 
-    def test_admin_and_engineer_can_read_and_manage(self):
-        for role in (Role.ADMIN, Role.ENGINEER):
-            self.client.force_login(make_user(role=role))
-            for url in [*self.read_urls(), *self.manage_urls()]:
-                self.assertEqual(self.client.get(url).status_code, 200, f"{role} {url}")
+    def test_engineer_can_read_and_manage(self):
+        self.client.force_login(make_user(role=Role.ENGINEER))
+        for url in [*self.read_urls(), *self.manage_urls()]:
+            self.assertEqual(self.client.get(url).status_code, 200, url)
 
-    def test_roles_without_permission_get_403_everywhere(self):
-        for role in (Role.EVALUATOR, Role.RESULTS, Role.TASKS):
-            self.client.force_login(make_user(role=role))
-            for url in [*self.read_urls(), *self.manage_urls()]:
-                self.assertEqual(self.client.get(url).status_code, 403, f"{role} {url}")
+    def test_support_gets_403_everywhere(self):
+        self.client.force_login(make_user(role=Role.ADMIN))
+        for url in [*self.read_urls(), *self.manage_urls()]:
+            self.assertEqual(self.client.get(url).status_code, 403, url)
 
     def test_forbidden_post_does_not_write(self):
-        self.client.force_login(make_user(role=Role.EVALUATOR))
+        self.client.force_login(make_user(role=Role.ADMIN))
         response = self.client.post(reverse("companies:create"), {**valid_company(), "nit": "901234567"})
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Company.objects.filter(nit="901234567").exists())
@@ -175,28 +177,20 @@ class AccessControlTests(TestCase):
         response = self.client.get(reverse("companies:detail", args=[self.other_company.pk]))
         self.assertEqual(response.status_code, 404)
 
+    def labels(self, user):
+        self.client.force_login(user)
+        return [item["label"] for item in self.client.get(reverse("dashboard:home")).context["nav_items"]]
+
     def test_navigation_only_shows_what_the_role_can_open(self):
-        self.client.force_login(make_user(role=Role.EVALUATOR))
-        response = self.client.get(reverse("dashboard:home"))
-        labels = [item["label"] for item in response.context["nav_items"]]
-        self.assertEqual(labels, ["Panel principal", "Visitas", "Evaluaciones", "Tareas pendientes"])
-
-        self.client.force_login(make_user(role=Role.TASKS))
-        response = self.client.get(reverse("dashboard:home"))
-        labels = [item["label"] for item in response.context["nav_items"]]
-        self.assertEqual(labels, ["Panel principal", "Tareas pendientes"])
-
-        self.client.force_login(make_user(role=Role.RESULTS))
-        response = self.client.get(reverse("dashboard:home"))
-        labels = [item["label"] for item in response.context["nav_items"]]
-        self.assertEqual(labels, ["Panel principal", "Evaluaciones", "Indicadores"])
-
-        self.client.force_login(make_user(role=Role.ADMIN))
-        response = self.client.get(reverse("dashboard:home"))
-        labels = [item["label"] for item in response.context["nav_items"]]
+        self.assertEqual(self.labels(make_user(role=Role.ADMIN)), ["Panel principal", "Usuarios"])
         self.assertEqual(
-            labels,
-            ["Panel principal", "Empresas", "Visitas", "Evaluaciones", "Indicadores", "Tareas pendientes", "Usuarios"],
+            self.labels(make_user(role=Role.ENGINEER)),
+            ["Panel principal", "Empresas", "Contratos", "Visitas", "Evaluaciones", "Indicadores",
+             "Tareas pendientes", "Accesos de empresas"],
+        )
+        self.assertEqual(
+            self.labels(make_user(role=Role.COMPANY, company=self.company)),
+            ["Panel principal", "Visitas", "Evaluaciones", "Indicadores", "Tareas pendientes"],
         )
 
     def test_session_expired_in_modal_redirects_whole_page(self):
@@ -352,6 +346,61 @@ class StructureViewTests(TestCase):
             for area_index in range(3):
                 make_position(make_area(site, name=f"Área {area_index}"))
         url = reverse("companies:detail", args=[self.company.pk])
-        # sesion, usuario, empresa y un prefetch por cada nivel de la jerarquia
-        with self.assertNumQueries(6):
+        # sesion, usuario, empresa, un prefetch por nivel (sedes, areas, puestos, trabajadores),
+        # contrato vigente o proximo (2) y accesos de la empresa
+        with self.assertNumQueries(10):
             self.client.get(url)
+
+
+class WorkerTests(TestCase):
+    def setUp(self):
+        self.engineer = make_user(role=Role.ENGINEER)
+        self.position = make_position()
+        self.company = self.position.company
+        self.client.force_login(self.engineer)
+
+    def post(self, position=None, **data):
+        payload = {"first_name": " Luz  Marina ", "last_name": "Henao", "document_type": "CC",
+                   "document_number": "1.094.555.123", **data}
+        return self.client.post(reverse("companies:worker_create", args=[(position or self.position).pk]), payload)
+
+    def test_engineer_registers_a_worker_with_a_clean_document(self):
+        self.post()
+        worker = Worker.objects.get()
+        self.assertEqual((worker.first_name, worker.document_number), ("Luz Marina", "1094555123"))
+        self.assertEqual(worker.company, self.company)
+
+    def test_document_is_unique_within_the_company(self):
+        self.post()
+        other_position = make_position(make_area(self.position.area.site, name="Bodega"), name="Auxiliar")
+        response = self.post(other_position)
+        self.assertContains(response, "ya está registrado en la empresa")
+        self.assertEqual(Worker.objects.count(), 1)
+        # En otra empresa, la misma persona si se puede registrar.
+        self.post(make_position(make_area(make_site(make_company(name="Otra")), name="Otra")))
+        self.assertEqual(Worker.objects.count(), 2)
+
+    def test_hire_date_cannot_be_future(self):
+        tomorrow = (timezone.localdate() + timedelta(days=1)).isoformat()
+        self.assertContains(self.post(hired_on=tomorrow), "no puede ser futura")
+
+    def test_workers_appear_under_their_position(self):
+        self.post()
+        response = self.client.get(reverse("companies:detail", args=[self.company.pk]), {"nodo": self.position.node_key})
+        self.assertContains(response, "Luz Marina Henao")
+        self.assertContains(response, "Agregar trabajador")
+
+    def test_company_sees_its_workers_but_cannot_edit_them(self):
+        worker = make_worker(self.position)
+        self.client.force_login(make_user(role=Role.COMPANY, company=self.company))
+        response = self.client.get(reverse("companies:detail", args=[self.company.pk]), {"nodo": self.position.node_key})
+        self.assertContains(response, worker.full_name)
+        self.assertEqual(self.client.get(reverse("companies:worker_update", args=[worker.pk])).status_code, 403)
+
+    def test_other_companies_cannot_see_the_worker(self):
+        worker = make_worker(self.position)
+        outsider = make_user(role=Role.COMPANY, company=make_company(name="Otra"))
+        self.client.force_login(outsider)
+        self.assertEqual(self.client.get(reverse("companies:detail", args=[self.company.pk])).status_code, 404)
+        self.client.force_login(self.engineer)
+        self.assertEqual(self.client.get(reverse("companies:worker_update", args=[worker.pk])).status_code, 200)

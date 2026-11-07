@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.geography",
     "apps.companies",
+    "apps.contracts",
     "apps.visits",
     "apps.evaluations",
     "apps.indicators",
@@ -44,6 +45,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.accounts.middleware.PasswordChangeRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -109,6 +111,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Lectura de contratos con Claude. Sin la clave, el modulo de contratos funciona sin IA.
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+CONTRACT_AI_MODEL = os.environ.get("CONTRACT_AI_MODEL", "claude-opus-5-5")
 
 # Sin marcar "Recordarme" la sesion termina al cerrar el navegador.
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 14

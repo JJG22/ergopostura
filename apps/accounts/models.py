@@ -5,12 +5,16 @@ from django.db.models import Q
 
 
 class Role(models.TextChoices):
-    ADMIN = "admin", "Administrador"
+    """Tres roles, cada uno con su trabajo:
+
+    - Soporte tecnico: los desarrolladores. Gestionan cuentas; no evaluan ni agendan.
+    - Ingeniero industrial: presta el servicio. Registra empresas, contratos y evaluaciones.
+    - Empresa cliente: agenda las visitas y consulta sus resultados.
+    """
+
+    ADMIN = "admin", "Soporte técnico"
     ENGINEER = "ingeniero", "Ingeniero industrial"
-    EVALUATOR = "evaluador", "Evaluador"
-    COMPANY = "empresa", "Empresa"
-    RESULTS = "consulta", "Consulta de resultados"
-    TASKS = "tareas", "Responsable de tarea"
+    COMPANY = "empresa", "Empresa cliente"
 
 
 class UserManager(BaseUserManager):
@@ -53,6 +57,17 @@ class User(AbstractUser):
         blank=True,
         related_name="users",
         help_text="Obligatoria solo para el rol Empresa.",
+    )
+    # Quien crea la cuenta define la primera contrasena; el titular debe cambiarla al entrar.
+    must_change_password = models.BooleanField("debe cambiar la contraseña", default=False)
+    created_by = models.ForeignKey(
+        "self",
+        verbose_name="creada por",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_users",
+        editable=False,
     )
 
     USERNAME_FIELD = "email"

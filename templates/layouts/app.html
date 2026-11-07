@@ -23,6 +23,10 @@
           <small>{{ request.user.get_role_display }}</small>
         </span>
       </div>
+      <a class="sidebar-link" href="{% url 'accounts:password_change' %}">{% icon 'key-round' %}<span>Cambiar contraseña</span></a>
+      {% if request.user.is_staff %}
+        <a class="sidebar-link" href="{% url 'admin:index' %}">{% icon 'settings' %}<span>Panel técnico</span></a>
+      {% endif %}
       <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}
         <button type="submit">{% icon 'log-out' %}<span>Cerrar sesión</span></button>

@@ -2,24 +2,51 @@
 {% load ui %}
 {% block content %}
 <div class="page">
-  {% include "dashboard/_head.html" with subtitle="Información de tu empresa." %}
-  <div class="metric-grid">
-    <div class="card"><small>Sedes</small><strong class="metric">{{ counts.sites }}</strong></div>
-    <div class="card"><small>Áreas</small><strong class="metric">{{ counts.areas }}</strong></div>
-    <div class="card"><small>Puestos de trabajo</small><strong class="metric">{{ counts.positions }}</strong></div>
+  {% include "dashboard/_head.html" with subtitle=company.name %}
+
+  <div class="dashboard-grid">
+    <div class="card contract-card">
+      <div class="section-head"><div><h2 class="title title-2">Contrato de servicio</h2><p>Con el ingeniero industrial</p></div></div>
+      {% if contract %}
+        <div class="contract-card-body">
+          {% include "contracts/_status.html" with status=contract_status %}
+          <strong>{{ contract.display_code }} · {{ contract.get_kind_display }}</strong>
+          <span>Del {{ contract.start_date|date:"j \d\e F \d\e Y" }} al {{ contract.end_date|date:"j \d\e F \d\e Y" }}</span>
+          {% if contract_status == 'por_vencer' %}<small class="warn-text">Vence en {{ contract_days_left }} día{{ contract_days_left|pluralize:",s" }}. Habla con el ingeniero si quieres renovarlo.</small>{% endif %}
+          <a class="btn btn-tertiary" href="{% url 'contracts:detail' contract.pk %}">Ver contrato</a>
+        </div>
+      {% else %}
+        <p class="card-copy">No hay un contrato vigente. Sin contrato no se pueden agendar visitas: comunícate con el ingeniero.</p>
+      {% endif %}
+    </div>
+    <div class="quick-grid">
+      <a class="quick-card featured" href="{% url 'visits:list' %}">
+        <span>{% icon 'calendar-days' %}</span>
+        <div><strong>Agendar una visita</strong><small>Elige el día y la hora en el calendario</small></div>
+        {% icon 'chevron-right' %}
+      </a>
+      <a class="quick-card" href="{% url 'evaluations:list' %}">
+        <span>{% icon 'clipboard-check' %}</span>
+        <div><strong>Ver resultados</strong><small>Evaluaciones terminadas de tus puestos</small></div>
+        {% icon 'chevron-right' %}
+      </a>
+      <a class="quick-card" href="{% url 'tasks:list' %}">
+        <span>{% icon 'layout-list' %}</span>
+        <div><strong>Recomendaciones por atender</strong><small>{{ pending_count }} pendiente{{ pending_count|pluralize:",s" }}</small></div>
+        {% icon 'chevron-right' %}
+      </a>
+    </div>
   </div>
-  <div class="quick-grid two">
-    <a class="quick-card" href="{% url 'companies:detail' company.pk %}">
-      <span>{% icon 'building-complex' %}</span>
-      <div><strong>{{ company.name }}</strong><small>Consulta la estructura de tu empresa</small></div>
-      {% icon 'chevron-right' %}
-    </a>
-    <a class="quick-card" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML">
-      <span>{% icon 'calendar-days' %}</span>
-      <div><strong>Registrar visita</strong><small>Deja constancia de una visita acordada</small></div>
-      {% icon 'chevron-right' %}
-    </a>
-  </div>
+
+  {% if counts %}
+    <div class="metric-grid totals-grid four">
+      <a class="card metric-link" href="{% url 'companies:detail' company.pk %}"><small>Sedes</small><strong class="metric">{{ counts.sites }}</strong></a>
+      <a class="card metric-link" href="{% url 'companies:detail' company.pk %}"><small>Áreas</small><strong class="metric">{{ counts.areas }}</strong></a>
+      <a class="card metric-link" href="{% url 'companies:detail' company.pk %}"><small>Puestos</small><strong class="metric">{{ counts.positions }}</strong></a>
+      <a class="card metric-link" href="{% url 'companies:detail' company.pk %}"><small>Trabajadores</small><strong class="metric">{{ counts.workers }}</strong></a>
+    </div>
+  {% endif %}
+
   {% include "dashboard/_upcoming_visits.html" %}
   {% include "dashboard/_recent_evaluations.html" %}
 </div>

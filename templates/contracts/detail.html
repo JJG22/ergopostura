@@ -1,0 +1,143 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Contrato {{ contract.display_code }} · ErgoPostura{% endblock %}
+{% block crumb %}Contratos{% endblock %}
+{% block content %}
+<div class="page">
+  {% if can_manage %}
+    <a class="back-link page-back" href="{% url 'contracts:list' %}">{% icon 'arrow-left' %} Volver a contratos</a>
+  {% else %}
+    <a class="back-link page-back" href="{% url 'dashboard:home' %}">{% icon 'arrow-left' %} Volver al panel</a>
+  {% endif %}
+
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">CONTRATO {{ contract.display_code }}</p>
+      <h1 class="title title-1">{{ contract.company.name }}</h1>
+      <p>{{ contract.get_kind_display }} · {{ contract.start_date|date:"j \d\e F \d\e Y" }} al {{ contract.end_date|date:"j \d\e F \d\e Y" }} ({{ contract.duration_label }})</p>
+    </div>
+    <div class="row-actions">
+      {% include "contracts/_status.html" %}
+      <a class="btn btn-secondary btn-text" href="{% url 'contracts:file' contract.pk %}" target="_blank" rel="noopener">{% icon 'file-text' %}<span>Ver PDF</span></a>
+      {% if can_manage %}
+        <a class="btn btn-primary" href="{% url 'contracts:update' contract.pk %}">{% icon 'pencil' %}<span>Editar</span></a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if status == 'por_vencer' %}
+    <div class="banner banner-amber">{% icon 'circle-exclamation-point' %}<span>Vence en {{ days_left }} día{{ days_left|pluralize:",s" }}. {% if can_manage %}Si la empresa renueva, registra el nuevo contrato a partir del día siguiente al vencimiento.{% else %}Comunícate con el ingeniero si quieres renovarlo.{% endif %}</span></div>
+  {% elif status == 'vencido' %}
+    <div class="banner">{% icon 'circle-exclamation-point' %}<span>El contrato terminó. La empresa no puede agendar visitas nuevas hasta que haya otro vigente.</span></div>
+  {% endif %}
+  {% if nit_mismatch %}
+    <div class="banner banner-red">{% icon 'circle-exclamation-point' %}<span>El NIT que aparece en el documento ({{ contract.ai_summary.client_nit_text }}) no es el de {{ contract.company.name }} ({{ contract.company.nit_display }}). Revisa que el PDF corresponda a esta empresa.</span></div>
+  {% endif %}
+
+  <div class="contract-layout">
+    <div class="card">
+      <h2 class="title title-2">Datos registrados</h2>
+      <dl class="detail-list">
+        <div><dt>Empresa</dt><dd>{{ contract.company.name }} · NIT {{ contract.company.nit_display }}</dd></div>
+        <div><dt>Tipo</dt><dd>{{ contract.get_kind_display }}</dd></div>
+        <div><dt>Servicio</dt><dd>{{ contract.service|linebreaksbr }}</dd></div>
+        <div><dt>Vigencia</dt><dd>{{ contract.start_date|date:"d/m/Y" }} – {{ contract.end_date|date:"d/m/Y" }} · {{ contract.duration_label }}</dd></div>
+        <div><dt>Valor</dt><dd>{% if contract.value is not None %}$ {{ contract.value|floatformat:"0g" }} COP{% else %}Sin registrar{% endif %}</dd></div>
+        <div><dt>Encargado</dt><dd>{{ contract.responsible_name }}{% if contract.responsible_role %}, {{ contract.responsible_role }}{% endif %}{% if contract.responsible_email %}<br><a href="mailto:{{ contract.responsible_email }}">{{ contract.responsible_email }}</a>{% endif %}{% if contract.responsible_phone %}<br>{{ contract.responsible_phone }}{% endif %}</dd></div>
+        {% if contract.notes %}<div><dt>Notas</dt><dd>{{ contract.notes|linebreaksbr }}</dd></div>{% endif %}
+        <div><dt>Documento</dt><dd><a href="{% url 'contracts:file' contract.pk %}?descargar=1">{{ contract.file_name }}</a> · {{ contract.file_size|filesizeformat }}</dd></div>
+        {% if can_manage %}<div><dt>Registrado</dt><dd>{{ contract.created_at|date:"j M Y" }}{% if contract.created_by %} por {{ contract.created_by }}{% endif %}</dd></div>{% endif %}
+      </dl>
+      {% if can_manage %}
+        <form method="post" action="{% url 'contracts:delete' contract.pk %}" class="danger-zone" data-confirm="¿Eliminar el contrato {{ contract.display_code }}? Se borra también el PDF. Esta acción no se puede deshacer.">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-tertiary btn-tertiary-danger">{% icon 'trash' %}<span>Eliminar contrato</span></button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if can_manage %}
+      <div class="card ai-summary">
+        <div class="section-head">
+          <div><h2 class="title title-2">{% icon 'sparkles' %} Resumen con IA</h2><p>{% if contract.ai_summary %}Leído por {{ contract.ai_model }} el {{ contract.ai_generated_at|date:"j M Y, g:i a" }}{% else %}Asistente de lectura del contrato{% endif %}</p></div>
+          {% if ai_ready %}
+            <form method="post" action="{% url 'contracts:summarize' contract.pk %}" data-busy-form>
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary">{% if contract.ai_summary %}Volver a leer{% else %}Generar resumen{% endif %}</button>
+            </form>
+          {% endif %}
+        </div>
+
+        {% if contract.ai_summary %}
+          {% with summary=contract.ai_summary %}
+            <p class="ai-summary-text">{{ summary.summary }}</p>
+            {% if summary.alerts %}
+              <div class="ai-alerts"><strong>Para revisar</strong><ul>{% for alert in summary.alerts %}<li>{{ alert }}</li>{% endfor %}</ul></div>
+            {% endif %}
+            <dl class="detail-list compact">
+              {% if summary.service %}<div><dt>Servicio</dt><dd>{{ summary.service }}</dd></div>{% endif %}
+              {% if summary.duration_text %}<div><dt>Duración</dt><dd>{{ summary.duration_text }}</dd></div>{% endif %}
+              {% if summary.provider_name %}<div><dt>Contratista</dt><dd>{{ summary.provider_name }}</dd></div>{% endif %}
+              {% if summary.payment_terms %}<div><dt>Pagos</dt><dd>{{ summary.payment_terms }}</dd></div>{% endif %}
+              {% if summary.termination %}<div><dt>Terminación</dt><dd>{{ summary.termination }}</dd></div>{% endif %}
+              {% if summary.data_protection %}<div><dt>Datos personales</dt><dd>{{ summary.data_protection }}</dd></div>{% endif %}
+            </dl>
+            {% if summary.provider_obligations or summary.client_obligations %}
+              <div class="ai-obligations">
+                {% if summary.provider_obligations %}<div><strong>Obligaciones del ingeniero</strong><ul>{% for item in summary.provider_obligations %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}
+                {% if summary.client_obligations %}<div><strong>Obligaciones de la empresa</strong><ul>{% for item in summary.client_obligations %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <h3 class="ai-compare-title">Leído frente a registrado</h3>
+          <div class="table-wrap">
+            <table class="ai-compare">
+              <thead><tr><th scope="col">Dato</th><th scope="col">En el documento</th><th scope="col">Registrado</th></tr></thead>
+              <tbody>
+                {% for row in comparison %}
+                  <tr{% if row.differs %} class="differs"{% endif %}>
+                    <th scope="row">{{ row.label }}</th>
+                    <td>{% if row.missing %}<span class="muted">No aparece</span>{% elif row.label == 'Valor' %}$ {{ row.read|floatformat:"0g" }}{% elif row.label == 'Inicio' or row.label == 'Fin' %}{{ row.read|date:"d/m/Y" }}{% else %}{{ row.read }}{% endif %}</td>
+                    <td>{% if row.registered is None %}<span class="muted">Sin registrar</span>{% elif row.label == 'Valor' %}$ {{ row.registered|floatformat:"0g" }}{% elif row.label == 'Inicio' or row.label == 'Fin' %}{{ row.registered|date:"d/m/Y" }}{% else %}{{ row.registered }}{% endif %}{% if row.differs %} <span class="differs-tag">No coincide</span>{% endif %}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <p class="ai-disclaimer">La IA puede equivocarse. Lo que vale es lo registrado y el documento firmado.</p>
+        {% elif ai_ready %}
+          <div class="empty">
+            <div class="empty-icon">{% icon 'sparkles' %}</div>
+            <strong>Aún no hay resumen</strong>
+            <p>La IA lee el PDF y te da la duración, el tipo de contrato, el servicio, el encargado, el NIT y lo que conviene revisar. Tarda entre 10 y 40 segundos.</p>
+          </div>
+        {% else %}
+          <p class="card-copy">La lectura con IA no está configurada en este servidor (falta ANTHROPIC_API_KEY). Soporte puede activarla.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if can_manage and history %}
+    <div class="card dashboard-section">
+      <h2 class="title title-2">Otros contratos de la empresa</h2>
+      <ul class="simple-list">
+        {% for other in history %}
+          <li><span class="status-icon">{% icon 'file-signature' %}</span><span><strong>{{ other.display_code }} · {{ other.get_kind_display }}</strong><small>{{ other.start_date|date:"d/m/Y" }} – {{ other.end_date|date:"d/m/Y" }}</small></span><a class="btn btn-tertiary" href="{% url 'contracts:detail' other.pk %}">Ver</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.addEventListener("submit", function (event) {
+    if (!event.target.matches("[data-busy-form]")) return;
+    var button = event.target.querySelector("button");
+    button.disabled = true;
+    button.textContent = "Leyendo el contrato…";
+  });
+</script>
+{% endblock %}

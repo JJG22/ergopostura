@@ -3,7 +3,7 @@
 La busqueda ocurre solo dentro del arbol de la empresa abierta, de modo que una clave
 de otra empresa en la URL no encuentra nada y se vuelve a mostrar la empresa.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from django.urls import reverse
 
@@ -21,6 +21,7 @@ class Selection:
     add_url: str = ""
     add_label: str = ""
     key: str = "empresa"
+    workers: list = field(default_factory=list)
 
 
 def _company(company: Company) -> Selection:
@@ -88,9 +89,13 @@ def _position(company: Company, site: Site, area: Area, position: Position) -> S
             ("Sede", site.name),
             ("Área", area.name),
             ("Descripción", position.description or "Sin registrar"),
+            ("Trabajadores activos", str(sum(1 for worker in position.workers.all() if worker.is_active))),
         ],
         edit_url=reverse("companies:position_update", args=[position.pk]),
+        add_url=reverse("companies:worker_create", args=[position.pk]),
+        add_label="Agregar trabajador",
         key=position.node_key,
+        workers=list(position.workers.all()),
     )
 
 
@@ -112,4 +117,5 @@ def structure_counts(company: Company) -> dict[str, int]:
     sites = list(company.sites.all())
     areas = [area for site in sites for area in site.areas.all()]
     positions = [position for area in areas for position in area.positions.all()]
-    return {"sites": len(sites), "areas": len(areas), "positions": len(positions)}
+    workers = [worker for position in positions for worker in position.workers.all() if worker.is_active]
+    return {"sites": len(sites), "areas": len(areas), "positions": len(positions), "workers": len(workers)}

@@ -10,25 +10,19 @@ DEMO_PASSWORD = data.DEMO_PASSWORD
 
 class Command(BaseCommand):
     help = (
-        "Crea datos ficticios para probar el sistema: empresas en varios departamentos, usuarios de "
-        "cada rol, visitas pasadas y futuras, evaluaciones terminadas y en curso con los cuatro niveles "
-        "de RULA, y recomendaciones atendidas y pendientes. Se puede ejecutar varias veces."
+        "Solo para desarrollo: crea datos ficticios con el flujo completo (soporte, ingeniero, "
+        "empresas con contrato y acceso, visitas realizadas, por cerrar y futuras, evaluaciones "
+        "con los cuatro niveles de RULA y recomendaciones). Se puede ejecutar varias veces."
     )
 
     def add_arguments(self, parser):
         parser.add_argument("--password", default=DEMO_PASSWORD)
-        parser.add_argument(
-            "--allow-production",
-            action="store_true",
-            help="Permite ejecutarlo sin DEBUG; exige una clave distinta a la publicada en el repositorio.",
-        )
 
     def handle(self, *args, **options):
+        # En produccion el sistema arranca vacio: las cuentas las crea soporte y los datos,
+        # el ingeniero. Datos ficticios ahi se confundirian con clientes reales.
         if not settings.DEBUG:
-            if not options["allow_production"]:
-                raise CommandError("seed_demo solo se ejecuta con DEBUG activo.")
-            if options["password"] == DEMO_PASSWORD:
-                raise CommandError("En producción no se permite la clave de demostración publicada.")
+            raise CommandError("seed_demo solo se ejecuta en desarrollo (DEBUG activo).")
 
         with transaction.atomic():
             counts = DemoBuilder(options["password"]).build()

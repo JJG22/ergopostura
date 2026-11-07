@@ -20,8 +20,6 @@ MONTH_NAMES = (
 )
 WEEKDAY_NAMES = ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 
-# Una visita solo tiene hora de inicio. En la semana se dibuja como un bloque de una hora.
-DISPLAY_MINUTES = 60
 HOUR_HEIGHT = 48
 DEFAULT_FIRST_HOUR = 7
 DEFAULT_LAST_HOUR = 19
@@ -48,16 +46,29 @@ def color_of(company_id: int) -> int:
 
 @dataclass
 class Event:
+    """Una visita en el calendario, o un horario ocupado por otra empresa (visit=None)."""
+
     visit: object
     start: datetime
+    minutes: int
     color: int
+    level: object = None
     top: int = 0
+    height: int = HOUR_HEIGHT
     column: int = 0
     columns: int = 1
 
     @property
+    def busy(self) -> bool:
+        return self.visit is None
+
+    @property
     def end(self) -> datetime:
-        return self.start + timedelta(minutes=DISPLAY_MINUTES)
+        return self.start + timedelta(minutes=self.minutes)
+
+    @property
+    def cancelled(self) -> bool:
+        return self.visit is not None and self.visit.status == "cancelada"
 
     @property
     def left_percent(self) -> float:
@@ -195,16 +206,28 @@ def build_period(view: str, anchor: date, today: date) -> Period:
     return _week_period(anchor, today) if view == WEEK else _month_period(anchor, today)
 
 
-def place(period: Period, visits, now: datetime | None = None) -> Period:
-    """Reparte las visitas en los dias del periodo y calcula su posicion en la semana."""
+def place(period: Period, visits, now: datetime | None = None, busy=()) -> Period:
+    """Reparte las visitas en los dias del periodo y calcula su posicion en la semana.
+
+    busy son pares (inicio, minutos) de visitas que el usuario no puede ver: se dibujan
+    como «Ocupado», sin empresa ni enlace.
+    """
     by_date = {day.date: day for day in period.days}
+    moment = now or timezone.now()
     for visit in visits:
         start = timezone.localtime(visit.scheduled_at)
         day = by_date.get(start.date())
         if day is not None:
-            day.events.append(Event(visit, start, color_of(visit.position.area.site.company_id)))
+            day.events.append(
+                Event(visit, start, visit.duration_minutes, color_of(visit.site.company_id), visit.level_at(moment))
+            )
+    for scheduled_at, minutes in busy:
+        start = timezone.localtime(scheduled_at)
+        day = by_date.get(start.date())
+        if day is not None:
+            day.events.append(Event(None, start, minutes, -1))
     for day in period.days:
-        day.events.sort(key=lambda event: (event.start, event.visit.pk))
+        day.events.sort(key=lambda event: (event.start, event.busy, event.visit.pk if event.visit else 0))
 
     if period.view == WEEK:
         _fit_hours(period)
@@ -212,6 +235,7 @@ def place(period: Period, visits, now: datetime | None = None) -> Period:
             _assign_columns(day.events)
             for event in day.events:
                 event.top = _offset(period, event.start)
+                event.height = max(22, round(min(event.minutes, _minutes_left(period, event.start)) * HOUR_HEIGHT / 60) - 2)
         if now is not None:
             now = timezone.localtime(now)
             _open_slots(period, now)
@@ -228,6 +252,10 @@ def _open_slots(period: Period, now: datetime) -> None:
                 day.open_slots.append((hour, row))
 
 
+def _minutes_left(period: Period, moment: datetime) -> int:
+    return period.last_hour * 60 - (moment.hour * 60 + moment.minute)
+
+
 def _offset(period: Period, moment: datetime) -> int:
     minutes = (moment.hour - period.first_hour) * 60 + moment.minute
     return round(minutes * HOUR_HEIGHT / 60)
@@ -240,7 +268,8 @@ def _fit_hours(period: Period) -> None:
         return
     period.first_hour = min(period.first_hour, min(start.hour for start in starts))
     # Minuto del dia en que termina el bloque mas tardio; una visita a las 23:30 llega a medianoche.
-    latest_end = max(min(24 * 60, start.hour * 60 + start.minute + DISPLAY_MINUTES) for start in starts)
+    events = [event for day in period.days for event in day.events]
+    latest_end = max(min(24 * 60, event.start.hour * 60 + event.start.minute + event.minutes) for event in events)
     period.last_hour = max(period.last_hour, -(-latest_end // 60))
 
 

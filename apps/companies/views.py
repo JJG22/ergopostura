@@ -3,15 +3,18 @@ from urllib.parse import urlencode
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.accounts.mixins import CapabilityRequiredMixin
-from apps.accounts.permissions import Capability
+from apps.accounts.permissions import Capability, has_capability
+from apps.accounts.selectors import company_accounts
+from apps.contracts.services import current_contract
 from apps.core.views import ModalFormMixin
 
 from . import selectors
-from .forms import AreaForm, CompanyForm, PositionForm, SiteForm
+from .forms import AreaForm, CompanyForm, PositionForm, SiteForm, WorkerForm
 from .models import Company
 from .structure import select_node, structure_counts
 
@@ -48,9 +51,20 @@ class CompanyDetailView(CapabilityRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+        company = self.object
+        manages_accounts = has_capability(user, Capability.COMPANY_USER_MANAGE)
+        contract = current_contract(company) if (
+            has_capability(user, Capability.CONTRACT_MANAGE) or has_capability(user, Capability.CONTRACT_VIEW_OWN)
+        ) else None
         context.update(
-            selection=select_node(self.object, self.request.GET.get("nodo")),
-            counts=structure_counts(self.object),
+            selection=select_node(company, self.request.GET.get("nodo")),
+            counts=structure_counts(company),
+            manages_accounts=manages_accounts,
+            accounts=company_accounts(company) if manages_accounts else [],
+            contract=contract,
+            contract_status=contract.status_on(timezone.localdate()) if contract else None,
+            manages_contracts=has_capability(user, Capability.CONTRACT_MANAGE),
         )
         return context
 
@@ -174,3 +188,25 @@ class PositionUpdateView(StructureUpdateView):
     form_class = PositionForm
     title = "Editar puesto de trabajo"
     integrity_error_message = DUPLICATE_NAME
+
+
+class WorkerCreateView(StructureCreateView):
+    parent_selector = selectors.visible_positions
+    form_class = WorkerForm
+    title = "Agregar trabajador"
+    success_title = "Trabajador registrado"
+    integrity_error_message = "Este documento ya está registrado en el puesto."
+    note = "Son datos personales: solo los verán el ingeniero y la propia empresa."
+
+    def get_success_url(self):
+        return company_detail_url(self.parent_company, self.parent.node_key)
+
+
+class WorkerUpdateView(StructureUpdateView):
+    object_selector = selectors.visible_workers
+    form_class = WorkerForm
+    title = "Editar trabajador"
+    integrity_error_message = "Este documento ya está registrado en el puesto."
+
+    def _detail_url(self):
+        return company_detail_url(self.object.company, self.object.position.node_key)

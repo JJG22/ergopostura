@@ -59,7 +59,7 @@ class MetricsTests(SimpleTestCase):
 class IndicatorViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.author = make_user(role=Role.EVALUATOR)
+        cls.author = make_user(role=Role.ENGINEER)
         cls.company = make_company(name="Mi empresa")
         cls.site = make_site(cls.company)
         cls.area_a = make_area(cls.site, name="Empaque")
@@ -84,24 +84,23 @@ class IndicatorViewTests(TestCase):
         self.client.force_login(make_user(role=role, **fields))
 
     def test_roles_with_access(self):
-        for role in (Role.ADMIN, Role.ENGINEER, Role.RESULTS):
-            self.login(role)
-            self.assertEqual(self.client.get(self.url).status_code, 200, role)
+        self.login(Role.ENGINEER)
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+        self.login(Role.COMPANY, company=self.company)
+        self.assertEqual(self.client.get(self.url).status_code, 200)
 
-    def test_roles_without_access(self):
-        for role in (Role.EVALUATOR, Role.TASKS):
-            self.login(role)
-            self.assertEqual(self.client.get(self.url).status_code, 403, role)
+    def test_support_has_no_access(self):
+        self.login(Role.ADMIN)
+        self.assertEqual(self.client.get(self.url).status_code, 403)
         self.client.logout()
         self.assertIn("/ingresar/", self.client.get(self.url)["Location"])
 
-    def test_admin_and_engineer_can_compare_companies(self):
-        for role in (Role.ADMIN, Role.ENGINEER, Role.RESULTS):
-            self.login(role)
-            self.assertTrue(self.client.get(self.url).context["shows_all_companies"], role)
+    def test_engineer_can_compare_companies(self):
+        self.login(Role.ENGINEER)
+        self.assertTrue(self.client.get(self.url).context["shows_all_companies"])
 
     def test_totals_count_each_position_once_and_skip_drafts(self):
-        self.login(Role.RESULTS)
+        self.login(Role.ENGINEER)
         context = self.client.get(self.url).context
         totals = context["totals"]
         # Uno (verde por su evaluacion reciente), Dos (amarillo), Tres y Ajena (rojo).
@@ -110,7 +109,7 @@ class IndicatorViewTests(TestCase):
         self.assertEqual(context["area_count"], 3)
 
     def test_area_comparison_uses_the_same_definition_and_shows_empty_areas(self):
-        self.login(Role.RESULTS)
+        self.login(Role.ENGINEER)
         response = self.client.get(self.url, {"empresa": self.company.pk})
         rows = {item["label"]: item["risk"] for item in response.context["area_rows"]}
         self.assertEqual(rows[f"{self.site.name} · Empaque"].green, 1)
@@ -136,14 +135,14 @@ class IndicatorViewTests(TestCase):
         self.assertEqual(response.context["totals"].total, 0)
 
     def test_unknown_company_parameter_is_ignored(self):
-        self.login(Role.RESULTS)
+        self.login(Role.ENGINEER)
         for value in ("999999", "abc", "'; DROP"):
             response = self.client.get(self.url, {"empresa": value})
             self.assertEqual(response.status_code, 200)
             self.assertIsNone(response.context["selected_company_id"])
 
     def test_definition_is_visible(self):
-        self.login(Role.RESULTS)
+        self.login(Role.ENGINEER)
         self.assertContains(self.client.get(self.url), "más reciente de cada puesto")
 
     def test_reverse_url(self):

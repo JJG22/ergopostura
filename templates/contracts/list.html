@@ -1,0 +1,68 @@
+{% extends "layouts/app.html" %}
+{% load ui %}
+{% block title %}Contratos · ErgoPostura{% endblock %}
+{% block crumb %}Contratos{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1 class="title title-1">Contratos</h1>
+      <p>Un contrato por empresa a la vez. Las empresas solo pueden agendar visitas dentro de su vigencia.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'contracts:create' %}">{% icon 'plus' %}<span>Registrar contrato</span></a>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <a href="?"{% if not status %} class="active" aria-current="page"{% endif %}>Todos</a>
+      {% for value, label, total in statuses %}
+        <a href="?estado={{ value }}"{% if status == value %} class="active" aria-current="page"{% endif %}>{{ label }} <span class="tab-count">{{ total }}</span></a>
+      {% endfor %}
+    </div>
+    <form class="table-tools" method="get" role="search">
+      {% if status %}<input type="hidden" name="estado" value="{{ status }}">{% endif %}
+      <label class="table-search">
+        {% icon 'search' %}
+        <input type="search" name="q" value="{{ query }}" aria-label="Buscar contratos" placeholder="Buscar por empresa, código o encargado">
+      </label>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+    </form>
+
+    {% if contracts %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empresa</th><th>Contrato</th><th>Vigencia</th><th>Encargado</th><th>Estado</th><th>Resumen IA</th></tr></thead>
+          <tbody>
+            {% for contract in contracts %}
+              <tr>
+                <td><a href="{% url 'contracts:detail' contract.pk %}"><strong>{{ contract.company.name }}</strong></a></td>
+                <td>{{ contract.display_code }}<br><small class="muted">{{ contract.get_kind_display }}</small></td>
+                <td>{{ contract.start_date|date:"d/m/Y" }} – {{ contract.end_date|date:"d/m/Y" }}<br><small class="muted">{{ contract.duration_label }}{% if contract.status == 'vigente' or contract.status == 'por_vencer' %} · quedan {{ contract.left }} día{{ contract.left|pluralize:",s" }}{% endif %}</small></td>
+                <td>{{ contract.responsible_name }}</td>
+                <td>{% include "contracts/_status.html" with status=contract.status %}</td>
+                <td>{% if contract.ai_summary %}<span class="ai-tag">{% icon 'sparkles' %}Listo</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if status %}
+        {% with "&estado="|add:status as extra %}{% include "core/partials/pagination.html" with noun="contratos" extra_query=extra %}{% endwith %}
+      {% else %}
+        {% include "core/partials/pagination.html" with noun="contratos" %}
+      {% endif %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">{% icon 'file-signature' %}</div>
+        {% if query or status %}
+          <strong>No hay contratos con ese filtro</strong>
+        {% else %}
+          <strong>Aún no hay contratos</strong>
+          <p>Sube el contrato firmado con cada empresa. La IA puede leerlo y llenar los datos por ti.</p>
+          <a class="btn btn-primary" href="{% url 'contracts:create' %}">Registrar contrato</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

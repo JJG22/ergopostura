@@ -20,11 +20,9 @@ python manage.py migrate --noinput
 case "$DJANGO_SETTINGS_MODULE" in
   *prod*)
     python manage.py collectstatic --noinput
-    # El plan gratis de Render no tiene consola: las cuentas iniciales se crean al arrancar.
+    # El plan gratis de Render no tiene consola: la cuenta de soporte se crea al arrancar.
+    # Las demas cuentas las crea soporte (el ingeniero) y el ingeniero (las empresas).
     python manage.py ensure_admin
-    if [ -n "$DEMO_SEED_PASSWORD" ]; then
-      python manage.py seed_demo --allow-production --password "$DEMO_SEED_PASSWORD"
-    fi
     ;;
 esac
 

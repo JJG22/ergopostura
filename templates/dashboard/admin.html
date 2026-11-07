@@ -1,27 +1,55 @@
 {% extends "layouts/app.html" %}
-{% block title %}Panel de administración · ErgoPostura{% endblock %}
-{% block crumb %}Panel de administración{% endblock %}
+{% load ui %}
+{% block title %}Soporte · ErgoPostura{% endblock %}
+{% block crumb %}Soporte técnico{% endblock %}
 {% block content %}
 <div class="page">
-  {% include "dashboard/_head.html" with subtitle="Vista general de todo el sistema." %}
-  {% include "dashboard/_totals.html" %}
+  {% include "dashboard/_head.html" with subtitle="Gestionas las cuentas y el mantenimiento. Las evaluaciones, visitas y contratos son del ingeniero y de las empresas." %}
+
+  {% if not has_engineer %}
+    <a class="quick-card featured onboarding-card" href="{% url 'accounts:user_create' %}" hx-get="{% url 'accounts:user_create' %}" hx-target="#modal-root" hx-swap="innerHTML">
+      <span>{% icon 'user-plus' %}</span>
+      <div><strong>Crea la cuenta del ingeniero industrial</strong><small>Es el primer paso: el ingeniero registra después sus empresas cliente y les da acceso.</small></div>
+      {% icon 'chevron-right' %}
+    </a>
+  {% endif %}
+
+  <div class="metric-grid">
+    {% for row in users_by_role %}
+      <div class="card"><small>{{ row.label }}</small><strong class="metric">{{ row.total }}</strong><span>Cuenta{{ row.total|pluralize:",s" }} activa{{ row.total|pluralize:",s" }}</span></div>
+    {% endfor %}
+  </div>
+
   <div class="dashboard-grid">
-    {% include "dashboard/_recent_companies.html" %}
     <div class="card">
       <div class="section-head">
-        <div>
-          <h2 class="title title-2">Usuarios por rol</h2>
-          <p>Cuentas activas</p>
-        </div>
-        <a class="btn btn-tertiary" href="{% url 'admin:accounts_user_changelist' %}">Gestionar</a>
+        <div><h2 class="title title-2">Cuentas recientes</h2><p>Últimas creadas</p></div>
+        <a class="btn btn-tertiary" href="{% url 'accounts:users' %}">Gestionar</a>
       </div>
-      <dl class="detail-list">
-        {% for row in users_by_role %}
-          <div class="role-row"><dt>{{ row.label }}</dt><dd>{{ row.total }}</dd></div>
+      <ul class="simple-list">
+        {% for account in recent_accounts %}
+          <li>
+            <span class="avatar">{{ account.initials }}</span>
+            <span><strong>{{ account.get_full_name|default:account.email }}</strong><small>{{ account.get_role_display }}{% if account.company %} · {{ account.company }}{% endif %}</small></span>
+            {% if not account.is_active %}<span class="status status-neutral">Desactivada</span>{% elif account.must_change_password %}<span class="status status-amber">Clave temporal</span>{% endif %}
+          </li>
         {% endfor %}
-      </dl>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="section-head"><div><h2 class="title title-2">Estado del sistema</h2><p>Configuración del servidor</p></div></div>
+      <ul class="simple-list">
+        <li>
+          <span class="status-icon {% if ai_ready %}ok{% else %}warn{% endif %}">{% icon 'sparkles' %}</span>
+          <span><strong>Lectura de contratos con IA</strong><small>{% if ai_ready %}Configurada (ANTHROPIC_API_KEY).{% else %}Sin configurar: falta ANTHROPIC_API_KEY. Los contratos funcionan, pero sin resumen automático.{% endif %}</small></span>
+        </li>
+        <li>
+          <span class="status-icon ok">{% icon 'shield-check' %}</span>
+          <span><strong>Panel técnico</strong><small>Consulta de datos para diagnóstico. Los datos del negocio no se editan desde ahí.</small></span>
+          <a class="btn btn-tertiary" href="{% url 'admin:index' %}">Abrir</a>
+        </li>
+      </ul>
     </div>
   </div>
-  {% include "dashboard/_recent_evaluations.html" %}
 </div>
 {% endblock %}

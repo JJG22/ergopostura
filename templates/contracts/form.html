@@ -1,0 +1,40 @@
+{% extends "layouts/app.html" %}
+{% load static ui %}
+{% block title %}{{ title }} · ErgoPostura{% endblock %}
+{% block crumb %}Contratos{% endblock %}
+{% block content %}
+<div class="page page-medium">
+  <a class="back-link page-back" href="{{ cancel_url }}">{% icon 'arrow-left' %} Volver</a>
+  <div class="page-head"><div><h1 class="title title-1">{{ title }}</h1><p>Los datos registrados son los que valen; lo que lea la IA es una ayuda que debes revisar.</p></div></div>
+
+  <form class="card" method="post" enctype="multipart/form-data" novalidate data-contract-form data-read-url="{% url 'contracts:read' %}">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="form-error" role="alert">{{ error }}</div>{% endfor %}
+
+    {% if ai_ready %}
+      <div class="ai-panel" data-ai-panel>
+        <div class="ai-panel-head">
+          <span class="ai-panel-icon">{% icon 'sparkles' %}</span>
+          <div>
+            <strong>Leer el contrato con IA</strong>
+            <small>Elige el PDF y la IA propondrá fechas, tipo, servicio, encargado y valor. El documento se envía a Anthropic (Claude) para leerlo; revisa cada dato antes de guardar.</small>
+          </div>
+          <button type="button" class="btn btn-secondary" data-ai-read disabled>{% icon 'sparkles' %}<span>Leer contrato</span></button>
+        </div>
+        <p class="ai-status" data-ai-status aria-live="polite"></p>
+        <div class="ai-result" data-ai-result hidden></div>
+      </div>
+    {% else %}
+      <div class="banner">{% icon 'circle-exclamation-point' %}<span>La lectura con IA no está configurada en este servidor. Registra los datos a mano.</span></div>
+    {% endif %}
+
+    {% include "core/partials/form_fields.html" %}
+
+    <div class="modal-actions">
+      <a class="btn btn-secondary" href="{{ cancel_url }}">Cancelar</a>
+      <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}{% if ai_ready %}<script src="{% static 'js/contract-reader.js' %}"></script>{% endif %}{% endblock %}

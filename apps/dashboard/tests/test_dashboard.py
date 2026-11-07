@@ -1,8 +1,20 @@
+from datetime import timedelta
+
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Role
-from apps.core.tests.factories import make_company, make_position, make_user
+from apps.core.tests.factories import (
+    at,
+    completed_visit,
+    make_company,
+    make_contract,
+    make_position,
+    make_site,
+    make_user,
+    make_visit,
+)
 from apps.dashboard.panels import PANELS
 from apps.dashboard.views import greeting
 
@@ -17,54 +29,66 @@ class GreetingTests(SimpleTestCase):
 class RoleDashboardTests(TestCase):
     url = "/"
 
-    def test_every_role_has_a_panel_that_renders(self):
-        self.assertEqual(set(PANELS), set(Role))
-        for role in Role:
-            self.client.force_login(make_user(role=role))
-            self.assertEqual(self.client.get(self.url).status_code, 200, role)
+    def login(self, role, **fields):
+        if role == Role.COMPANY:
+            fields.setdefault("company", make_company(name="Mi empresa"))
+        self.client.force_login(make_user(role=role, **fields))
+        return self.client.get(self.url)
 
-    def test_each_role_gets_its_own_view(self):
+    def test_every_role_has_its_panel(self):
+        self.assertEqual(set(PANELS), set(Role))
         expected = {
             Role.ADMIN: "dashboard/admin.html",
             Role.ENGINEER: "dashboard/engineer.html",
             Role.COMPANY: "dashboard/company.html",
-            Role.EVALUATOR: "dashboard/evaluator.html",
-            Role.RESULTS: "dashboard/results.html",
-            Role.TASKS: "dashboard/tasks.html",
         }
         for role, template in expected.items():
-            self.client.force_login(make_user(role=role))
-            self.assertTemplateUsed(self.client.get(self.url), template)
+            response = self.login(role)
+            self.assertEqual(response.status_code, 200, role)
+            self.assertTemplateUsed(response, template)
 
-    def test_only_admin_sees_user_statistics(self):
+    def test_support_is_guided_to_create_the_engineer_and_sees_no_business_data(self):
         make_position()
-        self.client.force_login(make_user(role=Role.ADMIN))
-        self.assertContains(self.client.get(self.url), "Usuarios por rol")
+        response = self.login(Role.ADMIN)
+        self.assertContains(response, "Crea la cuenta del ingeniero industrial")
+        self.assertNotIn("recent_evaluations", response.context)
+        self.assertNotIn("totals", response.context)
+        make_user(role=Role.ENGINEER)
+        self.assertNotContains(self.login(Role.ADMIN), "Crea la cuenta del ingeniero industrial")
 
-        for role in (Role.ENGINEER, Role.COMPANY, Role.EVALUATOR, Role.RESULTS, Role.TASKS):
-            self.client.force_login(make_user(role=role))
-            response = self.client.get(self.url)
-            self.assertNotContains(response, "Usuarios por rol")
-            self.assertNotIn("users_by_role", response.context)
+    def test_engineer_sees_the_first_steps_until_the_flow_is_complete(self):
+        response = self.login(Role.ENGINEER)
+        self.assertTrue(response.context["onboarding"])
+        self.assertContains(response, "Primeros pasos")
 
-    def test_company_user_only_sees_data_of_its_company(self):
+    def test_engineer_is_told_what_needs_attention(self):
+        position = make_position()
+        company = position.company
+        make_contract(company, start=timezone.localdate() - timedelta(days=340), end=timezone.localdate() + timedelta(days=10))
+        make_visit(position.area.site, at(timezone.localdate() - timedelta(days=1)))
+        completed_visit(position)
+        response = self.login(Role.ENGINEER)
+        self.assertEqual(response.context["to_close_count"], 1)
+        self.assertEqual(len(response.context["without_evaluation"]), 1)
+        self.assertEqual(len(response.context["expiring_contracts"]), 1)
+        self.assertContains(response, "vence el")
+
+    def test_company_only_sees_its_data_and_its_contract(self):
         own = make_company(name="Mi empresa")
-        make_company(name="Empresa ajena")
-        make_position()
-        self.client.force_login(make_user(role=Role.COMPANY, company=own))
-        response = self.client.get(self.url)
+        other = make_company(name="Empresa ajena")
+        make_contract(other)
+        make_site(other)
+        response = self.login(Role.COMPANY, company=own)
         self.assertContains(response, "Mi empresa")
         self.assertNotContains(response, "Empresa ajena")
-        self.assertEqual(response.context["counts"], {"sites": 0, "areas": 0, "positions": 0})
+        self.assertIsNone(response.context["contract"])
+        self.assertContains(response, "No hay un contrato vigente")
+        self.assertEqual(response.context["counts"], {"sites": 0, "areas": 0, "positions": 0, "workers": 0})
 
-    def test_admin_totals_are_real(self):
-        make_position()
-        make_company(name="Sin estructura")
-        self.client.force_login(make_user(role=Role.ADMIN))
-        self.assertEqual(
-            self.client.get(self.url).context["totals"],
-            {"companies": 2, "sites": 1, "areas": 1, "positions": 1},
-        )
+        contract = make_contract(own)
+        response = self.login(Role.COMPANY, company=own)
+        self.assertEqual(response.context["contract"], contract)
+        self.assertContains(response, contract.display_code)
 
     def test_dashboard_requires_login(self):
         self.assertRedirects(self.client.get(reverse("dashboard:home")), "/ingresar/?next=/")

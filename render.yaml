@@ -20,8 +20,9 @@ services:
         sync: false
       - key: DJANGO_ADMIN_PASSWORD
         sync: false
-      # Opcional: si se define, crea las cuentas y datos ficticios de demostración.
-      - key: DEMO_SEED_PASSWORD
+      # Opcional: activa la lectura de contratos con IA (Claude). Sin ella, los contratos
+      # funcionan pero sin resumen automático.
+      - key: ANTHROPIC_API_KEY
         sync: false
 
 databases:

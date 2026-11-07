@@ -2,26 +2,42 @@ import json
 import math
 
 from django import forms
+from django.urls import reverse
 from django.utils import timezone
 
-from apps.companies.cascade import PositionCascadeForm
+from apps.companies.cascade import pick
 from apps.companies.forms import normalize_name
-from apps.companies.models import Company
+from apps.companies.models import Area, Position, Worker
 from apps.rula.scoring import RulaInputError, calculate
 from apps.visits.models import Visit
 
 from .models import Evaluation, Posture, Recommendation, RulaAssessment, rula_input_from
 
 
-class EvaluationForm(PositionCascadeForm):
-    visit = forms.ModelChoiceField(
-        Visit.objects.none(), label="Visita relacionada", required=False, empty_label="Sin visita relacionada"
+class VisitChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, visit):
+        local = timezone.localtime(visit.scheduled_at)
+        return f"{local:%d/%m/%Y} · {visit.site.company.name} · {visit.site.name}"
+
+
+class EvaluationForm(forms.ModelForm):
+    """La evaluacion parte de una visita realizada; el puesto sale de la sede visitada.
+
+    Las listas se recalculan en el servidor con lo elegido, de modo que un puesto de otra
+    sede, o un trabajador de otro puesto, quedan fuera de las opciones y se rechazan.
+    """
+
+    visit = VisitChoiceField(
+        Visit.objects.none(),
+        label="Visita realizada",
+        empty_label="Selecciona la visita",
+        help_text="Solo aparecen visitas registradas como realizadas.",
     )
+    area = forms.ModelChoiceField(Area.objects.none(), label="Área de trabajo")
 
     cascade_url_name = "evaluations:cascade"
-    cascade_triggers = ("company", "site", "area", "position")
     field_order = [
-        "company", "site", "area", "position", "visit", "evaluated_on",
+        "visit", "area", "position", "worker", "evaluated_on",
         "activity_description", "worker_context",
         "carries_load", "load_weight_kg", "repetitive_movements", "repetition_notes",
     ]
@@ -29,7 +45,7 @@ class EvaluationForm(PositionCascadeForm):
     class Meta:
         model = Evaluation
         fields = [
-            "position", "visit", "evaluated_on", "activity_description", "worker_context",
+            "visit", "position", "worker", "evaluated_on", "activity_description", "worker_context",
             "carries_load", "load_weight_kg", "repetitive_movements", "repetition_notes",
         ]
         widgets = {
@@ -41,26 +57,74 @@ class EvaluationForm(PositionCascadeForm):
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            self.load_initial_from_position(self.instance.position)
+            area = self.instance.position.area
+            self.initial.setdefault("area", area.pk)
         else:
             self.instance.evaluator = user
-            self.initial.setdefault("evaluated_on", timezone.localdate())
 
-        # Elegir un puesto no da acceso al modulo de empresas ni a sus datos.
-        position = self.configure_cascade(Company.objects.filter(is_active=True))
+        visits = Visit.objects.filter(status=Visit.Status.COMPLETED, site__company__is_active=True)
+        if self.instance.pk:
+            visits = visits | Visit.objects.filter(pk=self.instance.visit_id)
+        visits = visits.select_related("site__company").order_by("-scheduled_at")
+        self.fields["visit"].queryset = visits
+
+        source = self.data if self.is_bound else self.initial
+        visit = pick(visits, source.get("visit"))
+        area = self._child("area", Area.objects.filter(site=visit.site) if visit else None,
+                           "Selecciona un área", "Selecciona primero la visita", source)
+        position = self._child("position", Position.objects.filter(area=area) if area else None,
+                               "Selecciona un puesto", "Selecciona primero un área", source)
+        worker = self.fields["worker"]
+        worker.required = False
         if position is not None:
-            self.fields["visit"].queryset = Visit.objects.filter(position=position)
+            worker.queryset = Worker.objects.filter(position=position, is_active=True)
+            if self.instance.worker_id:
+                worker.queryset = worker.queryset | Worker.objects.filter(pk=self.instance.worker_id)
+            worker.empty_label = "Sin indicar"
+            worker.label_from_instance = lambda item: f"{item.full_name} · {item.document_display}"
         else:
-            self.fields["visit"].widget.attrs["disabled"] = True
+            worker.queryset = Worker.objects.none()
+            worker.empty_label = "Selecciona primero un puesto"
+            worker.widget.attrs["disabled"] = True
 
-    def clean_evaluated_on(self):
-        value = self.cleaned_data["evaluated_on"]
-        if value > timezone.localdate():
-            raise forms.ValidationError("La fecha de la evaluación no puede ser futura.")
-        return value
+        if visit is not None and not self.is_bound and not self.instance.pk:
+            self.initial.setdefault("evaluated_on", timezone.localdate(visit.scheduled_at))
+        self.initial.setdefault("evaluated_on", timezone.localdate())
+        if visit is not None and not self.fields["area"].queryset.exists():
+            self.fields["area"].help_text = "La sede visitada aún no tiene áreas. Regístralas en Empresas."
+
+        for name in ("visit", "area", "position"):
+            self.fields[name].widget.attrs.update(
+                {
+                    "hx-get": reverse(self.cascade_url_name),
+                    "hx-trigger": "change",
+                    "hx-target": "#form-fields",
+                    "hx-swap": "innerHTML settle:0ms",
+                    "hx-include": "closest form",
+                    "hx-params": "not csrfmiddlewaretoken",
+                }
+            )
+
+    def _child(self, name, queryset, label, waiting_label, source):
+        field = self.fields[name]
+        if queryset is None:
+            field.queryset = field.queryset.none()
+            field.empty_label = waiting_label
+            field.widget.attrs["disabled"] = True
+            return None
+        field.queryset = queryset
+        field.empty_label = label
+        return pick(queryset, source.get(name))
 
     def clean(self):
         cleaned = super().clean()
+        visit, evaluated_on = cleaned.get("visit"), cleaned.get("evaluated_on")
+        if visit is not None and evaluated_on is not None:
+            visit_day = timezone.localdate(visit.scheduled_at)
+            if evaluated_on < visit_day:
+                self.add_error("evaluated_on", f"La evaluación no puede ser anterior a la visita ({visit_day:%d/%m/%Y}).")
+            if evaluated_on > timezone.localdate():
+                self.add_error("evaluated_on", "La fecha de la evaluación no puede ser futura.")
         if cleaned.get("load_weight_kg") and not cleaned.get("carries_load"):
             self.add_error("load_weight_kg", "Indica que la actividad incluye carga, o deja vacío el peso.")
         if not cleaned.get("repetitive_movements"):

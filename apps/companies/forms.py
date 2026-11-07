@@ -1,8 +1,9 @@
 from django import forms
+from django.utils import timezone
 
 from apps.geography.forms import LocationFieldsMixin
 
-from .models import Area, Company, Position, Site
+from .models import Area, Company, Position, Site, Worker
 from .nit import InvalidNit, Nit
 
 
@@ -116,3 +117,56 @@ class PositionForm(SiblingUniqueNameForm):
             "name": forms.TextInput(attrs={"placeholder": "Ej. Operario de empaque"}),
             "description": forms.Textarea(attrs={"rows": 3}),
         }
+
+
+class WorkerForm(forms.ModelForm):
+    """El puesto viene de la URL. El documento no se repite dentro de la misma empresa."""
+
+    class Meta:
+        model = Worker
+        fields = ["first_name", "last_name", "document_type", "document_number", "hired_on", "is_active"]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"autocomplete": "off"}),
+            "last_name": forms.TextInput(attrs={"autocomplete": "off"}),
+            "document_number": forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "off"}),
+            "hired_on": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, parent=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if parent is not None:
+            self.instance.position = parent
+        if not self.instance.pk:
+            del self.fields["is_active"]
+
+    def clean_first_name(self):
+        return normalize_name(self.cleaned_data["first_name"])
+
+    def clean_last_name(self):
+        return normalize_name(self.cleaned_data["last_name"])
+
+    def clean_document_number(self):
+        # Se acepta con puntos o espacios, como suele escribirse una cedula.
+        return "".join(ch for ch in self.cleaned_data["document_number"] if ch.isalnum()).upper()
+
+    def clean_hired_on(self):
+        value = self.cleaned_data.get("hired_on")
+        if value and value > timezone.localdate():
+            raise forms.ValidationError("La fecha de ingreso no puede ser futura.")
+        return value
+
+    def clean(self):
+        cleaned = super().clean()
+        number, kind = cleaned.get("document_number"), cleaned.get("document_type")
+        if number and kind:
+            company = self.instance.position.area.site.company
+            duplicates = Worker.objects.filter(
+                position__area__site__company=company, document_type=kind, document_number=number
+            ).exclude(pk=self.instance.pk)
+            other = duplicates.select_related("position").first()
+            if other is not None:
+                self.add_error(
+                    "document_number",
+                    f"Este documento ya está registrado en la empresa ({other.full_name}, puesto {other.position}).",
+                )
+        return cleaned

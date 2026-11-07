@@ -7,43 +7,38 @@
   <div class="page-head">
     <div>
       <h1 class="title title-1">Visitas</h1>
-      <p>Consulta y registra las visitas acordadas con las empresas.</p>
+      <p>{% if 'visit.view_all' in caps %}Visitas que agendaron las empresas, en orden.{% else %}Visitas de tu empresa, en orden.{% endif %}</p>
     </div>
     <div class="row-actions">
       <a class="btn btn-secondary btn-text" href="{% url 'visits:list' %}">{% icon 'calendar-days' %}<span>Ver calendario</span></a>
-      {% if 'visit.manage' in caps %}
-        <a class="btn btn-primary" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML" aria-label="Registrar visita">
-          {% icon 'plus' %}<span>Registrar visita</span>
-        </a>
+      {% if can_schedule %}
+        <a class="btn btn-primary" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML">{% icon 'plus' %}<span>Agendar visita</span></a>
       {% endif %}
     </div>
   </div>
 
   <div class="card">
     <div class="tabs">
-      <a href="{% url 'visits:agenda' %}"{% if not showing_past %} class="active" aria-current="page"{% endif %}>Próximas</a>
-      <a href="{% url 'visits:agenda' %}?ver=pasadas"{% if showing_past %} class="active" aria-current="page"{% endif %}>Pasadas</a>
+      <a href="{% url 'visits:agenda' %}"{% if tab == 'proximas' %} class="active" aria-current="page"{% endif %}>Próximas</a>
+      {% if 'visit.attend' in caps %}<a href="{% url 'visits:agenda' %}?ver=por_cerrar"{% if tab == 'por_cerrar' %} class="active" aria-current="page"{% endif %}>Por cerrar</a>{% endif %}
+      <a href="{% url 'visits:agenda' %}?ver=historial"{% if tab == 'historial' %} class="active" aria-current="page"{% endif %}>Historial</a>
     </div>
 
     {% for visit in visits %}
-      {% if showing_past %}
-        {% include "visits/_row.html" with status_label="Pasada" status_class="status-neutral" show_edit=True %}
-      {% elif forloop.first and page_obj.number == 1 %}
-        {% include "visits/_row.html" with status_label="Próxima" status_class="status-teal" show_edit=True %}
-      {% else %}
-        {% include "visits/_row.html" with status_label="Programada" status_class="status-neutral" show_edit=True %}
-      {% endif %}
+      {% include "visits/_row.html" %}
     {% empty %}
       <div class="empty">
         <div class="empty-icon">{% icon 'calendar-days' %}</div>
-        <strong>{% if showing_past %}No hay visitas pasadas{% else %}No hay visitas programadas{% endif %}</strong>
+        {% if tab == 'historial' %}<strong>Aún no hay visitas realizadas o canceladas</strong>
+        {% elif tab == 'por_cerrar' %}<strong>No hay visitas por cerrar</strong><p>Todas las visitas pasadas ya tienen su registro.</p>
+        {% else %}<strong>No hay visitas programadas</strong>{% if can_schedule %}<p>Agenda una para que el ingeniero vaya a tu empresa.</p>{% endif %}{% endif %}
       </div>
     {% endfor %}
 
-    {% if showing_past %}
-      {% include "core/partials/pagination.html" with noun="visitas" extra_query="&ver=pasadas" %}
-    {% else %}
+    {% if tab == 'proximas' %}
       {% include "core/partials/pagination.html" with noun="visitas" %}
+    {% else %}
+      {% with "&ver="|add:tab as extra %}{% include "core/partials/pagination.html" with noun="visitas" extra_query=extra %}{% endwith %}
     {% endif %}
   </div>
 </div>

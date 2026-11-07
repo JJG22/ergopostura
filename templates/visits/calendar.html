@@ -8,14 +8,28 @@
   <div class="page-head">
     <div>
       <h1 class="title title-1">Visitas</h1>
-      <p>Consulta y registra las visitas acordadas con las empresas.</p>
+      {% if 'visit.view_all' in caps %}
+        <p>Las empresas agendan sus visitas; aquí ves cuándo y dónde te esperan. Registra cada visita al terminarla para poder evaluar.</p>
+      {% else %}
+        <p>Agenda la visita del ingeniero en una de tus sedes. Los horarios ocupados aparecen en gris.</p>
+      {% endif %}
     </div>
-    {% if 'visit.manage' in caps %}
-      <a class="btn btn-primary" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML" aria-label="Registrar visita">
-        {% icon 'plus' %}<span>Registrar visita</span>
+    {% if can_schedule %}
+      <a class="btn btn-primary" href="{% url 'visits:create' %}" hx-get="{% url 'visits:create' %}" hx-target="#modal-root" hx-swap="innerHTML">
+        {% icon 'plus' %}<span>Agendar visita</span>
       </a>
     {% endif %}
   </div>
+
+  {% if schedule_blocker %}
+    <div class="banner banner-amber">{% icon 'circle-exclamation-point' %}<span>{{ schedule_blocker }}</span></div>
+  {% elif 'visit.schedule' in caps %}
+    {% if contract %}
+      <div class="banner">{% icon 'file-signature' %}<span>Contrato {{ contract.display_code }}: puedes agendar visitas entre el {{ contract.start_date|date:"j \d\e F \d\e Y" }} y el {{ contract.end_date|date:"j \d\e F \d\e Y" }}.</span></div>
+    {% else %}
+      <div class="banner banner-amber">{% icon 'circle-exclamation-point' %}<span>Tu empresa no tiene un contrato vigente. Comunícate con el ingeniero para renovarlo antes de agendar.</span></div>
+    {% endif %}
+  {% endif %}
 
   <div class="cal-layout">
     <section class="card cal-card" id="calendar" aria-labelledby="calendar-title">
@@ -40,19 +54,34 @@
       {% endif %}
 
       <div class="cal-footer">
-        {% if legend %}
+        {% if legend and 'visit.view_all' in caps %}
           <ul class="cal-legend" aria-label="Empresas con visitas en este periodo">
             {% for company, color in legend %}
               <li><span class="cal-swatch c{{ color }}"></span>{{ company.name }}</li>
             {% endfor %}
           </ul>
-        {% else %}
+        {% elif not visits %}
           <p class="cal-empty-note">No hay visitas en este periodo.</p>
         {% endif %}
+        <ul class="cal-levels" aria-label="Niveles de las visitas">
+          {% for level in levels %}<li>{% include "visits/_level.html" %}</li>{% endfor %}
+        </ul>
       </div>
     </section>
 
     <aside class="card cal-side" aria-labelledby="upcoming-title">
+      {% if to_close %}
+        <div class="cal-to-close">
+          <h2 class="title title-2">Por cerrar</h2>
+          <p>Ya pasaron: registra si se hicieron.</p>
+          {% for visit in to_close|slice:":4" %}
+            <a href="{% url 'visits:detail' visit.pk %}" hx-get="{% url 'visits:detail' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">
+              <strong>{{ visit.company.name }}</strong><small>{{ visit.scheduled_at|date:"j M" }} · {{ visit.scheduled_at|time:"g:i a" }}</small>
+            </a>
+          {% endfor %}
+          {% if to_close|length > 4 %}<a class="btn btn-tertiary" href="{% url 'visits:agenda' %}?ver=por_cerrar">Ver las {{ to_close|length }}</a>{% endif %}
+        </div>
+      {% endif %}
       <div class="section-head">
         <div>
           <h2 class="title title-2" id="upcoming-title">Próximas visitas</h2>
@@ -68,7 +97,8 @@
           <span class="cal-upcoming-text">
             <strong>{{ visit.company.name }}</strong>
             <small>{{ visit.scheduled_at|date:"l"|capfirst }} · {{ visit.scheduled_at|time:"g:i a" }}</small>
-            <small>{{ visit.position.name }}</small>
+            <small>{{ visit.site.name }}</small>
+            {% include "visits/_level.html" with level=visit.current_level %}
           </span>
         </a>
       {% empty %}

@@ -1,3 +1,4 @@
+anthropic==2.2.0
 dj-database-url==3.0.1
 Django==5.2.19
 gunicorn==23.0.0

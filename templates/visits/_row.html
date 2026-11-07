@@ -3,15 +3,10 @@
   <span class="calendar-icon">{% icon 'calendar-days' %}</span>
   <div>
     <strong>{{ visit.company.name }}</strong>
-    <span>{{ visit.scheduled_at|date:"d/m/Y" }} · {{ visit.scheduled_at|time:"g:i a" }}</span>
-    <small>{% icon 'map-pin' %}{{ visit.site.name }} · {{ visit.area.name }} · {{ visit.position.name }}</small>
-    {% if visit.contact_name %}<small>{% icon 'users' %}{{ visit.contact_name }}</small>{% endif %}
+    <span>{{ visit.scheduled_at|date:"l j \d\e F"|capfirst }} · {{ visit.scheduled_at|time:"g:i a" }} – {{ visit.ends_at|time:"g:i a" }}</span>
+    <small>{% icon 'map-pin' %}{{ visit.site.name }} · {{ visit.site.municipality.name }}</small>
+    <small>{% icon 'users' %}{{ visit.contact_name }}</small>
   </div>
-  {% if status_label %}<span class="status {{ status_class }}">{{ status_label }}</span>{% endif %}
-  {% if 'evaluation.manage' in caps %}
-    <a class="btn btn-tertiary" href="{% url 'evaluations:create' %}?visita={{ visit.pk }}">Evaluar</a>
-  {% endif %}
-  {% if show_edit and 'visit.manage' in caps %}
-    <a class="btn btn-tertiary" href="{% url 'visits:update' visit.pk %}" hx-get="{% url 'visits:update' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">Editar</a>
-  {% endif %}
+  {% include "visits/_level.html" with level=visit.current_level %}
+  <a class="btn btn-tertiary" href="{% url 'visits:detail' visit.pk %}" hx-get="{% url 'visits:detail' visit.pk %}" hx-target="#modal-root" hx-swap="innerHTML">Ver</a>
 </div>

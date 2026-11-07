@@ -44,7 +44,6 @@ class TaskListView(CapabilityRequiredMixin, ListView):
                 capabilities
                 & {
                     Capability.EVALUATION_VIEW_ALL,
-                    Capability.EVALUATION_VIEW_COMPLETED,
                     Capability.EVALUATION_VIEW_OWN,
                 }
             ),

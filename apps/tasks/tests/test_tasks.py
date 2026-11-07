@@ -15,7 +15,7 @@ URL = "/tareas/"
 class TaskTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.author = make_user(role=Role.EVALUATOR)
+        cls.author = make_user(role=Role.ENGINEER)
         cls.company = make_company(name="Mi empresa")
         position = make_position(make_area(make_site(cls.company)), name="Puesto propio")
         foreign_position = make_position(make_area(make_site(make_company(name="Ajena")), name="Ajena"), name="Puesto ajeno")
@@ -48,16 +48,20 @@ class TaskTests(TestCase):
     def attend_url(self, recommendation):
         return reverse("tasks:attend", args=[recommendation.pk])
 
+    def company_member(self):
+        return self.login(Role.COMPANY, company=self.company)
+
     def test_access(self):
         self.assertIn("/ingresar/", self.client.get(URL)["Location"])
-        self.login(Role.RESULTS)
+        self.login(Role.ADMIN)
         self.assertEqual(self.client.get(URL).status_code, 403)
-        for role in (Role.ADMIN, Role.TASKS, Role.ENGINEER, Role.EVALUATOR):
-            self.login(role)
-            self.assertEqual(self.client.get(URL).status_code, 200, role)
+        self.login(Role.ENGINEER)
+        self.assertEqual(self.client.get(URL).status_code, 200)
+        self.company_member()
+        self.assertEqual(self.client.get(URL).status_code, 200)
 
-    def test_task_role_sees_all_completed_recommendations_but_not_drafts(self):
-        self.login(Role.TASKS)
+    def test_engineer_follows_all_completed_recommendations_but_not_drafts(self):
+        self.login(Role.ENGINEER)
         response = self.client.get(URL)
         self.assertEqual(
             set(response.context["recommendations"]), {self.recommendation, self.foreign_recommendation}
@@ -73,36 +77,35 @@ class TaskTests(TestCase):
         self.assertEqual(self.recommendation.attended_by, user)
         self.assertIsNotNone(self.recommendation.attended_at)
 
-    def test_evaluator_sees_own_drafts_with_what_is_missing(self):
+    def test_engineer_sees_own_drafts_with_what_is_missing(self):
         self.client.force_login(self.author)
         response = self.client.get(URL)
         items = response.context["in_progress"]
         self.assertEqual([item["evaluation"] for item in items], [self.draft])
         self.assertIn("Sin analizar", items[0]["problems"][0])
-        self.assertFalse(response.context["shows_recommendations"])
-        self.assertNotContains(response, "Bajar la banda")
+        self.assertTrue(response.context["shows_recommendations"])
 
-    def test_another_evaluator_does_not_see_those_drafts(self):
-        self.login(Role.EVALUATOR)
+    def test_another_engineer_does_not_see_those_drafts(self):
+        self.login(Role.ENGINEER)
         self.assertEqual(self.client.get(URL).context["in_progress"], [])
 
-    def test_only_responsible_roles_can_attend(self):
-        for role in (Role.EVALUATOR, Role.ENGINEER, Role.RESULTS):
+    def test_only_the_company_attends(self):
+        for role in (Role.ENGINEER, Role.ADMIN):
             self.login(role)
             self.assertEqual(self.client.post(self.attend_url(self.recommendation)).status_code, 403, role)
         self.recommendation.refresh_from_db()
         self.assertIsNone(self.recommendation.attended_at)
 
     def test_attend_requires_post(self):
-        self.login(Role.TASKS)
+        self.company_member()
         self.assertEqual(self.client.get(self.attend_url(self.recommendation)).status_code, 405)
 
     def test_draft_recommendation_cannot_be_attended(self):
-        self.login(Role.TASKS)
+        self.company_member()
         self.assertEqual(self.client.post(self.attend_url(self.draft_recommendation)).status_code, 404)
 
     def test_attend_moves_to_the_other_tab_and_can_be_undone(self):
-        self.login(Role.TASKS)
+        self.company_member()
         self.client.post(self.attend_url(self.recommendation))
         self.assertNotIn(self.recommendation, self.client.get(URL).context["recommendations"])
         self.assertIn(self.recommendation, self.client.get(URL, {"ver": "atendidas"}).context["recommendations"])
@@ -115,26 +118,23 @@ class TaskTests(TestCase):
     def test_attending_does_not_change_the_result(self):
         result = self.recommendation.posture.assessment
         before = (result.grand_score, result.partial_scores)
-        self.login(Role.TASKS)
+        self.company_member()
         self.client.post(self.attend_url(self.recommendation))
         result.refresh_from_db()
         self.assertEqual((result.grand_score, result.partial_scores), before)
 
-    def test_task_role_gets_no_link_to_the_evidence(self):
-        self.login(Role.TASKS)
+    def test_company_can_open_the_evaluation_behind_each_task(self):
+        self.company_member()
         response = self.client.get(URL)
-        self.assertNotContains(response, reverse("evaluations:detail", args=[self.evaluation.pk]))
-        self.assertEqual(
-            self.client.get(reverse("evaluations:detail", args=[self.evaluation.pk])).status_code, 403
-        )
+        self.assertContains(response, reverse("evaluations:detail", args=[self.evaluation.pk]))
 
     def test_search(self):
-        self.login(Role.TASKS)
+        self.login(Role.ENGINEER)
         for query, expected in (("banda", self.recommendation), ("Puesto ajeno", self.foreign_recommendation)):
             self.assertEqual(list(self.client.get(URL, {"q": query}).context["recommendations"]), [expected])
 
     def test_query_count_does_not_grow(self):
-        self.login(Role.TASKS)
+        self.login(Role.ENGINEER)
         with CaptureQueriesContext(connection) as before:
             self.client.get(URL)
         posture = self.recommendation.posture
@@ -147,7 +147,7 @@ class TaskTests(TestCase):
 class ReportTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.author = make_user(role=Role.EVALUATOR)
+        cls.author = make_user(role=Role.ENGINEER)
         cls.company = make_company(name="Mi empresa", nit="900123456")
         position = make_position(make_area(make_site(cls.company)))
         cls.evaluation = make_evaluation(cls.author, position)
@@ -168,7 +168,7 @@ class ReportTests(TestCase):
         return reverse("evaluations:report", args=[evaluation.pk])
 
     def test_contains_results_evidence_and_recommendations(self):
-        self.client.force_login(make_user(role=Role.RESULTS))
+        self.client.force_login(make_user(role=Role.ENGINEER))
         response = self.client.get(self.report(self.evaluation))
         self.assertContains(response, "900.123.456-8")
         self.assertContains(response, "Requiere revisión · Nivel 3")
@@ -187,7 +187,7 @@ class ReportTests(TestCase):
 
     def test_requires_access(self):
         self.assertIn("/ingresar/", self.client.get(self.report(self.evaluation))["Location"])
-        self.client.force_login(make_user(role=Role.TASKS))
+        self.client.force_login(make_user(role=Role.ADMIN))
         self.assertEqual(self.client.get(self.report(self.evaluation)).status_code, 403)
 
     def test_detail_links_to_the_report_only_when_completed(self):

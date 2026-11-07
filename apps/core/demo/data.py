@@ -10,14 +10,26 @@ DEMO_PASSWORD = "ErgoDemo2026!"
 
 # correo, nombre, apellido, rol, NIT de la empresa (solo para el rol Empresa)
 USERS = (
-    ("admin@ergopostura.test", "Ana", "Administradora", Role.ADMIN, None),
+    ("admin@ergopostura.test", "Ana", "Soporte", Role.ADMIN, None),
     ("ingeniero@ergopostura.test", "Andrés", "Ríos", Role.ENGINEER, None),
-    ("evaluador@ergopostura.test", "Laura", "Bermúdez", Role.EVALUATOR, None),
     ("empresa@ergopostura.test", "Marta", "Salazar", Role.COMPANY, "900123456"),
-    ("consulta@ergopostura.test", "Carlos", "Mejía", Role.RESULTS, None),
-    ("tareas@ergopostura.test", "Sofía", "Duque", Role.TASKS, None),
-    ("evaluador2@ergopostura.test", "Julián", "Gómez", Role.EVALUATOR, None),
     ("empresa2@ergopostura.test", "Diana", "Restrepo", Role.COMPANY, "890900123"),
+)
+
+# Nombres inventados para los trabajadores de los puestos.
+FIRST_NAMES = (
+    "Carolina", "Jhon Fredy", "Luz Marina", "Wilson", "Paola Andrea", "Édgar", "Yenny", "Mauricio",
+    "Natalia", "Fabio", "Lorena", "Germán", "Sandra Milena", "Julián", "Ángela", "Óscar",
+)
+LAST_NAMES = (
+    "Gómez Arango", "Henao Ríos", "Muñoz Cárdenas", "Ospina Vélez", "Castaño Giraldo", "Zapata Mejía",
+    "Londoño Duque", "Restrepo Toro", "Valencia Cruz", "Agudelo Marín", "Quintero Patiño", "Rendón Salazar",
+)
+
+# Servicio contratado, igual para todas las empresas de la demostracion.
+CONTRACT_SERVICE = (
+    "Evaluación ergonómica de puestos de trabajo con el método RULA, informe por puesto con "
+    "nivel de riesgo y recomendaciones, y seguimiento de las acciones de mejora."
 )
 
 # NIT, razon social, municipio, departamento, activa, contacto, sedes
