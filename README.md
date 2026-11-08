@@ -76,6 +76,7 @@ Con `docker compose up` corriendo, crea una conexión con host `127.0.0.1`, puer
 - [docs/sql/esquema.sql](docs/sql/esquema.sql): estructura completa de la base en MySQL.
 - [docs/sql/consultas.sql](docs/sql/consultas.sql): consultas principales con nombre y descripción.
 - [docs/modelo-entidad-relacion.png](docs/modelo-entidad-relacion.png): modelo entidad-relación.
+- [docs/diagrama-navegacion.png](docs/diagrama-navegacion.png): pantallas y navegación por rol.
 
 ## Comandos útiles
 
