@@ -71,6 +71,12 @@ La aplicación corre en Render y la base de datos MySQL en [Aiven](https://aiven
 
 Con `docker compose up` corriendo, crea una conexión con host `127.0.0.1`, puerto `3307`, y el usuario y la contraseña de `MYSQL_USER` y `MYSQL_PASSWORD` de tu `.env`.
 
+## Base de datos y SQL
+
+- [docs/sql/esquema.sql](docs/sql/esquema.sql): estructura completa de la base en MySQL.
+- [docs/sql/consultas.sql](docs/sql/consultas.sql): consultas principales con nombre y descripción.
+- [docs/modelo-entidad-relacion.png](docs/modelo-entidad-relacion.png): modelo entidad-relación.
+
 ## Comandos útiles
 
 ```powershell
