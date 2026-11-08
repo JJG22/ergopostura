@@ -6,6 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# El conector de MySQL se compila al instalarlo y necesita estas librerias.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends default-libmysqlclient-dev build-essential pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 

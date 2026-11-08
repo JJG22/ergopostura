@@ -70,24 +70,33 @@ TEMPLATES = [
     },
 ]
 
+# utf8mb4 guarda todo el texto (tildes, ñ, emojis). El modo estricto hace que MySQL rechace
+# un dato invalido en vez de recortarlo sin avisar.
+MYSQL_OPTIONS = {"charset": "utf8mb4", "init_command": "SET sql_mode='STRICT_TRANS_TABLES'"}
+
 if os.environ.get("DATABASE_URL"):
-    # Render y otros servicios entregan la conexion como una sola URL.
-    DATABASES = {
-        "default": dj_database_url.parse(
-            os.environ["DATABASE_URL"], conn_max_age=60, conn_health_checks=True
-        )
-    }
+    # En produccion el proveedor entrega la conexion como una sola URL.
+    default_database = dj_database_url.parse(
+        os.environ["DATABASE_URL"], conn_max_age=60, conn_health_checks=True
+    )
+    options = default_database.setdefault("OPTIONS", {})
+    # Aiven la entrega con ?ssl-mode=REQUIRED; el conector espera llamarlo ssl_mode.
+    if "ssl-mode" in options:
+        options["ssl_mode"] = options.pop("ssl-mode")
+    options.update(MYSQL_OPTIONS)
+    DATABASES = {"default": default_database}
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": required_env("POSTGRES_DB"),
-            "USER": required_env("POSTGRES_USER"),
-            "PASSWORD": required_env("POSTGRES_PASSWORD"),
-            "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": required_env("MYSQL_DATABASE"),
+            "USER": required_env("MYSQL_USER"),
+            "PASSWORD": required_env("MYSQL_PASSWORD"),
+            "HOST": os.environ.get("MYSQL_HOST", "localhost"),
+            "PORT": os.environ.get("MYSQL_PORT", "3306"),
             "CONN_MAX_AGE": 60,
             "CONN_HEALTH_CHECKS": True,
+            "OPTIONS": MYSQL_OPTIONS,
         }
     }
 

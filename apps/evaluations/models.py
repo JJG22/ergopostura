@@ -148,7 +148,7 @@ class Posture(TimeStampedModel):
 
 
 class PosturePhoto(TimeStampedModel):
-    """La imagen se guarda en PostgreSQL, ya optimizada y sin metadatos.
+    """La imagen se guarda en MySQL, ya optimizada y sin metadatos.
 
     Asi la evidencia queda protegida por la misma base de datos y solo se entrega a
     quien puede ver la evaluacion. Tambien sobrevive en servidores sin disco persistente.

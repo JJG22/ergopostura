@@ -41,6 +41,15 @@ LEVELS = {
 }
 
 
+class ScheduleLock(models.Model):
+    """Una sola fila que se bloquea mientras se agenda. No guarda ningun dato."""
+
+    ROW = 1
+
+    class Meta:
+        verbose_name = "bloqueo de agenda"
+
+
 class Visit(TimeStampedModel):
     class Status(models.TextChoices):
         SCHEDULED = "programada", "Programada"

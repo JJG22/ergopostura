@@ -2,7 +2,7 @@
 set -e
 
 # Render define RENDER=true. Sin estas variables Django arrancaria con la configuracion
-# de desarrollo y fallaria con un error confuso sobre POSTGRES_DB.
+# de desarrollo y fallaria con un error confuso sobre MYSQL_DATABASE.
 if [ -n "$RENDER" ]; then
   missing=""
   case "$DJANGO_SETTINGS_MODULE" in *prod*) ;; *) missing="$missing DJANGO_SETTINGS_MODULE=config.settings.prod" ;; esac

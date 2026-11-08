@@ -7,26 +7,24 @@
 """
 from datetime import datetime, time, timedelta
 
-from django.db import connection
 from django.utils import timezone
 
 from apps.contracts.services import contract_on
 
-from .models import Visit
+from .models import ScheduleLock, Visit
 
 MIN_NOTICE = timedelta(hours=1)
 WORK_START = time(7, 0)
 WORK_END = time(18, 0)
 LAST_WORKING_WEEKDAY = 5  # sabado; el domingo no se atiende
 MAX_DURATION = max(minutes for minutes, _ in Visit.DURATION_CHOICES)
-# Que no la tomen dos solicitudes a la vez: se serializa el agendamiento en la base.
-SCHEDULE_LOCK_KEY = 7_406_001
 
 
 def lock_schedule() -> None:
-    """Bloqueo de la agenda hasta el fin de la transaccion (PostgreSQL)."""
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT pg_advisory_xact_lock(%s)", [SCHEDULE_LOCK_KEY])
+    """Bloquea la agenda hasta el fin de la transaccion, para que dos solicitudes no tomen
+    el mismo horario: la segunda espera a que la primera guarde y entonces ve su visita.
+    """
+    ScheduleLock.objects.select_for_update().get_or_create(pk=ScheduleLock.ROW)
 
 
 def overlapping_visit(start: datetime, minutes: int, exclude_pk=None) -> Visit | None:

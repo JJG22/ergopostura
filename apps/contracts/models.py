@@ -3,7 +3,7 @@
 Una empresa tiene un solo contrato a la vez: las vigencias de sus contratos no se cruzan.
 Asi, al renovar se registra un contrato nuevo y el anterior queda como historia.
 
-El PDF se guarda en PostgreSQL, como las fotografias: el servidor no tiene disco
+El PDF se guarda en MySQL, como las fotografias: el servidor no tiene disco
 persistente y el documento solo se entrega a quien puede ver el contrato.
 """
 from calendar import monthrange

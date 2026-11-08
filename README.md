@@ -2,7 +2,7 @@
 
 Sistema con el que un ingeniero industrial presta el servicio de evaluación ergonómica (método RULA)
 a empresas cliente: contratos, visitas, evaluaciones y seguimiento.
-Django 5.2, PostgreSQL 16, HTMX y Docker.
+Django 5.2, MySQL 8.4, HTMX y Docker.
 
 ## Cómo ejecutarlo
 
@@ -51,20 +51,25 @@ Incluye seis empresas (una inactiva), trabajadores, un contrato con PDF por empr
 La aplicación publicada está en **https://ergopostura.onrender.com**.
 
 
-El archivo `render.yaml` define el servicio web y la base de datos.
+La aplicación corre en Render y la base de datos MySQL en [Aiven](https://aiven.io). Render no ofrece MySQL administrado.
 
-1. En Render, elige **New > Blueprint** y conecta este repositorio. No lo crees como *Web Service* suelto: así no lee `render.yaml`, y queda sin base de datos ni variables.
-2. Completa las variables que pide:
+1. En Aiven, crea un servicio MySQL y copia su **Service URI** (empieza por `mysql://` e incluye la contraseña).
+2. En Render, elige **New > Blueprint** y conecta este repositorio. No lo crees como *Web Service* suelto: así no lee `render.yaml`.
+3. Completa las variables que pide:
+   - `DATABASE_URL`: la Service URI de Aiven.
    - `DJANGO_ADMIN_EMAIL` y `DJANGO_ADMIN_PASSWORD`: la cuenta de soporte. Es la única que se crea sola; las demás se crean desde la aplicación.
    - `ANTHROPIC_API_KEY` (opcional): activa la lectura de contratos con IA. Sin ella, los contratos funcionan sin resumen automático.
-3. Cada `git push` a `main` vuelve a desplegar la aplicación.
+4. Cada `git push` a `main` vuelve a desplegar la aplicación.
 
-**Límites del plan gratis:**
+**Límites:**
 
-- El servicio se apaga tras 15 minutos sin tráfico y tarda cerca de un minuto en volver.
-- La base de datos tiene 1 GB y **expira 30 días después de crearla**; tras 14 días más de gracia, Render la borra. La actual se creó el 6 de noviembre de 2026.
-- Solo se permite **una base gratis por cuenta**: para crear otra hay que borrar la anterior.
-- No hay disco persistente. Por eso las fotografías se guardan en PostgreSQL.
+- El plan gratis de Render apaga el servicio tras 15 minutos sin tráfico y tarda cerca de un minuto en volver.
+- La base de Aiven usa créditos de prueba por 30 días, creada el 8 de noviembre de 2026. Al terminar se apaga, salvo que se agregue un método de pago (plan Developer, 5 USD al mes).
+- Render no tiene disco persistente en el plan gratis. Por eso las fotografías y los contratos se guardan en MySQL.
+
+## Ver la base con MySQL Workbench
+
+Con `docker compose up` corriendo, crea una conexión con host `127.0.0.1`, puerto `3307`, y el usuario y la contraseña de `MYSQL_USER` y `MYSQL_PASSWORD` de tu `.env`.
 
 ## Comandos útiles
 
@@ -130,7 +135,7 @@ Para extender el sistema sin modificar lo que ya funciona:
 - **Evaluación con visita:** toda evaluación exige una visita realizada (también en la base de datos) y un puesto de la sede visitada.
 - **Evaluaciones trazables:** solo su autor la modifica, y solo mientras está en curso. Terminada queda de solo lectura; el ingeniero puede reabrirla.
 - **Para terminar una evaluación:** toda postura debe tener su análisis RULA, y desde el nivel de acción 2, al menos una recomendación.
-- **Fotografías protegidas:** se guardan en PostgreSQL y solo las recibe quien puede ver la evaluación. Se reducen a 1600 px y se les quitan los metadatos, como la ubicación GPS.
+- **Fotografías protegidas:** se guardan en MySQL y solo las recibe quien puede ver la evaluación. Se reducen a 1600 px y se les quitan los metadatos, como la ubicación GPS.
 - **Nada se pierde por accidente:** no se puede borrar un nivel que tenga hijos (RNF-001).
 - **Acceso:** sin permiso se responde 403, y los datos de otra empresa responden 404.
 - **Cuentas:** contraseña temporal que se cambia al primer ingreso; las cuentas se desactivan en vez de borrarse; nadie se desactiva a sí mismo; el ingeniero solo gestiona cuentas de empresa.
