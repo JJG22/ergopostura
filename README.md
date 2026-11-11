@@ -76,7 +76,8 @@ Con `docker compose up` corriendo, crea una conexión con host `127.0.0.1`, puer
 - [docs/sql/esquema.sql](docs/sql/esquema.sql): estructura completa de la base en MySQL.
 - [docs/sql/consultas.sql](docs/sql/consultas.sql): consultas principales con nombre y descripción.
 - [docs/modelo-entidad-relacion.png](docs/modelo-entidad-relacion.png): modelo entidad-relación.
-- [docs/diagrama-navegacion.png](docs/diagrama-navegacion.png): pantallas y navegación por rol.
+- [docs/diagrama-navegacion.png](docs/diagrama-navegacion.png): pantallas y navegación por rol, con el código del mockup de cada pantalla.
+- [docs/mockups/](docs/mockups/): mockups M01 a M22 de las pantallas.
 - [docs/bpmn-as-is.png](docs/bpmn-as-is.png) y [docs/bpmn-to-be.png](docs/bpmn-to-be.png): proceso actual y proceso propuesto en BPMN.
 - [docs/vistas/](docs/vistas/): pantallazos de las vistas de cada rol, con datos de demostración.
 
