@@ -4,7 +4,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { usePageTitle } from "../../components/Page";
 import { EmptyState, PageHead, Pagination, SearchBar, Table } from "../../components/Table";
 import { Card, ErrorState, Spinner } from "../../components/ui";
-import { formatShortDate, formatTime } from "../../lib/format";
+import { formatInstant } from "../../lib/format";
 import { useResource } from "../../lib/useResource";
 import { AccountActions, AccountStatus, CreateAccountButton, type AccountOptions } from "./AccountModals";
 import { accountsApi } from "./api";
@@ -77,7 +77,7 @@ export function AccountsPage() {
                     {account.company ? <Link className="hover:text-teal-700 hover:underline" to={`/empresas/${account.company.id}`}>{account.company.name}</Link> : <span className="text-slate-400">—</span>}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3 text-slate-600">
-                    {account.last_login ? `${formatShortDate(account.last_login.slice(0, 10))}, ${formatTime(account.last_login)}` : <span className="text-slate-400">Nunca</span>}
+                    {account.last_login ? formatInstant(account.last_login) : <span className="text-slate-400">Nunca</span>}
                   </td>
                   <td className="px-5 py-3"><AccountStatus account={account} /></td>
                   <td className="px-5 py-3"><AccountActions account={account} options={optionsOf(resource.data)} onChanged={refresh} /></td>

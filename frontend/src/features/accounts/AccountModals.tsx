@@ -4,7 +4,7 @@ import { Grid, SelectField, type Option } from "../../components/forms";
 import { ConfirmModal, FormModal } from "../../components/Modal";
 import { useNotify } from "../../components/Page";
 import { Badge, Button, Field, Icon } from "../../components/ui";
-import { formatLongDate } from "../../lib/format";
+import { formatInstantDate } from "../../lib/format";
 import { useForm } from "../../lib/useForm";
 import { useSession } from "../../auth/AuthContext";
 import { accountsApi, type Account, type AccountInput, type TemporaryPasswordInput } from "./api";
@@ -133,7 +133,7 @@ export function AccountStatus({ account }: { account: Account }) {
 }
 
 export function lastLogin(account: Account): string {
-  return account.last_login ? `último ingreso ${formatLongDate(account.last_login.slice(0, 10))}` : "aún no ingresa";
+  return account.last_login ? `último ingreso ${formatInstantDate(account.last_login)}` : "aún no ingresa";
 }
 
 type Open = "edit" | "password" | "active" | null;

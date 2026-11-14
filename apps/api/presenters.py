@@ -16,6 +16,7 @@ MIGRATED = {
     "dashboard:home": "/",
     "companies:list": "/empresas",
     "accounts:users": "/usuarios",
+    "contracts:list": "/contratos",
 }
 
 

@@ -51,7 +51,8 @@ class AuthTests(ApiTestCase):
         menu = {item["label"]: item for item in data["navigation"]}
         self.assertEqual(menu["Panel principal"]["to"], "/")
         self.assertEqual(menu["Empresas"]["to"], "/empresas")
-        self.assertEqual(menu["Contratos"]["href"], "/contratos/")
+        self.assertEqual(menu["Contratos"]["to"], "/contratos")
+        self.assertEqual(menu["Visitas"]["href"], "/visitas/")
         self.assertNotIn("Usuarios", menu)
         self.assertEqual(self.client.get("/api/v1/auth/session/").status_code, 200)
 

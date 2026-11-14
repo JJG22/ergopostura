@@ -12,6 +12,8 @@ export type ApiErrorCode =
   | "not_found"
   | "validation_error"
   | "conflict"
+  | "ai_unavailable"
+  | "ai_failed"
   | "throttled"
   | "csrf_failed"
   | "network_error"
@@ -50,7 +52,7 @@ export function toApiError(value: unknown): ApiError {
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<ApiErrorCode>([
   "not_authenticated", "invalid_credentials", "password_change_required", "permission_denied",
-  "not_found", "validation_error", "conflict", "throttled", "csrf_failed", "network_error", "server_error",
+  "not_found", "validation_error", "conflict", "ai_unavailable", "ai_failed", "throttled", "csrf_failed", "network_error", "server_error",
 ]);
 
 type ErrorListener = (error: ApiError) => void;
@@ -115,7 +117,9 @@ export interface RequestOptions {
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const method = options.method ?? "GET";
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  // Un FormData (archivos) lo codifica el navegador con su propio límite multipart.
+  const isForm = options.body instanceof FormData;
+  if (options.body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   if (UNSAFE.has(method)) headers["X-CSRFToken"] = await ensureCsrf();
 
   let response: Response;
@@ -124,7 +128,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
       method,
       headers,
       credentials: "same-origin",
-      body: options.body === undefined ? null : JSON.stringify(options.body),
+      body: options.body === undefined ? null : isForm ? (options.body as FormData) : JSON.stringify(options.body),
       signal: options.signal ?? null,
     });
   } catch (cause) {

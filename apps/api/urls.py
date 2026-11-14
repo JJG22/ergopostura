@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import accounts, companies, geography, views
+from . import accounts, companies, contracts, geography, views
 
 app_name = "api"
 
@@ -27,4 +27,10 @@ urlpatterns = [
     path("accounts/<int:pk>/", accounts.AccountDetailView.as_view(), name="account"),
     path("accounts/<int:pk>/password/", accounts.AccountPasswordView.as_view(), name="account_password"),
     path("accounts/<int:pk>/active/", accounts.AccountActiveView.as_view(), name="account_active"),
+    path("contracts/", contracts.ContractListView.as_view(), name="contracts"),
+    path("contracts/options/", contracts.ContractOptionsView.as_view(), name="contract_options"),
+    path("contracts/read/", contracts.ContractReadView.as_view(), name="contract_read"),
+    path("contracts/<int:pk>/", contracts.ContractDetailView.as_view(), name="contract"),
+    path("contracts/<int:pk>/summary/", contracts.ContractSummaryView.as_view(), name="contract_summary"),
+    path("contracts/<int:pk>/file/", contracts.ContractFileView.as_view(), name="contract_file"),
 ]

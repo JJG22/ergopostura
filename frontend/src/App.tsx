@@ -8,6 +8,9 @@ import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { AccountsPage } from "./features/accounts/AccountsPage";
+import { ContractDetailPage } from "./features/contracts/ContractDetailPage";
+import { ContractFormPage } from "./features/contracts/ContractFormPage";
+import { ContractsPage } from "./features/contracts/ContractsPage";
 import { CompaniesPage } from "./features/companies/CompaniesPage";
 import { CompanyDetailPage } from "./features/companies/CompanyDetailPage";
 
@@ -31,6 +34,10 @@ const router = createBrowserRouter(
             { path: "empresas", element: <CompaniesPage /> },
             { path: "empresas/:id", element: <CompanyDetailPage /> },
             { path: "usuarios", element: <AccountsPage /> },
+            { path: "contratos", element: <ContractsPage /> },
+            { path: "contratos/nuevo", element: <ContractFormPage /> },
+            { path: "contratos/:id", element: <ContractDetailPage /> },
+            { path: "contratos/:id/editar", element: <ContractFormPage /> },
           ],
         },
         { path: "*", element: <NotFound /> },
