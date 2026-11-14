@@ -25,7 +25,7 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
   return <section className={`min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>{children}</section>;
 }
 
-export function SectionHead({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+export function SectionHead({ title, subtitle, action }: { title: string; subtitle?: string | undefined; action?: ReactNode }) {
   return (
     <div className="mb-3 flex items-start justify-between gap-3">
       <div>

@@ -17,6 +17,9 @@ const ROUTES: readonly [RegExp, (match: RegExpMatchArray) => string][] = [
   [/^\/contratos\/$/, () => "/contratos"],
   [/^\/contratos\/nuevo\/$/, () => "/contratos/nuevo"],
   [/^\/contratos\/(\d+)\/$/, (m) => `/contratos/${m[1] ?? ""}`],
+  [/^\/visitas\/$/, () => "/visitas"],
+  [/^\/visitas\/agenda\/$/, () => "/visitas/agenda"],
+  [/^\/visitas\/(\d+)\/$/, (m) => `/visitas/${m[1] ?? ""}`],
 ];
 
 /** Ruta de React para una dirección de Django, o null si ese módulo aún no está migrado. */

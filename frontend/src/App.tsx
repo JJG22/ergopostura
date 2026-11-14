@@ -11,6 +11,8 @@ import { AccountsPage } from "./features/accounts/AccountsPage";
 import { ContractDetailPage } from "./features/contracts/ContractDetailPage";
 import { ContractFormPage } from "./features/contracts/ContractFormPage";
 import { ContractsPage } from "./features/contracts/ContractsPage";
+import { VisitAgendaPage, VisitPage } from "./features/visits/VisitAgendaPage";
+import { VisitsCalendarPage } from "./features/visits/VisitsCalendarPage";
 import { CompaniesPage } from "./features/companies/CompaniesPage";
 import { CompanyDetailPage } from "./features/companies/CompanyDetailPage";
 
@@ -38,6 +40,9 @@ const router = createBrowserRouter(
             { path: "contratos/nuevo", element: <ContractFormPage /> },
             { path: "contratos/:id", element: <ContractDetailPage /> },
             { path: "contratos/:id/editar", element: <ContractFormPage /> },
+            { path: "visitas", element: <VisitsCalendarPage /> },
+            { path: "visitas/agenda", element: <VisitAgendaPage /> },
+            { path: "visitas/:id", element: <VisitPage /> },
           ],
         },
         { path: "*", element: <NotFound /> },

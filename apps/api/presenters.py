@@ -17,6 +17,7 @@ MIGRATED = {
     "companies:list": "/empresas",
     "accounts:users": "/usuarios",
     "contracts:list": "/contratos",
+    "visits:list": "/visitas",
 }
 
 
