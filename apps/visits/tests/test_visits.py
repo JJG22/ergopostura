@@ -4,7 +4,6 @@ from unittest import mock
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.test import TestCase
-from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Role
@@ -20,7 +19,6 @@ from apps.visits import rules
 from apps.visits.forms import VisitForm
 from apps.visits.models import Visit
 
-HTMX = {"HTTP_HX_REQUEST": "true"}
 
 
 def next_weekday(weekday: int, after: date | None = None) -> date:
@@ -140,146 +138,7 @@ class VisitRuleTests(VisitTestCase):
             self.site.delete()
 
 
-class VisitAccessTests(VisitTestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.visit = make_visit(cls.site, at(cls.tuesday, 9))
-        cls.foreign_visit = make_visit(cls.foreign_site, at(cls.tuesday, 14))
-
-    def test_anonymous_is_sent_to_login(self):
-        for url in (reverse("visits:list"), reverse("visits:create"), reverse("visits:detail", args=[self.visit.pk])):
-            self.assertIn("/ingresar/", self.client.get(url)["Location"])
-
-    def test_only_the_company_schedules(self):
-        self.client.force_login(self.member)
-        self.assertEqual(self.client.get(reverse("visits:create")).status_code, 200)
-        for user in (self.engineer, make_user(role=Role.ADMIN)):
-            self.client.force_login(user)
-            self.assertEqual(self.client.get(reverse("visits:create")).status_code, 403, user.role)
-            self.assertEqual(self.client.post(reverse("visits:create"), self.data()).status_code, 403)
-        self.assertEqual(Visit.objects.count(), 2)
-
-    def test_company_only_sees_and_changes_its_visits(self):
-        self.client.force_login(self.member)
-        self.assertEqual(self.client.get(reverse("visits:detail", args=[self.foreign_visit.pk])).status_code, 404)
-        self.assertEqual(self.client.get(reverse("visits:update", args=[self.foreign_visit.pk])).status_code, 404)
-        self.assertEqual(
-            self.client.post(reverse("visits:cancel", args=[self.foreign_visit.pk]), {"cancellation_reason": "x"}).status_code,
-            404,
-        )
-
-    def test_support_sees_no_visits(self):
-        self.client.force_login(make_user(role=Role.ADMIN))
-        self.assertEqual(self.client.get(reverse("visits:detail", args=[self.visit.pk])).status_code, 403)
-        self.assertEqual(self.client.get(reverse("visits:agenda")).status_code, 403)
-
-    def test_engineer_cannot_reschedule(self):
-        self.client.force_login(self.engineer)
-        self.assertEqual(self.client.get(reverse("visits:update", args=[self.visit.pk])).status_code, 403)
-
-    def test_company_cannot_mark_a_visit_as_done(self):
-        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
-        self.client.force_login(self.member)
-        self.assertEqual(self.client.post(reverse("visits:complete", args=[past.pk])).status_code, 403)
-        past.refresh_from_db()
-        self.assertTrue(past.is_scheduled)
 
 
-class VisitLifecycleTests(VisitTestCase):
-    def test_company_schedules_from_the_modal_and_returns_to_the_calendar(self):
-        self.client.force_login(self.member)
-        response = self.client.post(reverse("visits:create"), self.data(), **HTMX)
-        self.assertEqual(response.status_code, 204)
-        self.assertIn(f"fecha={self.tuesday.isoformat()}", response["HX-Redirect"])
-        self.assertEqual(Visit.objects.get().requested_by, self.member)
-
-    def test_errors_stay_in_the_modal(self):
-        self.client.force_login(self.member)
-        response = self.client.post(reverse("visits:create"), self.data(time="05:00"), **HTMX)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "empezar desde")
-        self.assertFalse(Visit.objects.exists())
-
-    def test_slot_taken_at_the_same_moment_becomes_a_form_error(self):
-        self.client.force_login(self.member)
-        # Simula que otra empresa guardo ese horario justo despues de validar el formulario.
-        with mock.patch.object(rules, "overlapping_visit", side_effect=[None, Visit()]):
-            response = self.client.post(reverse("visits:create"), self.data(), **HTMX)
-        self.assertContains(response, "acaba de tomar ese horario")
-        self.assertFalse(Visit.objects.exists())
-
-    def test_company_reschedules_and_cancels_with_a_reason(self):
-        visit = make_visit(self.site, at(self.tuesday, 9))
-        self.client.force_login(self.member)
-        self.client.post(reverse("visits:update", args=[visit.pk]), self.data(time="13:00"))
-        visit.refresh_from_db()
-        self.assertEqual(timezone.localtime(visit.scheduled_at).hour, 13)
-
-        self.assertContains(self.client.post(reverse("visits:cancel", args=[visit.pk]), {"cancellation_reason": ""}), "obligatorio")
-        self.client.post(reverse("visits:cancel", args=[visit.pk]), {"cancellation_reason": "Inventario"})
-        visit.refresh_from_db()
-        self.assertEqual(visit.status, Visit.Status.CANCELLED)
-        self.assertEqual(visit.cancelled_by, self.member)
-
-    def test_company_cannot_cancel_a_visit_that_already_started(self):
-        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
-        self.client.force_login(self.member)
-        response = self.client.post(reverse("visits:cancel", args=[past.pk]), {"cancellation_reason": "Tarde"})
-        self.assertEqual(response.status_code, 404)
-
-    def test_engineer_records_a_past_visit_and_can_then_evaluate(self):
-        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
-        self.client.force_login(self.engineer)
-        detail = self.client.get(reverse("visits:detail", args=[past.pk]))
-        self.assertContains(detail, "Por cerrar")
-        self.assertContains(detail, "Registrar realizada")
-        self.client.post(reverse("visits:complete", args=[past.pk]), {"completion_notes": "Todo bien"})
-        past.refresh_from_db()
-        self.assertTrue(past.is_completed)
-        self.assertEqual(past.completed_by, self.engineer)
-        self.assertContains(self.client.get(reverse("visits:detail", args=[past.pk])), "Nueva evaluación")
-
-    def test_future_visit_cannot_be_marked_as_done(self):
-        visit = make_visit(self.site, at(self.tuesday, 9))
-        self.client.force_login(self.engineer)
-        self.assertEqual(self.client.post(reverse("visits:complete", args=[visit.pk])).status_code, 404)
-
-    def test_engineer_can_cancel_a_visit_that_did_not_happen(self):
-        past = make_visit(self.site, at(timezone.localdate() - timedelta(days=1), 9))
-        self.client.force_login(self.engineer)
-        self.client.post(reverse("visits:cancel", args=[past.pk]), {"cancellation_reason": "La planta estaba cerrada"})
-        past.refresh_from_db()
-        self.assertEqual(past.status, Visit.Status.CANCELLED)
-
-    def test_agenda_tabs(self):
-        upcoming = make_visit(self.site, at(self.tuesday, 9))
-        to_close = make_visit(self.site, at(timezone.localdate() - timedelta(days=2), 9))
-        done = make_visit(self.site, at(timezone.localdate() - timedelta(days=3), 9), status=Visit.Status.COMPLETED)
-        self.client.force_login(self.engineer)
-        url = reverse("visits:agenda")
-        self.assertEqual(list(self.client.get(url).context["visits"]), [upcoming])
-        self.assertEqual(list(self.client.get(url, {"ver": "por_cerrar"}).context["visits"]), [to_close])
-        self.assertEqual(list(self.client.get(url, {"ver": "historial"}).context["visits"]), [done])
-        # La empresa no tiene la pestana de cierre: ve las proximas.
-        self.client.force_login(self.member)
-        self.assertEqual(list(self.client.get(url, {"ver": "por_cerrar"}).context["visits"]), [upcoming])
 
 
-class VisitEvaluationsTests(VisitTestCase):
-    def test_company_only_sees_completed_evaluations_of_the_visit(self):
-        from apps.evaluations.models import Evaluation
-        from apps.core.tests.factories import make_area, make_position
-
-        visit = make_visit(self.site, at(timezone.localdate() - timedelta(days=2)), status=Visit.Status.COMPLETED)
-        position = make_position(make_area(self.site))
-        common = {"position": position, "visit": visit, "evaluator": self.engineer,
-                  "evaluated_on": timezone.localdate(), "activity_description": "x"}
-        draft = Evaluation.objects.create(**common)
-        done = Evaluation.objects.create(**common, status=Evaluation.Status.COMPLETED, completed_at=timezone.now())
-        self.client.force_login(self.member)
-        listed = list(self.client.get(reverse("visits:detail", args=[visit.pk])).context["evaluations"])
-        self.assertEqual(listed, [done])
-        self.client.force_login(self.engineer)
-        listed = list(self.client.get(reverse("visits:detail", args=[visit.pk])).context["evaluations"])
-        self.assertEqual(listed, [draft, done])

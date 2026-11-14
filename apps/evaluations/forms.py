@@ -2,7 +2,6 @@ import json
 import math
 
 from django import forms
-from django.urls import reverse
 from django.utils import timezone
 
 from apps.companies.cascade import pick
@@ -35,7 +34,6 @@ class EvaluationForm(forms.ModelForm):
     )
     area = forms.ModelChoiceField(Area.objects.none(), label="Área de trabajo")
 
-    cascade_url_name = "evaluations:cascade"
     field_order = [
         "visit", "area", "position", "worker", "evaluated_on",
         "activity_description", "worker_context",
@@ -92,18 +90,6 @@ class EvaluationForm(forms.ModelForm):
         self.initial.setdefault("evaluated_on", timezone.localdate())
         if visit is not None and not self.fields["area"].queryset.exists():
             self.fields["area"].help_text = "La sede visitada aún no tiene áreas. Regístralas en Empresas."
-
-        for name in ("visit", "area", "position"):
-            self.fields[name].widget.attrs.update(
-                {
-                    "hx-get": reverse(self.cascade_url_name),
-                    "hx-trigger": "change",
-                    "hx-target": "#form-fields",
-                    "hx-swap": "innerHTML settle:0ms",
-                    "hx-include": "closest form",
-                    "hx-params": "not csrfmiddlewaretoken",
-                }
-            )
 
     def _child(self, name, queryset, label, waiting_label, source):
         field = self.fields[name]

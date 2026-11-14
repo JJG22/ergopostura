@@ -2,7 +2,11 @@ from apps.accounts.models import Role
 from apps.core.tests.factories import completed_visit, make_position, make_user
 from apps.evaluations import services
 from apps.evaluations.models import Recommendation
-from apps.evaluations.tests.test_evaluations import make_assessment, make_evaluation, make_posture
+from apps.evaluations.tests.test_evaluations import (
+    make_assessment,
+    make_evaluation,
+    make_posture,
+)
 
 from .test_api import ApiTestCase
 

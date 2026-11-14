@@ -9,6 +9,8 @@ from datetime import datetime, time, timedelta
 
 from django.utils import timezone
 
+from apps.accounts.permissions import Capability, has_capability
+
 from apps.contracts.services import contract_on
 
 from .models import ScheduleLock, Visit
@@ -66,3 +68,23 @@ def schedule_problems(company, start: datetime, minutes: int, *, exclude_pk=None
 
 def combine(day, hour) -> datetime:
     return timezone.make_aware(datetime.combine(day, hour))
+
+
+def can_schedule(user) -> bool:
+    """La empresa agenda solo si esta activa y tiene sedes registradas."""
+    company = getattr(user, "company", None)
+    return (
+        has_capability(user, Capability.VISIT_SCHEDULE)
+        and company is not None
+        and company.is_active
+        and company.sites.exists()
+    )
+
+
+def schedule_blocker(user) -> str:
+    """Por que la empresa no puede agendar, para decirselo en vez de ocultar el boton."""
+    if not has_capability(user, Capability.VISIT_SCHEDULE) or can_schedule(user):
+        return ""
+    if not user.company.is_active:
+        return "La empresa está inactiva: no puede agendar visitas."
+    return "El ingeniero aún no ha registrado las sedes de la empresa. Cuando lo haga, podrás agendar."

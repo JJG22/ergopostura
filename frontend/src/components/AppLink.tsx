@@ -4,9 +4,8 @@ import { Link } from "react-router";
 import { legacyUrl } from "../lib/format";
 
 /**
- * Rutas de Django que ya tienen pantalla en React. Un enlace a una de ellas se abre dentro de
- * la aplicación; uno a un módulo aún no migrado abre la pantalla actual con la misma sesión.
- * Al migrar un módulo se agrega aquí su ruta (y en apps/api/presenters.py, MIGRATED).
+ * Direcciones con la forma de las antiguas pantallas de Django («/empresas/3/») y su ruta en
+ * React. Así un enlace guardado o escrito con la forma vieja sigue abriendo la pantalla correcta.
  */
 const ROUTES: readonly [RegExp, (match: RegExpMatchArray) => string][] = [
   [/^\/$/, () => "/"],
@@ -28,7 +27,7 @@ const ROUTES: readonly [RegExp, (match: RegExpMatchArray) => string][] = [
   [/^\/evaluaciones\/(\d+)\/informe\/$/, (m) => `/evaluaciones/${m[1] ?? ""}/informe`],
 ];
 
-/** Ruta de React para una dirección de Django, o null si ese módulo aún no está migrado. */
+/** Ruta de React para una dirección con la forma antigua, o null si no corresponde a ninguna. */
 export function appRoute(href: string): string | null {
   const [path = "", query] = href.split("?");
   for (const [pattern, build] of ROUTES) {
@@ -43,7 +42,7 @@ export function appRoute(href: string): string | null {
 }
 
 export function AppLink({ href, className, children, title }: { href: string; className?: string; children: ReactNode; title?: string }) {
-  const route = appRoute(href);
-  if (route !== null) return <Link to={route} className={className} title={title}>{children}</Link>;
-  return <a href={legacyUrl(href)} className={className} title={title}>{children}</a>;
+  // El panel técnico (/admin/) es la única página que sirve el servidor.
+  if (href.startsWith("/admin/")) return <a href={legacyUrl(href)} className={className} title={title}>{children}</a>;
+  return <Link to={appRoute(href) ?? href} className={className} title={title}>{children}</Link>;
 }

@@ -93,3 +93,9 @@ PANELS: dict[str, Panel] = {
 
 def panel_for(user) -> Panel:
     return PANELS[user.role]
+
+
+def greeting(hour: int) -> str:
+    if hour < 12:
+        return "Buenos días"
+    return "Buenas tardes" if hour < 19 else "Buenas noches"

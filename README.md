@@ -10,7 +10,8 @@ Cliente y servidor desacoplados, en el mismo dominio:
 
 - **Backend (`apps/`)**: el dominio (modelos, formularios, selectores, servicios y permisos por rol) queda igual. La API en `/api/v1/` es una capa nueva que reutiliza esas mismas reglas y solo responde JSON, con un formato único de error: `{"error": {"code", "message", "fields"}}`.
 - **Frontend (`frontend/`)**: React arma las pantallas en el navegador, así el servidor no genera HTML. Vive en `/app/`, usa la misma sesión por cookie (con CSRF) y maneja los errores con tipos de TypeScript (`ApiError` con códigos fijos).
-- **Migración por etapas**: ya están en React el ingreso, el cambio de contraseña obligatorio y el panel principal de cada rol. Los módulos que faltan se abren en las pantallas actuales de Django con la misma sesión, y se irán migrando uno por uno.
+- **Todo el sistema está en React**: ingreso, panel de cada rol, usuarios, empresas, contratos, visitas, evaluaciones (con el análisis RULA y el informe), indicadores y tareas. El servidor ya no genera pantallas; la única página que sirve Django es el panel técnico de soporte (`/admin/`).
+- **Direcciones antiguas**: un enlace con la forma vieja (`/empresas/3/`, `/visitas/agenda/`) redirige a su pantalla en React (`apps/core/legacy.py`). Fuera de la API, un error responde también en JSON.
 - **Caché**: los archivos de React llevan una huella en el nombre, así que el navegador los guarda un año; el HTML siempre se revalida.
 
 En desarrollo, `docker compose up` levanta también el servidor de Vite: abre http://localhost:5173/app/ (recarga al guardar). En producción, el `Dockerfile` compila React y Django lo publica en `/app/`.
@@ -25,7 +26,7 @@ docker compose up --build -d
 docker compose exec web python manage.py seed_demo
 ```
 
-Abre http://localhost:8000.
+Abre http://localhost:5173/app/ (React, recarga al guardar) o http://localhost:8000/app/ con el cliente ya compilado.
 
 ### Roles
 
@@ -108,7 +109,8 @@ docker compose down -v     # BORRA la base de datos
 ```
 config/            Configuración por entorno (base, dev, prod, test) y URLs
 apps/
-  core/            Piezas compartidas: formularios modales, navegación, iconos
+  api/             API REST /api/v1/: adaptadores JSON sobre las reglas de cada app
+  core/            Menú por capacidades, iconos, cliente React en /app/ y direcciones antiguas
   accounts/        Usuarios, roles y política de permisos
   geography/       Departamentos y municipios de api-colombia.com
   companies/       Empresa > sede > área > puesto > trabajador, y reglas del NIT
@@ -119,8 +121,9 @@ apps/
   tasks/           Tareas pendientes del proceso
   rula/            Cálculo del método RULA, sin dependencias de Django
   dashboard/       Un panel por rol
-templates/         HTML por módulo
-static/            design-system.css (exportado de Figma, no se edita) y app.css
+frontend/          Cliente React + Vite + TypeScript + Tailwind (src/features/<módulo>)
+templates/admin/   Apariencia del panel técnico de Django
+static/            Estilos del panel técnico y el ícono
 docker/            Script de arranque del contenedor
 ```
 
@@ -130,7 +133,7 @@ Cada archivo tiene una sola responsabilidad:
 
 | Archivo | Responsabilidad |
 |---|---|
-| `views.py` | Atender la petición HTTP; no contiene reglas de negocio |
+| `apps/api/<módulo>.py` | Atender la petición HTTP y responder JSON; no contiene reglas de negocio |
 | `forms.py` | Validar y normalizar lo que escribe el usuario |
 | `models.py` | Datos y restricciones de la base de datos |
 | `selectors.py` | Consultas de lectura, siempre limitadas al alcance del usuario |
@@ -142,6 +145,7 @@ Para extender el sistema sin modificar lo que ya funciona:
 - **Permisos de un rol:** `ROLE_CAPABILITIES` en `apps/accounts/permissions.py`.
 - **Módulo en el menú:** `NAV_ITEMS` en `apps/core/navigation.py`.
 - **Panel de un rol:** `PANELS` en `apps/dashboard/panels.py`.
+- **Pantalla nueva:** endpoint en `apps/api/` y su página en `frontend/src/features/`, con la ruta en `frontend/src/App.tsx`.
 
 ## Reglas que el sistema garantiza
 
@@ -214,7 +218,7 @@ En la pantalla de análisis RULA, el botón **Sugerir** detecta el cuerpo en la 
 - **No reemplaza al ingeniero (D2).** Los valores llenan el formulario marcados como «Sugerido por IA» y nada se guarda hasta que el ingeniero pulsa *Calcular y guardar*. El puntaje lo siguen dando las tablas del artículo, con los valores registrados.
 - **Queda constancia (RNF-003).** Se guarda lo sugerido aparte de lo registrado, y el detalle y el informe muestran qué ángulos corrigió el ingeniero.
 - **Límites:** necesita una foto de perfil del lado evaluado y avisa si parece de frente. Giros, inclinaciones laterales, abducción y apoyos no se ven de perfil y los registra el ingeniero.
-- El cálculo está en `static/js/pose-angles.js`, separado de la interfaz (`pose-assist.js`).
+- El cálculo está en `frontend/src/features/evaluations/poseAngles.ts`, separado de la interfaz (`AssessmentPage.tsx`).
 
 ## Método RULA
 

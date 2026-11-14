@@ -6,7 +6,6 @@ from unittest import mock
 
 from django.conf import settings
 from django.core.management import CommandError, call_command
-from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
@@ -14,22 +13,10 @@ from apps.accounts.models import Role, User
 from apps.companies.models import Company, Worker
 from apps.contracts.models import Contract
 from apps.core.demo import data as demo_data
+from apps.core.templatetags.ui import _icons, icon
 from apps.evaluations.models import Evaluation, Recommendation, RulaAssessment
 from apps.evaluations.services import completion_problems
 from apps.visits.models import Visit
-from apps.core.templatetags.ui import _icons, icon
-from apps.core.views import full_reload_url
-
-
-class FullReloadUrlTests(SimpleTestCase):
-    def test_moves_the_fragment_so_the_browser_reloads(self):
-        self.assertEqual(full_reload_url("/evaluaciones/1/#postura-2"), "/evaluaciones/1/?foco=postura-2")
-
-    def test_keeps_the_existing_query(self):
-        self.assertEqual(full_reload_url("/a/?x=1#b"), "/a/?x=1&foco=b")
-
-    def test_leaves_other_urls_alone(self):
-        self.assertEqual(full_reload_url("/a/?x=1"), "/a/?x=1")
 
 
 class IconTests(SimpleTestCase):
@@ -41,10 +28,6 @@ class IconTests(SimpleTestCase):
             for name in re.findall(r"{% icon '([\w-]+)' %}", path.read_text(encoding="utf-8")):
                 self.assertIn(name, _icons(), f"{name} en {path}")
 
-    def test_every_template_compiles(self):
-        root = Path(settings.BASE_DIR, "templates")
-        for path in root.rglob("*.html"):
-            get_template(path.relative_to(root).as_posix())
 
 
 class SeedDemoTests(TestCase):

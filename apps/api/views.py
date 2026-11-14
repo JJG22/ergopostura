@@ -11,8 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.forms import LoginForm, OwnPasswordForm
-from apps.dashboard.panels import panel_for
-from apps.dashboard.views import greeting
+from apps.dashboard.panels import greeting, panel_for
 
 from . import presenters
 from .errors import error_response

@@ -1,6 +1,5 @@
 """Lista dependiente departamento > municipio para cualquier formulario con `municipality`."""
 from django import forms
-from django.urls import reverse
 
 from .models import Department, Municipality
 
@@ -45,15 +44,6 @@ class LocationFieldsMixin:
                 fields["department"] = department_field
             fields[name] = field
         self.fields = fields
-
-        department_field.widget.attrs.update(
-            {
-                "hx-get": reverse("geography:municipalities"),
-                "hx-trigger": "change",
-                "hx-target": f"#{self['municipality'].auto_id}",
-                "hx-swap": "innerHTML",
-            }
-        )
 
         if self.is_bound:
             chosen = self.data.get(self.add_prefix("department"))

@@ -3,7 +3,14 @@ from datetime import timedelta
 from django.utils import timezone
 
 from apps.accounts.models import Role
-from apps.core.tests.factories import at, make_company, make_contract, make_site, make_user, make_visit
+from apps.core.tests.factories import (
+    at,
+    make_company,
+    make_contract,
+    make_site,
+    make_user,
+    make_visit,
+)
 from apps.visits.models import Visit
 from apps.visits.tests.test_visits import next_weekday
 

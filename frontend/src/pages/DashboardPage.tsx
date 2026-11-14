@@ -67,14 +67,14 @@ function VisitRow({ visit }: { visit: Visit }) {
   return (
     <Row icon="calendar-days" title={visit.company}
       detail={`${formatDay(visit.starts_at)} · ${formatTime(visit.starts_at)} – ${formatTime(visit.ends_at)} · ${visit.site}`}
-      aside={<div className="flex items-center gap-2"><Badge tone={visit.level.tone} dot>{visit.level.label}</Badge><AppLink className={linkButtonClass()} href={visit.legacy_url}>Ver</AppLink></div>} />
+      aside={<div className="flex items-center gap-2"><Badge tone={visit.level.tone} dot>{visit.level.label}</Badge><AppLink className={linkButtonClass()} href={visit.url}>Ver</AppLink></div>} />
   );
 }
 
 function ContractRow({ contract }: { contract: Contract }) {
   return (
     <Row icon="file-signature" title={contract.company} detail={`El contrato ${contract.code} vence el ${formatLongDate(contract.end_date)}`}
-      aside={<AppLink className={linkButtonClass()} href={contract.legacy_url}>Ver</AppLink>} />
+      aside={<AppLink className={linkButtonClass()} href={contract.url}>Ver</AppLink>} />
   );
 }
 
@@ -92,7 +92,7 @@ function EvaluationsCard({ evaluations }: { evaluations: Evaluation[] }) {
             <tbody>
               {evaluations.map((evaluation) => (
                 <tr key={evaluation.id} className="border-t border-slate-100">
-                  <td className="px-5 py-3 font-semibold"><AppLink className="hover:text-teal-700" href={evaluation.legacy_url}>{evaluation.code}</AppLink></td>
+                  <td className="px-5 py-3 font-semibold"><AppLink className="hover:text-teal-700" href={evaluation.url}>{evaluation.code}</AppLink></td>
                   <td className="px-3">{evaluation.company}</td>
                   <td className="px-3">{evaluation.area} · {evaluation.position}</td>
                   <td className="px-3">{formatShortDate(evaluation.evaluated_on)}</td>
@@ -212,7 +212,7 @@ function CompanyPanel({ data }: { data: CompanyDashboard }) {
               <p className="font-semibold">{contract.code} · {contract.kind_label}</p>
               <p className="text-sm text-slate-500">Del {formatLongDate(contract.start_date)} al {formatLongDate(contract.end_date)}</p>
               {contract.status === "por_vencer" ? <p className="text-sm text-amber-800">Vence en {plural(contract.days_left, "día", "días")}. Habla con el ingeniero si quieres renovarlo.</p> : null}
-              <AppLink className={linkButtonClass()} href={contract.legacy_url}>Ver contrato</AppLink>
+              <AppLink className={linkButtonClass()} href={contract.url}>Ver contrato</AppLink>
             </div>
           ) : (
             <EmptyText>No hay un contrato vigente. Sin contrato no se pueden agendar visitas: comunícate con el ingeniero.</EmptyText>

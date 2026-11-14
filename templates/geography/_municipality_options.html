@@ -1,2 +1,0 @@
-{% if department %}<option value="">Selecciona un municipio</option>{% for municipality in municipalities %}
-<option value="{{ municipality.pk }}">{{ municipality.name }}</option>{% endfor %}{% else %}<option value="">Selecciona primero un departamento</option>{% endif %}

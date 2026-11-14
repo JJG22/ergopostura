@@ -31,11 +31,11 @@
 {% endblock %}
 
 {% block userlinks %}
-  <a class="ep-link" href="{% url 'dashboard:home' %}">{% icon 'house' %}<span>Volver a ErgoPostura</span></a>
+  <a class="ep-link" href="/app/">{% icon 'house' %}<span>Volver a ErgoPostura</span></a>
   {% if user.has_usable_password %}
     <a class="ep-link" href="{% url 'admin:password_change' %}">{% icon 'settings' %}<span>Cambiar contraseña</span></a>
   {% endif %}
-  <form id="logout-form" method="post" action="{% url 'accounts:logout' %}">
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
     {% csrf_token %}
     <button type="submit" class="ep-link">{% icon 'log-out' %}<span>Cerrar sesión</span></button>
   </form>

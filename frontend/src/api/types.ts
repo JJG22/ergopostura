@@ -49,7 +49,7 @@ export interface Visit {
   contact_name: string;
   status: "programada" | "realizada" | "cancelada";
   level: Level;
-  legacy_url: string;
+  url: string;
 }
 
 export type TrafficLight = "verde" | "amarillo" | "rojo";
@@ -71,7 +71,7 @@ export interface Evaluation {
   status: "borrador" | "terminada";
   status_label: string;
   risk: Risk | null;
-  legacy_url: string;
+  url: string;
 }
 
 export type ContractStatus = "por_iniciar" | "vigente" | "por_vencer" | "vencido";
@@ -86,7 +86,7 @@ export interface Contract {
   status: ContractStatus;
   status_label: string;
   days_left: number;
-  legacy_url: string;
+  url: string;
 }
 
 interface DashboardBase {

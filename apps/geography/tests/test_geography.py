@@ -1,9 +1,7 @@
 from django.test import TestCase
-from django.urls import reverse
 
-from apps.accounts.models import Role
 from apps.companies.forms import CompanyForm
-from apps.core.tests.factories import make_company, make_user, municipality
+from apps.core.tests.factories import make_company, municipality
 from apps.geography import catalog
 from apps.geography.models import Department, Municipality
 
@@ -51,20 +49,3 @@ class LocationFormTests(TestCase):
         self.assertTrue(form.fields["municipality"].queryset.filter(pk=company.municipality_id).exists())
 
 
-class MunicipalityOptionsViewTests(TestCase):
-    url = reverse("geography:municipalities")
-
-    def test_requires_login(self):
-        self.assertEqual(self.client.get(self.url).status_code, 302)
-
-    def test_lists_only_municipalities_of_the_department(self):
-        self.client.force_login(make_user(role=Role.ENGINEER))
-        quindio = municipality().department
-        response = self.client.get(self.url, {"department": quindio.pk})
-        self.assertContains(response, "Calarcá")
-        self.assertNotContains(response, "Pereira")
-
-    def test_invalid_department_returns_waiting_option(self):
-        self.client.force_login(make_user(role=Role.ENGINEER))
-        response = self.client.get(self.url, {"department": "abc"})
-        self.assertContains(response, "Selecciona primero un departamento")

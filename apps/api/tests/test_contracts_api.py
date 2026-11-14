@@ -7,7 +7,15 @@ from django.utils import timezone
 from apps.accounts.models import Role
 from apps.contracts.models import Contract
 from apps.contracts.tests.test_contracts import fake_client
-from apps.core.tests.factories import at, make_company, make_contract, make_site, make_user, make_visit, sample_pdf
+from apps.core.tests.factories import (
+    at,
+    make_company,
+    make_contract,
+    make_site,
+    make_user,
+    make_visit,
+    sample_pdf,
+)
 
 from .test_api import ApiTestCase
 

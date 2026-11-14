@@ -124,7 +124,7 @@ export function VisitDetailView({ visit, onChanged }: { visit: VisitDetail; onCh
         ) : null}
         {visit.evaluations.length ? (
           <Row label="Evaluaciones">
-            {visit.evaluations.map((e, i) => <span key={e.id}>{i ? ", " : ""}<AppLink href={e.legacy_url} className="text-teal-700 hover:underline">{e.code}</AppLink></span>)}
+            {visit.evaluations.map((e, i) => <span key={e.id}>{i ? ", " : ""}<AppLink href={e.url} className="text-teal-700 hover:underline">{e.code}</AppLink></span>)}
           </Row>
         ) : null}
       </dl>

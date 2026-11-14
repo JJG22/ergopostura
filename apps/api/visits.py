@@ -6,7 +6,6 @@ de otras empresas viajan como «Ocupado», sin ningún dato de ellas.
 """
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +18,6 @@ from apps.evaluations.selectors import visible_evaluations
 from apps.visits import agenda, rules, selectors
 from apps.visits.forms import CancelVisitForm, CompleteVisitForm, VisitForm
 from apps.visits.models import LEVELS, Visit
-from apps.visits.views import UPCOMING_LIMIT, VisitCalendarView, can_schedule
 
 from . import presenters
 from .common import choices, invalid, paginate
@@ -27,6 +25,7 @@ from .errors import error_response
 from .permissions import HasCapability
 
 VIEW = (Capability.VISIT_VIEW_ALL, Capability.VISIT_VIEW_OWN)
+UPCOMING_LIMIT = 6
 SHOWN_LEVELS = ("programada", "cercana", "hoy", "en_curso", "por_cerrar", "realizada")
 
 
@@ -74,12 +73,12 @@ def event_data(event, shows_company: bool) -> dict:
 
 def schedule_info(user) -> dict:
     schedules = has_capability(user, Capability.VISIT_SCHEDULE)
-    allowed = can_schedule(user)
+    allowed = rules.can_schedule(user)
     contract = current_contract(user.company) if user.company_id else None
     return {
         "can_schedule": allowed,
         "schedules": schedules,
-        "blocker": VisitCalendarView._schedule_blocker(user) if schedules and not allowed else "",
+        "blocker": rules.schedule_blocker(user),
         "contract": {
             "code": contract.display_code,
             "start_date": presenters.iso(contract.start_date),
@@ -189,13 +188,13 @@ def visit_detail(visit, user) -> dict:
         "cancelled_by": person(visit.cancelled_by),
         "cancelled_at": local(visit.cancelled_at),
         "cancellation_reason": visit.cancellation_reason,
-        "evaluations": [{"id": e.pk, "code": e.code, "legacy_url": reverse("evaluations:detail", args=[e.pk])} for e in evaluations],
+        "evaluations": [{"id": e.pk, "code": e.code, "url": f"/evaluaciones/{e.pk}"} for e in evaluations],
         "can_reschedule": schedules and visit.is_scheduled and visit.scheduled_at > now + rules.MIN_NOTICE,
         "can_cancel": visit.is_scheduled and ((schedules and visit.scheduled_at > now) or attends),
         "can_complete": attends and visit.is_scheduled and visit.scheduled_at <= now,
         "can_evaluate": visit.is_completed and has_capability(user, Capability.EVALUATION_MANAGE),
         "cancel_by_company": not attends,
-        "new_evaluation_url": f"{reverse('evaluations:create')}?visita={visit.pk}",
+        "new_evaluation_url": f"/evaluaciones?visita={visit.pk}",
     }
 
 
@@ -212,8 +211,8 @@ def save_visit(form) -> Response | Visit:
 
 
 def blocked(user) -> Response | None:
-    if not can_schedule(user):
-        return error_response("permission_denied", VisitCalendarView._schedule_blocker(user), status.HTTP_403_FORBIDDEN)
+    if not rules.can_schedule(user):
+        return error_response("permission_denied", rules.schedule_blocker(user), status.HTTP_403_FORBIDDEN)
     return None
 
 

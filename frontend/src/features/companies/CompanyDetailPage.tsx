@@ -168,7 +168,7 @@ function ContractCard({ company }: { company: CompanyDetail }) {
             <small className="text-slate-500">Del {formatLongDate(contract.start_date)} al {formatLongDate(contract.end_date)}</small>
           </span>
           <ContractBadge status={contract.status} label={contract.status_label} />
-          <AppLink href={contract.legacy_url} className={linkButtonClass()}>Ver contrato</AppLink>
+          <AppLink href={contract.url} className={linkButtonClass()}>Ver contrato</AppLink>
         </>
       ) : (
         <>

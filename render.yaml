@@ -6,7 +6,7 @@ services:
     plan: free
     region: virginia
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /ingresar/
+    healthCheckPath: /api/v1/auth/csrf/
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.prod

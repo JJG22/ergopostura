@@ -4,11 +4,15 @@ import { Navigate, useNavigate, useSearchParams } from "react-router";
 import { toApiError, type ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { Button, Field, FormError, FullPageSpinner, Icon } from "../components/ui";
+import { legacyUrl } from "../lib/format";
 
 /** Solo se aceptan destinos internos, para que nadie use el login como redirección a otro sitio. */
 function safeNext(value: string | null): string {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : "/";
 }
+
+/** El panel técnico (/admin/) lo sirve el servidor: se abre con una navegación completa. */
+const isServerPage = (path: string) => path.startsWith("/admin/");
 
 export function LoginPage() {
   const { state, login } = useAuth();
@@ -22,7 +26,13 @@ export function LoginPage() {
   const next = safeNext(params.get("next"));
 
   if (state.status === "loading") return <FullPageSpinner />;
-  if (state.status === "authenticated") return <Navigate to={next} replace />;
+  if (state.status === "authenticated") {
+    if (isServerPage(next)) {
+      window.location.replace(legacyUrl(next));
+      return <FullPageSpinner />;
+    }
+    return <Navigate to={next} replace />;
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -30,7 +40,8 @@ export function LoginPage() {
     setError(null);
     try {
       const session = await login({ email, password, remember });
-      navigate(session.user.must_change_password ? "/cambiar-contrasena" : next, { replace: true });
+      if (!session.user.must_change_password && isServerPage(next)) window.location.replace(legacyUrl(next));
+      else navigate(session.user.must_change_password ? "/cambiar-contrasena" : next, { replace: true });
     } catch (cause) {
       setError(toApiError(cause));
     } finally {

@@ -1,16 +1,12 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
-from django.test import SimpleTestCase, TestCase
-from django.urls import reverse
+from django.test import SimpleTestCase
 from django.utils import timezone
 
-from apps.accounts.models import Role
 from apps.companies.models import Company, Site
-from apps.core.tests.factories import at, make_company, make_contract, make_site, make_user, make_visit
 from apps.visits import agenda
 from apps.visits.models import Visit
 
-HTMX = {"HTTP_HX_REQUEST": "true"}
 
 
 def local(day: date, hour: int, minute: int = 0) -> datetime:
@@ -138,90 +134,5 @@ class LevelTests(SimpleTestCase):
         self.assertEqual(fake_visit(1, past, status=Visit.Status.CANCELLED).level_at(now).key, "cancelada")
 
 
-class CalendarViewTests(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.company = make_company(name="Mi empresa")
-        cls.site = make_site(cls.company)
-        make_contract(cls.company)
-        cls.foreign = make_company(name="Ajena S.A.")
-        cls.foreign_site = make_site(cls.foreign, name="Sede ajena")
-        cls.day = timezone.localdate() + timedelta(days=2)
-        cls.visit = make_visit(cls.site, at(cls.day, 9))
-        cls.foreign_visit = make_visit(cls.foreign_site, at(cls.day, 14))
-
-    def get(self, **params):
-        return self.client.get(reverse("visits:list"), params)
-
-    def test_engineer_sees_every_company_and_cannot_schedule(self):
-        self.client.force_login(make_user(role=Role.ENGINEER))
-        response = self.get(fecha=self.day.isoformat())
-        self.assertEqual(set(response.context["visits"]), {self.visit, self.foreign_visit})
-        self.assertContains(response, "Ajena S.A.")
-        self.assertNotContains(response, "Agendar visita")
-        self.assertNotContains(self.get(vista="semana", fecha=self.day.isoformat()), "cal-slot")
-
-    def test_company_sees_its_visits_and_others_only_as_busy(self):
-        self.client.force_login(make_user(role=Role.COMPANY, company=self.company))
-        response = self.get(fecha=self.day.isoformat(), vista="semana")
-        self.assertEqual(response.context["visits"], [self.visit])
-        self.assertContains(response, "Ocupado")
-        self.assertNotContains(response, "Ajena")
-        self.assertNotContains(response, reverse("visits:detail", args=[self.foreign_visit.pk]))
-        self.assertContains(response, "cal-slot")
-        self.assertContains(response, "Agendar visita")
-
-    def test_company_without_sites_is_told_why_it_cannot_schedule(self):
-        empty = make_company(name="Sin sedes")
-        self.client.force_login(make_user(role=Role.COMPANY, company=empty))
-        response = self.get()
-        self.assertFalse(response.context["can_schedule"])
-        self.assertContains(response, "aún no ha registrado las sedes")
-
-    def test_support_has_no_calendar(self):
-        self.client.force_login(make_user(role=Role.ADMIN))
-        self.assertEqual(self.get().status_code, 403)
-
-    def test_week_view_and_unknown_view(self):
-        self.client.force_login(make_user(role=Role.ENGINEER))
-        self.assertEqual(self.get(vista="semana").context["period"].view, agenda.WEEK)
-        self.assertEqual(self.get(vista="año", fecha="no-es-fecha").context["period"].view, agenda.MONTH)
-
-    def test_query_count_does_not_grow_with_visits(self):
-        for days in range(3, 8):
-            make_visit(self.site, at(self.day + timedelta(days=days), 9))
-        self.client.force_login(make_user(role=Role.ENGINEER))
-        with self.assertNumQueries(5):
-            self.get()
-
-    def test_detail_opens_as_modal_or_page(self):
-        self.client.force_login(make_user(role=Role.COMPANY, company=self.company))
-        url = reverse("visits:detail", args=[self.visit.pk])
-        self.assertContains(self.client.get(url, **HTMX), 'class="overlay"')
-        page = self.client.get(url)
-        self.assertContains(page, "Volver al calendario")
-        self.assertContains(page, reverse("visits:update", args=[self.visit.pk]))
 
 
-class CreateFromCalendarTests(TestCase):
-    def setUp(self):
-        company = make_company()
-        make_site(company)
-        make_contract(company)
-        self.client.force_login(make_user(role=Role.COMPANY, company=company))
-
-    def initial(self, **params):
-        return self.client.get(reverse("visits:create"), params).context["form"].initial
-
-    def test_future_date_and_hour_are_prefilled(self):
-        day = timezone.localdate() + timedelta(days=3)
-        initial = self.initial(fecha=day.isoformat(), hora="14")
-        self.assertEqual(initial["date"], day)
-        self.assertEqual(initial["time"].hour, 14)
-
-    def test_past_invalid_or_after_hours_values_are_ignored(self):
-        initial = self.initial(fecha=(timezone.localdate() - timedelta(days=1)).isoformat(), hora="99")
-        self.assertNotIn("date", initial)
-        self.assertNotIn("time", initial)
-        self.assertNotIn("time", self.initial(hora="x"))
-        self.assertNotIn("time", self.initial(hora="20"))

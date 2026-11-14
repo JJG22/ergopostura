@@ -9,15 +9,21 @@ import httpx2
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase, override_settings
-from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Role
-from apps.contracts import reader, services
+from apps.contracts import reader
 from apps.contracts.forms import ContractForm
-from apps.contracts.models import Contract, ContractReading, ContractStatus, duration_label
-from apps.core.tests.factories import at, make_company, make_contract, make_site, make_user, make_visit, sample_pdf
-from apps.visits.models import Visit
+from apps.contracts.models import Contract, ContractStatus, duration_label
+from apps.core.tests.factories import (
+    at,
+    make_company,
+    make_contract,
+    make_site,
+    make_user,
+    make_visit,
+    sample_pdf,
+)
 
 TODAY = date(2026, 11, 6)
 
@@ -240,140 +246,3 @@ class ReaderTests(TestCase):
         self.assertIn("anterior a la inicial", summary["alerts"][-1])
 
 
-@override_settings(ANTHROPIC_API_KEY="clave-de-prueba")
-class ContractViewTests(TestCase):
-    def setUp(self):
-        self.engineer = make_user(role=Role.ENGINEER)
-        self.company = make_company(name="Café Montaña S.A.S.", nit="900123456")
-        self.contract = make_contract(self.company, start=date(2026, 1, 1), end=date(2026, 12, 31),
-                                      responsible_name="Marta Salazar", value=12_000_000)
-        self.foreign = make_contract(make_company(name="Ajena"))
-
-    def test_engineer_manages_contracts_and_others_do_not(self):
-        self.client.force_login(self.engineer)
-        for name in ("contracts:list", "contracts:create"):
-            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
-        for user in (make_user(role=Role.ADMIN), make_user(role=Role.COMPANY, company=self.company)):
-            self.client.force_login(user)
-            self.assertEqual(self.client.get(reverse("contracts:list")).status_code, 403, user.role)
-            self.assertEqual(self.client.get(reverse("contracts:update", args=[self.contract.pk])).status_code, 403)
-            self.assertEqual(self.client.post(reverse("contracts:delete", args=[self.contract.pk])).status_code, 403)
-        self.assertTrue(Contract.objects.filter(pk=self.contract.pk).exists())
-
-    def test_company_sees_only_its_contract_and_its_pdf(self):
-        self.client.force_login(make_user(role=Role.COMPANY, company=self.company))
-        response = self.client.get(reverse("contracts:detail", args=[self.contract.pk]))
-        self.assertContains(response, self.contract.display_code)
-        self.assertNotContains(response, "Resumen con IA")
-        pdf = self.client.get(reverse("contracts:file", args=[self.contract.pk]))
-        self.assertEqual(pdf["Content-Type"], "application/pdf")
-        self.assertIn("no-store", pdf["Cache-Control"])
-        self.assertEqual(self.client.get(reverse("contracts:detail", args=[self.foreign.pk])).status_code, 404)
-        self.assertEqual(self.client.get(reverse("contracts:file", args=[self.foreign.pk])).status_code, 404)
-
-    def test_support_cannot_download_contracts(self):
-        self.client.force_login(make_user(role=Role.ADMIN))
-        self.assertEqual(self.client.get(reverse("contracts:file", args=[self.contract.pk])).status_code, 403)
-
-    def test_list_filters_by_status(self):
-        self.client.force_login(self.engineer)
-        today = timezone.localdate()
-        expiring = make_contract(make_company(name="Por vencer"), start=today - timedelta(days=300), end=today + timedelta(days=10))
-        listed = list(self.client.get(reverse("contracts:list"), {"estado": "por_vencer"}).context["contracts"])
-        self.assertIn(expiring, listed)
-        self.assertNotIn(self.foreign, listed)
-
-    def test_summary_is_generated_once_per_document_and_compared(self):
-        self.client.force_login(self.engineer)
-        patcher, create = fake_client(fake_response(reading_json(end_date="2027-01-31", value_cop=15000000)))
-        with patcher:
-            self.client.post(reverse("contracts:summarize", args=[self.contract.pk]))
-            self.client.post(reverse("contracts:summarize", args=[self.contract.pk]))
-        self.assertEqual(create.call_count, 1)
-        self.contract.refresh_from_db()
-        self.assertEqual(self.contract.ai_model, "claude-opus-5-5")
-
-        response = self.client.get(reverse("contracts:detail", args=[self.contract.pk]))
-        rows = {row["label"]: row for row in response.context["comparison"]}
-        self.assertFalse(rows["NIT"]["differs"])
-        self.assertTrue(rows["Fin"]["differs"])
-        self.assertTrue(rows["Valor"]["differs"])
-        self.assertFalse(rows["Encargado"]["differs"])
-        self.assertContains(response, "No coincide")
-        self.assertFalse(response.context["nit_mismatch"])
-
-    def test_document_of_another_company_is_flagged(self):
-        self.client.force_login(self.engineer)
-        patcher, _ = fake_client(fake_response(reading_json(client_nit="860.002.964-4")))
-        with patcher:
-            self.client.post(reverse("contracts:summarize", args=[self.contract.pk]))
-        response = self.client.get(reverse("contracts:detail", args=[self.contract.pk]))
-        self.assertTrue(response.context["nit_mismatch"])
-        self.assertContains(response, "no es el de")
-
-    def test_failed_reading_shows_a_message_and_keeps_the_contract(self):
-        self.client.force_login(self.engineer)
-        patcher, _ = fake_client(error=api_error(anthropic.RateLimitError, 429))
-        with patcher:
-            response = self.client.post(reverse("contracts:summarize", args=[self.contract.pk]), follow=True)
-        self.assertContains(response, "límite de uso")
-        self.contract.refresh_from_db()
-        self.assertEqual(self.contract.ai_summary, {})
-
-    def test_form_reading_fills_fields_and_is_reused_when_saving(self):
-        self.client.force_login(self.engineer)
-        other = make_company(name="Cliente nuevo", nit="860002964")
-        pdf = sample_pdf("Contrato del cliente nuevo")
-        patcher, create = fake_client(fake_response(reading_json(client_nit="860.002.964-4", start_date="2027-01-01", end_date="2027-12-31")))
-        with patcher:
-            response = self.client.post(reverse("contracts:read"), {"document": pdf_upload(pdf)})
-        body = response.json()
-        self.assertEqual(body["fields"]["company"], other.pk)
-        self.assertEqual(body["fields"]["start_date"], "2027-01-01")
-        self.assertTrue(body["company_found"])
-        self.assertEqual(ContractReading.objects.count(), 1)
-
-        self.client.post(reverse("contracts:create"), {
-            "document": pdf_upload(pdf), "company": other.pk, "kind": "prestacion_servicios",
-            "service": "RULA", "start_date": "2027-01-01", "end_date": "2027-12-31", "responsible_name": "Marta",
-        })
-        contract = Contract.objects.get(company=other)
-        self.assertEqual(contract.ai_summary["client_nit"], "860002964")
-        self.assertEqual(create.call_count, 1)
-
-    def test_form_reading_rejects_non_pdf_and_reports_api_errors(self):
-        self.client.force_login(self.engineer)
-        response = self.client.post(reverse("contracts:read"), {"document": pdf_upload(b"hola")})
-        self.assertEqual(response.status_code, 400)
-        patcher, _ = fake_client(error=api_error(anthropic.AuthenticationError, 401))
-        with patcher:
-            response = self.client.post(reverse("contracts:read"), {"document": pdf_upload()})
-        self.assertEqual(response.status_code, 502)
-        self.assertIn("clave", response.json()["error"])
-
-    @override_settings(ANTHROPIC_API_KEY="")
-    def test_without_key_the_pages_work_without_ai(self):
-        self.client.force_login(self.engineer)
-        self.assertContains(self.client.get(reverse("contracts:create")), "no está configurada")
-        response = self.client.post(reverse("contracts:read"), {"document": pdf_upload()})
-        self.assertEqual(response.status_code, 503)
-
-    def test_contract_with_pending_visits_cannot_be_deleted(self):
-        today = timezone.localdate()
-        contract = make_contract(make_company(name="Con visitas"), start=today - timedelta(days=5), end=today + timedelta(days=90))
-        make_visit(make_site(contract.company), at(today + timedelta(days=10)))
-        self.client.force_login(self.engineer)
-        response = self.client.post(reverse("contracts:delete", args=[contract.pk]), follow=True)
-        self.assertContains(response, "Deben cancelarse o reprogramarse")
-        self.assertTrue(Contract.objects.filter(pk=contract.pk).exists())
-        Visit.objects.update(status=Visit.Status.CANCELLED, cancelled_at=timezone.now(), cancellation_reason="x")
-        self.client.post(reverse("contracts:delete", args=[contract.pk]))
-        self.assertFalse(Contract.objects.filter(pk=contract.pk).exists())
-
-    def test_company_page_shows_the_current_contract(self):
-        self.client.force_login(self.engineer)
-        empty = make_company(name="Sin contrato")
-        self.assertContains(self.client.get(reverse("companies:detail", args=[empty.pk])), "Sin contrato vigente")
-        today = timezone.localdate()
-        current = make_contract(empty, start=today - timedelta(days=1), end=today + timedelta(days=200))
-        self.assertContains(self.client.get(reverse("companies:detail", args=[empty.pk])), current.display_code)

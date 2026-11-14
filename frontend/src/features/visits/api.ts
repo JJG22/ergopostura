@@ -96,7 +96,7 @@ export interface VisitDetail extends VisitRow {
   cancelled_by: string | null;
   cancelled_at: string | null;
   cancellation_reason: string;
-  evaluations: { id: number; code: string; legacy_url: string }[];
+  evaluations: { id: number; code: string; url: string }[];
   can_reschedule: boolean;
   can_cancel: boolean;
   can_complete: boolean;

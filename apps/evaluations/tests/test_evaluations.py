@@ -4,11 +4,9 @@ from io import BytesIO
 from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import IntegrityError, connection, transaction
+from django.db import IntegrityError, transaction
 from django.db.models import RestrictedError
 from django.test import TestCase
-from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
@@ -17,7 +15,6 @@ from apps.core.tests.factories import (
     at,
     completed_visit,
     make_area,
-    make_company,
     make_position,
     make_site,
     make_user,
@@ -26,7 +23,13 @@ from apps.core.tests.factories import (
 )
 from apps.evaluations import services
 from apps.evaluations.forms import EvaluationForm, PostureForm, RulaAssessmentForm
-from apps.evaluations.models import Evaluation, Posture, PosturePhoto, Recommendation, RulaAssessment
+from apps.evaluations.models import (
+    Evaluation,
+    Posture,
+    PosturePhoto,
+    Recommendation,
+    RulaAssessment,
+)
 from apps.evaluations.photos import InvalidPhoto, process_photo
 from apps.evaluations.selectors import visible_evaluations
 from apps.rula.scoring import Load
@@ -348,223 +351,23 @@ class CompletionTests(TestCase):
                 services.add_photo(posture, upload())
 
 
-class AccessTests(TestCase):
-    """Matriz de quien puede hacer que, recorriendo los roles."""
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.author = make_user(role=Role.ENGINEER)
-        cls.company = make_company(name="Mi empresa")
-        cls.position = make_position(make_area(make_site(cls.company)))
-        cls.foreign_position = make_position(make_area(make_site(make_company(name="Ajena")), name="Ajena"))
-
-        cls.draft = make_evaluation(cls.author, cls.position)
-        cls.posture = make_posture(cls.draft)
-        cls.photo = services.add_photo(cls.posture, upload())
-
-        cls.done = make_evaluation(cls.author, cls.position)
-        cls.done_posture = make_posture(cls.done)
-        cls.done_photo = services.add_photo(cls.done_posture, upload())
-        make_assessment(cls.done_posture)
-        Recommendation.objects.create(posture=cls.done_posture, text="Ajustar", author=cls.author)
-        services.complete_evaluation(cls.done)
-
-        cls.foreign_done = make_evaluation(cls.author, cls.foreign_position)
-        foreign_posture = make_posture(cls.foreign_done)
-        cls.foreign_photo = services.add_photo(foreign_posture, upload())
-        make_assessment(foreign_posture)
-        Recommendation.objects.create(posture=foreign_posture, text="Ajustar", author=cls.author)
-        services.complete_evaluation(cls.foreign_done)
-
-    def login(self, role, **fields):
-        user = make_user(role=role, **fields)
-        self.client.force_login(user)
-        return user
-
-    def detail(self, evaluation):
-        return reverse("evaluations:detail", args=[evaluation.pk])
-
-    def test_anonymous_goes_to_login_also_for_photos(self):
-        for url in (
-            reverse("evaluations:list"),
-            self.detail(self.done),
-            reverse("evaluations:photo", args=[self.photo.pk]),
-        ):
-            self.assertIn("/ingresar/", self.client.get(url)["Location"])
-
-    def test_engineer_sees_all_evaluations(self):
-        self.login(Role.ENGINEER)
-        self.assertEqual(len(self.client.get(reverse("evaluations:list")).context["evaluations"]), 3)
-
-    def test_company_user_sees_only_its_completed_evaluations(self):
-        self.login(Role.COMPANY, company=self.company)
-        listed = {e.pk for e in self.client.get(reverse("evaluations:list")).context["evaluations"]}
-        self.assertEqual(listed, {self.done.pk})
-        self.assertEqual(self.client.get(self.detail(self.foreign_done)).status_code, 404)
-        self.assertEqual(self.client.get(self.detail(self.draft)).status_code, 404)
-
-    def test_support_has_no_access_to_evaluations(self):
-        self.login(Role.ADMIN)
-        self.assertEqual(self.client.get(reverse("evaluations:list")).status_code, 403)
-        self.assertEqual(self.client.get(self.detail(self.done)).status_code, 403)
-        self.assertEqual(self.client.get(reverse("evaluations:photo", args=[self.done_photo.pk])).status_code, 403)
-
-    def test_only_the_engineer_can_create(self):
-        url = reverse("evaluations:create")
-        self.login(Role.ENGINEER)
-        self.assertEqual(self.client.get(url).status_code, 200)
-        for role in (Role.ADMIN, Role.COMPANY):
-            fields = {"company": self.company} if role == Role.COMPANY else {}
-            self.login(role, **fields)
-            self.assertEqual(self.client.get(url).status_code, 403, role)
-
-    def test_photo_follows_the_scope_of_its_evaluation(self):
-        self.login(Role.COMPANY, company=self.company)
-        allowed = self.client.get(reverse("evaluations:photo", args=[self.done_photo.pk]))
-        self.assertEqual(allowed.status_code, 200)
-        self.assertEqual(allowed["Content-Type"], "image/jpeg")
-        self.assertIn("private", allowed["Cache-Control"])
-        for photo in (self.foreign_photo, self.photo):
-            self.assertEqual(self.client.get(reverse("evaluations:photo", args=[photo.pk])).status_code, 404)
-
-    def test_another_evaluator_cannot_modify_a_draft(self):
-        self.login(Role.ENGINEER)
-        for url, method in (
-            (reverse("evaluations:update", args=[self.draft.pk]), "get"),
-            (reverse("evaluations:posture_create", args=[self.draft.pk]), "get"),
-            (reverse("evaluations:assessment", args=[self.posture.pk]), "get"),
-            (reverse("evaluations:complete", args=[self.draft.pk]), "post"),
-            (reverse("evaluations:posture_delete", args=[self.posture.pk]), "post"),
-            (reverse("evaluations:photo_delete", args=[self.photo.pk]), "post"),
-            (reverse("evaluations:photo_upload", args=[self.posture.pk]), "post"),
-        ):
-            self.assertEqual(getattr(self.client, method)(url).status_code, 404, url)
-        self.assertTrue(Posture.objects.filter(pk=self.posture.pk).exists())
-
-    def test_completed_evaluation_is_read_only_even_for_its_author(self):
-        self.client.force_login(self.author)
-        self.assertEqual(self.client.get(reverse("evaluations:update", args=[self.done.pk])).status_code, 404)
-        self.assertEqual(self.client.get(reverse("evaluations:assessment", args=[self.done_posture.pk])).status_code, 404)
-        self.assertEqual(
-            self.client.post(reverse("evaluations:photo_delete", args=[self.done_photo.pk])).status_code, 404
-        )
-        response = self.client.get(self.detail(self.done))
-        self.assertFalse(response.context["can_edit"])
-        self.assertNotContains(response, "Repetir análisis")
-
-    def test_read_only_detail_hides_actions(self):
-        self.login(Role.COMPANY, company=self.company)
-        response = self.client.get(self.detail(self.done))
-        for text in ("Agregar postura", "Subir", "Nueva recomendación", "Terminar", "Reabrir"):
-            self.assertNotContains(response, text)
-        self.assertContains(response, "Ajustar")
-
-    def test_only_the_engineer_reopens(self):
-        url = reverse("evaluations:reopen", args=[self.done.pk])
-        for role, fields in ((Role.ADMIN, {}), (Role.COMPANY, {"company": self.company})):
-            self.login(role, **fields)
-            self.assertEqual(self.client.post(url).status_code, 403, role)
-        self.client.force_login(self.author)
-        self.assertContains(self.client.get(self.detail(self.done)), "Reabrir")
-        self.client.post(url)
-        self.done.refresh_from_db()
-        self.assertTrue(self.done.is_draft)
-        self.assertIsNone(self.done.completed_at)
-
-    def test_get_does_not_change_state(self):
-        self.client.force_login(self.author)
-        for name, pk in (("complete", self.draft.pk), ("posture_delete", self.posture.pk), ("photo_delete", self.photo.pk)):
-            self.assertEqual(self.client.get(reverse(f"evaluations:{name}", args=[pk])).status_code, 405)
 
 
 class FlowTests(TestCase):
     def setUp(self):
         self.user = make_user(role=Role.ENGINEER)
-        self.client.force_login(self.user)
         self.evaluation = make_evaluation(self.user)
         self.posture = make_posture(self.evaluation)
-        self.detail = reverse("evaluations:detail", args=[self.evaluation.pk])
 
-    def test_saving_a_posture_in_the_modal_reloads_the_page(self):
-        response = self.client.post(
-            reverse("evaluations:posture_create", args=[self.evaluation.pk]),
-            {"name": "Nueva", "side": "derecho", "duration_value": "3", "duration_unit": "minutos"},
-            HTTP_HX_REQUEST="true",
-        )
-        posture = Posture.objects.get(name="Nueva")
-        # Un #fragmento en esta URL haria que el navegador no recargue.
-        self.assertEqual(response["HX-Redirect"], f"{self.detail}?foco=postura-{posture.pk}")
 
-    def test_assessment_needs_a_photo_first(self):
-        response = self.client.get(reverse("evaluations:assessment", args=[self.posture.pk]))
-        self.assertRedirects(response, f"{self.detail}#postura-{self.posture.pk}")
 
-    def test_upload_analyze_recommend_and_complete(self):
-        self.client.post(reverse("evaluations:photo_upload", args=[self.posture.pk]), {"photo": upload()})
-        photo = PosturePhoto.objects.get(posture=self.posture)
 
-        url = reverse("evaluations:assessment", args=[self.posture.pk])
-        self.assertContains(self.client.get(url), reverse("evaluations:photo", args=[photo.pk]))
-        response = self.client.post(url, {**ASSESSMENT_INPUT, "photo": photo.pk})
-        self.assertEqual(response.status_code, 302)
 
-        page = self.client.get(self.detail)
-        self.assertContains(page, "Se requiere investigar y hacer cambios pronto.")
-        self.assertContains(page, "Requiere revisión · Nivel 3")
-        self.assertContains(page, "Falta una recomendación")
 
-        self.client.post(reverse("evaluations:recommendation_create", args=[self.posture.pk]), {"text": "Bajar la banda"})
-        self.assertEqual(Recommendation.objects.get().author, self.user)
 
-        self.client.post(reverse("evaluations:complete", args=[self.evaluation.pk]))
-        self.evaluation.refresh_from_db()
-        self.assertFalse(self.evaluation.is_draft)
 
-    def test_recommendation_is_only_possible_after_the_result(self):
-        url = reverse("evaluations:recommendation_create", args=[self.posture.pk])
-        self.client.post(url, {"text": "Antes de tiempo"})
-        self.assertEqual(Recommendation.objects.count(), 0)
-        self.assertNotContains(self.client.get(self.detail), "Nueva recomendación")
 
-    def test_incomplete_evaluation_is_not_completed_by_forcing_the_post(self):
-        self.client.post(reverse("evaluations:complete", args=[self.evaluation.pk]))
-        self.evaluation.refresh_from_db()
-        self.assertTrue(self.evaluation.is_draft)
 
-    def test_invalid_upload_shows_error_and_saves_nothing(self):
-        response = self.client.post(
-            reverse("evaluations:photo_upload", args=[self.posture.pk]),
-            {"photo": upload("virus.jpg", b"no es imagen")},
-            follow=True,
-        )
-        self.assertContains(response, "no es una fotografía válida")
-        self.assertContains(response, "toast-error")
-        self.assertEqual(PosturePhoto.objects.count(), 0)
-
-    def test_deleting_analyzed_photo_shows_a_message(self):
-        assessment = make_assessment(self.posture)
-        response = self.client.post(
-            reverse("evaluations:photo_delete", args=[assessment.photo_id]), follow=True
-        )
-        self.assertContains(response, "sustenta el análisis")
-        self.assertEqual(PosturePhoto.objects.count(), 1)
-
-    def test_starting_from_a_visit_selects_it_and_its_date(self):
-        visit = self.evaluation.visit
-        response = self.client.get(reverse("evaluations:create"), {"visita": visit.pk})
-        form = response.context["form"]
-        self.assertEqual(form.initial["visit"], visit.pk)
-        self.assertEqual(form.initial["evaluated_on"], timezone.localdate(visit.scheduled_at))
-        self.assertIn(self.evaluation.position.area, form.fields["area"].queryset)
-
-    def test_bad_visit_parameter_does_not_crash(self):
-        for value in ("abc", "999999", "'; DROP"):
-            self.assertEqual(self.client.get(reverse("evaluations:create"), {"visita": value}).status_code, 200)
-
-    def test_cascade_offers_the_areas_of_the_visited_site(self):
-        visit = self.evaluation.visit
-        response = self.client.get(reverse("evaluations:cascade"), {"visit": visit.pk})
-        self.assertContains(response, self.evaluation.position.area.name)
 
     def test_worst_score_is_shown_not_an_average(self):
         make_assessment(self.posture)
@@ -576,37 +379,9 @@ class FlowTests(TestCase):
         )
         self.assertEqual(visible_evaluations(self.user).get(pk=self.evaluation.pk).worst_score, 6)
 
-    def test_search_by_code_company_and_position(self):
-        url = reverse("evaluations:list")
-        code = self.evaluation.code
-        for query in (code, code.lower(), self.evaluation.company.name[:5], self.evaluation.position.name[:5]):
-            found = [e.pk for e in self.client.get(url, {"q": query}).context["evaluations"]]
-            self.assertIn(self.evaluation.pk, found, query)
-        self.assertEqual(list(self.client.get(url, {"q": "zzz-no-existe"}).context["evaluations"]), [])
 
-    def test_user_text_is_escaped(self):
-        Recommendation.objects.create(posture=self.posture, text="<script>x</script>", author=self.user)
-        make_assessment(self.posture)
-        response = self.client.get(self.detail)
-        self.assertNotContains(response, "<script>x</script>")
 
-    def test_detail_does_not_load_image_bytes(self):
-        make_assessment(self.posture)
-        with CaptureQueriesContext(connection) as captured:
-            self.client.get(self.detail)
-        photo_queries = [q["sql"] for q in captured.captured_queries if "posturephoto" in q["sql"]]
-        self.assertTrue(photo_queries)
-        for sql in photo_queries:
-            self.assertNotIn('"data"', sql)
 
-    def test_detail_query_count_does_not_grow_with_postures(self):
-        make_assessment(self.posture)
-        with CaptureQueriesContext(connection) as one_posture:
-            self.client.get(self.detail)
-        for index in range(4):
-            make_assessment(make_posture(self.evaluation, f"Postura {index}"))
-        with self.assertNumQueries(len(one_posture)):
-            self.client.get(self.detail)
 
 
 class AiSuggestionTests(TestCase):
@@ -646,13 +421,3 @@ class AiSuggestionTests(TestCase):
     def test_without_suggestion_nothing_is_stored(self):
         self.assertEqual(make_assessment(self.posture).ai_suggestion, {})
 
-    def test_page_offers_the_assistant_and_detail_shows_the_trace(self):
-        self.client.force_login(self.user)
-        make_assessment(self.posture, ai_suggestion=self.suggestion(neck_angle=25))
-        page = self.client.get(reverse("evaluations:assessment", args=[self.posture.pk]))
-        self.assertContains(page, "data-pose-assist")
-        self.assertContains(page, 'data-side="derecho"')
-        self.assertContains(page, "pose-assist.js")
-        detail = self.client.get(reverse("evaluations:detail", args=[self.posture.evaluation.pk]))
-        self.assertContains(detail, "Ángulos medidos con apoyo de IA")
-        self.assertContains(detail, "corregido")

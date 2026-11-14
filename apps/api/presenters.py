@@ -2,26 +2,14 @@
 
 Cada función devuelve un diccionario simple. Las reglas (alcance, niveles, estados) vienen de
 los modelos y selectores existentes: aquí solo se decide qué campos viajan al cliente.
-`legacy_url` apunta a la pantalla actual mientras ese módulo no esté migrado a React.
+`url` es la ruta de la pantalla en el cliente React.
 """
-from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.permissions import capabilities_of
 from apps.core.navigation import NAV_ITEMS
 from apps.rula.risk import action_level_for
 
-# Pantallas que ya existen en el cliente React: nombre de la URL de Django -> ruta en React.
-MIGRATED = {
-    "dashboard:home": "/",
-    "companies:list": "/empresas",
-    "accounts:users": "/usuarios",
-    "contracts:list": "/contratos",
-    "visits:list": "/visitas",
-    "evaluations:list": "/evaluaciones",
-    "indicators:home": "/indicadores",
-    "tasks:list": "/tareas",
-}
 
 
 def iso(value):
@@ -51,13 +39,7 @@ def navigation(user) -> list[dict]:
     for item in NAV_ITEMS:
         if item.capabilities and not capabilities.intersection(item.capabilities):
             continue
-        route = MIGRATED.get(item.url_name)
-        items.append({
-            "label": item.label,
-            "icon": item.icon,
-            "to": route,
-            "href": None if route else reverse(item.url_name),
-        })
+        items.append({"label": item.label, "icon": item.icon, "to": item.route, "href": None})
     return items
 
 
@@ -66,7 +48,7 @@ def session_data(user) -> dict:
         "user": user_data(user),
         "capabilities": sorted(str(c) for c in capabilities_of(user)),
         "navigation": navigation(user),
-        "admin_url": reverse("admin:index") if user.is_staff else None,
+        "admin_url": "/admin/" if user.is_staff else None,
     }
 
 
@@ -86,7 +68,7 @@ def visit_data(visit, now=None) -> dict:
         "contact_name": visit.contact_name,
         "status": visit.status,
         "level": level_data(visit.level_at(now)),
-        "legacy_url": reverse("visits:detail", args=[visit.pk]),
+        "url": f"/visitas/{visit.pk}",
     }
 
 
@@ -114,7 +96,7 @@ def evaluation_data(evaluation) -> dict:
         "status": evaluation.status,
         "status_label": evaluation.get_status_display(),
         "risk": risk_data(getattr(evaluation, "worst_score", None)),
-        "legacy_url": reverse("evaluations:detail", args=[evaluation.pk]),
+        "url": f"/evaluaciones/{evaluation.pk}",
     }
 
 
@@ -131,5 +113,5 @@ def contract_data(contract, today=None) -> dict:
         "status": str(status),
         "status_label": status.label,
         "days_left": contract.days_left(today),
-        "legacy_url": reverse("contracts:detail", args=[contract.pk]),
+        "url": f"/contratos/{contract.pk}",
     }
