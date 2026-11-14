@@ -31,9 +31,9 @@ function Shell() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 lg:flex">
+    <div className="min-h-screen bg-slate-50 text-slate-900 lg:flex print:bg-white">
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 print:hidden flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -88,7 +88,7 @@ function Shell() {
       {open ? <div className="fixed inset-0 z-20 bg-slate-900/30 lg:hidden" onClick={() => setOpen(false)} /> : null}
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur lg:px-8">
+        <header className="print:hidden sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur lg:px-8">
           <button type="button" className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" aria-label="Abrir menú" onClick={() => setOpen(true)}>
             <Icon name="menu" />
           </button>
@@ -96,7 +96,7 @@ function Shell() {
           <Icon name="chevron-right" className="size-4 text-slate-400" />
           <span className="truncate text-sm font-semibold">{crumb}</span>
         </header>
-        <main className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-8">
+        <main className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-8 print:max-w-none print:p-0">
           <Outlet />
         </main>
       </div>

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import accounts, companies, contracts, geography, views, visits
+from . import accounts, companies, contracts, evaluations, geography, views, visits
 
 app_name = "api"
 
@@ -40,4 +40,16 @@ urlpatterns = [
     path("visits/<int:pk>/", visits.VisitDetailView.as_view(), name="visit"),
     path("visits/<int:pk>/complete/", visits.VisitCompleteView.as_view(), name="visit_complete"),
     path("visits/<int:pk>/cancel/", visits.VisitCancelView.as_view(), name="visit_cancel"),
+    path("evaluations/", evaluations.EvaluationListView.as_view(), name="evaluations"),
+    path("evaluations/options/", evaluations.EvaluationOptionsView.as_view(), name="evaluation_options"),
+    path("evaluations/<int:pk>/", evaluations.EvaluationDetailView.as_view(), name="evaluation"),
+    path("evaluations/<int:pk>/complete/", evaluations.EvaluationCompleteView.as_view(), name="evaluation_complete"),
+    path("evaluations/<int:pk>/reopen/", evaluations.EvaluationReopenView.as_view(), name="evaluation_reopen"),
+    path("evaluations/<int:pk>/postures/", evaluations.PostureView.as_view(), name="posture_create"),
+    path("evaluations/postures/<int:pk>/", evaluations.PostureView.as_view(), name="posture"),
+    path("evaluations/postures/<int:pk>/photos/", evaluations.PhotoUploadView.as_view(), name="photo_upload"),
+    path("evaluations/postures/<int:pk>/assessment/", evaluations.AssessmentView.as_view(), name="assessment"),
+    path("evaluations/postures/<int:pk>/recommendations/", evaluations.RecommendationView.as_view(), name="recommendation_create"),
+    path("evaluations/photos/<int:pk>/", evaluations.PhotoView.as_view(), name="photo"),
+    path("evaluations/recommendations/<int:pk>/", evaluations.RecommendationView.as_view(), name="recommendation"),
 ]

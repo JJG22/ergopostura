@@ -13,6 +13,10 @@ import { ContractFormPage } from "./features/contracts/ContractFormPage";
 import { ContractsPage } from "./features/contracts/ContractsPage";
 import { VisitAgendaPage, VisitPage } from "./features/visits/VisitAgendaPage";
 import { VisitsCalendarPage } from "./features/visits/VisitsCalendarPage";
+import { AssessmentPage } from "./features/evaluations/AssessmentPage";
+import { EvaluationDetailPage } from "./features/evaluations/EvaluationDetailPage";
+import { EvaluationsPage } from "./features/evaluations/EvaluationsPage";
+import { ReportPage } from "./features/evaluations/ReportPage";
 import { CompaniesPage } from "./features/companies/CompaniesPage";
 import { CompanyDetailPage } from "./features/companies/CompanyDetailPage";
 
@@ -43,6 +47,10 @@ const router = createBrowserRouter(
             { path: "visitas", element: <VisitsCalendarPage /> },
             { path: "visitas/agenda", element: <VisitAgendaPage /> },
             { path: "visitas/:id", element: <VisitPage /> },
+            { path: "evaluaciones", element: <EvaluationsPage /> },
+            { path: "evaluaciones/:id", element: <EvaluationDetailPage /> },
+            { path: "evaluaciones/:id/informe", element: <ReportPage /> },
+            { path: "evaluaciones/posturas/:id/analisis", element: <AssessmentPage /> },
           ],
         },
         { path: "*", element: <NotFound /> },

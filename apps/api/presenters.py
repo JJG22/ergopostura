@@ -18,6 +18,7 @@ MIGRATED = {
     "accounts:users": "/usuarios",
     "contracts:list": "/contratos",
     "visits:list": "/visitas",
+    "evaluations:list": "/evaluaciones",
 }
 
 
