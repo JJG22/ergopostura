@@ -17,6 +17,8 @@ import { AssessmentPage } from "./features/evaluations/AssessmentPage";
 import { EvaluationDetailPage } from "./features/evaluations/EvaluationDetailPage";
 import { EvaluationsPage } from "./features/evaluations/EvaluationsPage";
 import { ReportPage } from "./features/evaluations/ReportPage";
+import { IndicatorsPage } from "./features/insights/IndicatorsPage";
+import { TasksPage } from "./features/insights/TasksPage";
 import { CompaniesPage } from "./features/companies/CompaniesPage";
 import { CompanyDetailPage } from "./features/companies/CompanyDetailPage";
 
@@ -51,6 +53,8 @@ const router = createBrowserRouter(
             { path: "evaluaciones/:id", element: <EvaluationDetailPage /> },
             { path: "evaluaciones/:id/informe", element: <ReportPage /> },
             { path: "evaluaciones/posturas/:id/analisis", element: <AssessmentPage /> },
+            { path: "indicadores", element: <IndicatorsPage /> },
+            { path: "tareas", element: <TasksPage /> },
           ],
         },
         { path: "*", element: <NotFound /> },

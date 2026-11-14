@@ -19,6 +19,8 @@ MIGRATED = {
     "contracts:list": "/contratos",
     "visits:list": "/visitas",
     "evaluations:list": "/evaluaciones",
+    "indicators:home": "/indicadores",
+    "tasks:list": "/tareas",
 }
 
 

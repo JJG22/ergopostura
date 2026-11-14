@@ -21,6 +21,8 @@ const ROUTES: readonly [RegExp, (match: RegExpMatchArray) => string][] = [
   [/^\/visitas\/agenda\/$/, () => "/visitas/agenda"],
   [/^\/visitas\/(\d+)\/$/, (m) => `/visitas/${m[1] ?? ""}`],
   [/^\/evaluaciones\/$/, () => "/evaluaciones"],
+  [/^\/indicadores\/$/, () => "/indicadores"],
+  [/^\/tareas\/$/, () => "/tareas"],
   [/^\/evaluaciones\/nueva\/$/, () => "/evaluaciones"],
   [/^\/evaluaciones\/(\d+)\/$/, (m) => `/evaluaciones/${m[1] ?? ""}`],
   [/^\/evaluaciones\/(\d+)\/informe\/$/, (m) => `/evaluaciones/${m[1] ?? ""}/informe`],

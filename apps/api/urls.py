@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import accounts, companies, contracts, evaluations, geography, views, visits
+from . import accounts, companies, contracts, evaluations, geography, insights, views, visits
 
 app_name = "api"
 
@@ -52,4 +52,7 @@ urlpatterns = [
     path("evaluations/postures/<int:pk>/recommendations/", evaluations.RecommendationView.as_view(), name="recommendation_create"),
     path("evaluations/photos/<int:pk>/", evaluations.PhotoView.as_view(), name="photo"),
     path("evaluations/recommendations/<int:pk>/", evaluations.RecommendationView.as_view(), name="recommendation"),
+    path("indicators/", insights.IndicatorsView.as_view(), name="indicators"),
+    path("tasks/", insights.TasksView.as_view(), name="tasks"),
+    path("tasks/<int:pk>/attend/", insights.AttendView.as_view(), name="task_attend"),
 ]
