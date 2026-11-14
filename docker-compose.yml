@@ -35,5 +35,21 @@ services:
       db:
         condition: service_healthy
 
+  # Cliente React en desarrollo: http://localhost:5173/app/ (recarga al guardar).
+  frontend:
+    image: node:22-alpine
+    working_dir: /web
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev"
+    environment:
+      VITE_PROXY_TARGET: http://web:8000
+    volumes:
+      - ./frontend:/web
+      - node_modules:/web/node_modules
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - web
+
 volumes:
   mysql_data:
+  node_modules:

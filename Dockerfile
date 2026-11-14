@@ -1,3 +1,12 @@
+# Etapa 1: compila el cliente React (Vite + TypeScript + Tailwind).
+FROM node:22-alpine AS frontend
+WORKDIR /web
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY frontend/ ./
+RUN npm run build
+
+# Etapa 2: servidor Django con la API y el cliente ya compilado.
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -20,6 +29,7 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 COPY . .
+COPY --from=frontend /web/dist /app/frontend/dist
 
 RUN useradd --create-home --uid 1000 appuser \
     && mkdir -p /app/staticfiles \

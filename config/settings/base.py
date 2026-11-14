@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "apps.indicators",
     "apps.tasks",
     "apps.dashboard",
+    "apps.api",
 ]
 
 MIDDLEWARE = [
@@ -119,11 +120,27 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+# Cliente React compilado (frontend/dist). Sus archivos se publican bajo /static/app/.
+if (BASE_DIR / "frontend" / "dist").exists():
+    STATICFILES_DIRS.append(("app", BASE_DIR / "frontend" / "dist"))
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Lectura de contratos con Claude. Sin la clave, el modulo de contratos funciona sin IA.
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 CONTRACT_AI_MODEL = os.environ.get("CONTRACT_AI_MODEL", "claude-opus-5-5")
+
+# API REST: sesión por cookie (mismo dominio que el cliente), solo JSON y un formato único de error.
+# rest_framework no va en INSTALLED_APPS: sus traducciones cambiarían los mensajes de los formularios
+# actuales, y la API ya da sus propios mensajes en español.
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
+    "EXCEPTION_HANDLER": "apps.api.errors.handler",
+    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
+    "DEFAULT_THROTTLE_RATES": {"login": "10/min"},
+}
 
 # Sin marcar "Recordarme" la sesion termina al cerrar el navegador.
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 14

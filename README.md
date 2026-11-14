@@ -2,7 +2,18 @@
 
 Sistema con el que un ingeniero industrial presta el servicio de evaluación ergonómica (método RULA)
 a empresas cliente: contratos, visitas, evaluaciones y seguimiento.
-Django 5.2, MySQL 8.4, HTMX y Docker.
+Backend: Django 5.2 con API REST (Django REST Framework) y MySQL 8.4. Frontend: React + Vite + TypeScript + Tailwind. Todo en Docker.
+
+## Arquitectura
+
+Cliente y servidor desacoplados, en el mismo dominio:
+
+- **Backend (`apps/`)**: el dominio (modelos, formularios, selectores, servicios y permisos por rol) queda igual. La API en `/api/v1/` es una capa nueva que reutiliza esas mismas reglas y solo responde JSON, con un formato único de error: `{"error": {"code", "message", "fields"}}`.
+- **Frontend (`frontend/`)**: React arma las pantallas en el navegador, así el servidor no genera HTML. Vive en `/app/`, usa la misma sesión por cookie (con CSRF) y maneja los errores con tipos de TypeScript (`ApiError` con códigos fijos).
+- **Migración por etapas**: ya están en React el ingreso, el cambio de contraseña obligatorio y el panel principal de cada rol. Los módulos que faltan se abren en las pantallas actuales de Django con la misma sesión, y se irán migrando uno por uno.
+- **Caché**: los archivos de React llevan una huella en el nombre, así que el navegador los guarda un año; el HTML siempre se revalida.
+
+En desarrollo, `docker compose up` levanta también el servidor de Vite: abre http://localhost:5173/app/ (recarga al guardar). En producción, el `Dockerfile` compila React y Django lo publica en `/app/`.
 
 ## Cómo ejecutarlo
 

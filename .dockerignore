@@ -8,3 +8,5 @@ staticfiles
 media
 db.sqlite3
 *.pdf
+frontend/node_modules
+frontend/dist

@@ -9,3 +9,7 @@ db.sqlite3
 .coverage
 .idea/
 .vscode/
+
+# Cliente React
+frontend/node_modules/
+frontend/dist/
