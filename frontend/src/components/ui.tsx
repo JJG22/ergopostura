@@ -37,11 +37,12 @@ export function SectionHead({ title, subtitle, action }: { title: string; subtit
   );
 }
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "danger";
 const VARIANTS: Record<Variant, string> = {
   primary: "bg-teal-700 text-white hover:bg-teal-800 disabled:bg-teal-700/60",
   secondary: "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50",
   ghost: "text-teal-700 hover:bg-teal-50",
+  danger: "bg-red-700 text-white hover:bg-red-800 disabled:bg-red-700/60",
 };
 
 export function Button({ variant = "primary", className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {

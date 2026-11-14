@@ -7,6 +7,9 @@ import { Layout } from "./components/Layout";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
+import { AccountsPage } from "./features/accounts/AccountsPage";
+import { CompaniesPage } from "./features/companies/CompaniesPage";
+import { CompanyDetailPage } from "./features/companies/CompanyDetailPage";
 
 /** La app vive bajo /app/ en el mismo dominio que la API: la sesión es la misma cookie. */
 const router = createBrowserRouter(
@@ -23,7 +26,12 @@ const router = createBrowserRouter(
         {
           path: "/",
           element: <RequireAuth><Layout /></RequireAuth>,
-          children: [{ index: true, element: <DashboardPage /> }],
+          children: [
+            { index: true, element: <DashboardPage /> },
+            { path: "empresas", element: <CompaniesPage /> },
+            { path: "empresas/:id", element: <CompanyDetailPage /> },
+            { path: "usuarios", element: <AccountsPage /> },
+          ],
         },
         { path: "*", element: <NotFound /> },
       ],

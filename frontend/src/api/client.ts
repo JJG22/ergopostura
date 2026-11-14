@@ -11,6 +11,7 @@ export type ApiErrorCode =
   | "permission_denied"
   | "not_found"
   | "validation_error"
+  | "conflict"
   | "throttled"
   | "csrf_failed"
   | "network_error"
@@ -49,7 +50,7 @@ export function toApiError(value: unknown): ApiError {
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<ApiErrorCode>([
   "not_authenticated", "invalid_credentials", "password_change_required", "permission_denied",
-  "not_found", "validation_error", "throttled", "csrf_failed", "network_error", "server_error",
+  "not_found", "validation_error", "conflict", "throttled", "csrf_failed", "network_error", "server_error",
 ]);
 
 type ErrorListener = (error: ApiError) => void;
@@ -140,4 +141,14 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   }
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+/** Agrega parámetros de búsqueda a una ruta, omitiendo los vacíos. */
+export function withQuery(path: string, params: Record<string, string | number | undefined | null>): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") query.set(key, String(value));
+  }
+  const text = query.toString();
+  return text ? `${path}?${text}` : path;
 }

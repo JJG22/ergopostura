@@ -12,7 +12,11 @@ from apps.core.navigation import NAV_ITEMS
 from apps.rula.risk import action_level_for
 
 # Pantallas que ya existen en el cliente React: nombre de la URL de Django -> ruta en React.
-MIGRATED = {"dashboard:home": "/"}
+MIGRATED = {
+    "dashboard:home": "/",
+    "companies:list": "/empresas",
+    "accounts:users": "/usuarios",
+}
 
 
 def iso(value):

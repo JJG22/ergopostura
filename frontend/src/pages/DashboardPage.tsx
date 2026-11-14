@@ -3,10 +3,13 @@ import type { ReactNode } from "react";
 import { dashboardApi } from "../api/endpoints";
 import type { CompanyDashboard, Contract, Dashboard, EngineerDashboard, Evaluation, SupportDashboard, Visit } from "../api/types";
 import { Badge, Card, ContractBadge, EmptyText, ErrorState, Icon, linkButtonClass, RiskBadge, SectionHead, Spinner } from "../components/ui";
-import { formatDay, formatLongDate, formatShortDate, formatTime, legacyUrl, plural } from "../lib/format";
+import { formatDay, formatLongDate, formatShortDate, formatTime, plural } from "../lib/format";
 import { useResource } from "../lib/useResource";
+import { AppLink } from "../components/AppLink";
+import { usePageTitle } from "../components/Page";
 
 export function DashboardPage() {
+  usePageTitle("Panel principal");
   const [resource, retry] = useResource((signal) => dashboardApi.get(signal));
   if (resource.state === "loading") return <Spinner />;
   if (resource.state === "error") return <ErrorState error={resource.error} onRetry={retry} />;
@@ -44,7 +47,7 @@ function Metric({ label, value, detail, href, alert = false }: { label: string; 
     </>
   );
   const box = "min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm";
-  return href ? <a href={legacyUrl(href)} className={`${box} transition hover:border-teal-300`}>{content}</a> : <div className={box}>{content}</div>;
+  return href ? <AppLink href={href} className={`${box} transition hover:border-teal-300`}>{content}</AppLink> : <div className={box}>{content}</div>;
 }
 
 function Row({ icon, title, detail, aside }: { icon: string; title: string; detail: string; aside?: ReactNode }) {
@@ -64,14 +67,14 @@ function VisitRow({ visit }: { visit: Visit }) {
   return (
     <Row icon="calendar-days" title={visit.company}
       detail={`${formatDay(visit.starts_at)} · ${formatTime(visit.starts_at)} – ${formatTime(visit.ends_at)} · ${visit.site}`}
-      aside={<div className="flex items-center gap-2"><Badge tone={visit.level.tone} dot>{visit.level.label}</Badge><a className={linkButtonClass()} href={legacyUrl(visit.legacy_url)}>Ver</a></div>} />
+      aside={<div className="flex items-center gap-2"><Badge tone={visit.level.tone} dot>{visit.level.label}</Badge><AppLink className={linkButtonClass()} href={visit.legacy_url}>Ver</AppLink></div>} />
   );
 }
 
 function ContractRow({ contract }: { contract: Contract }) {
   return (
     <Row icon="file-signature" title={contract.company} detail={`El contrato ${contract.code} vence el ${formatLongDate(contract.end_date)}`}
-      aside={<a className={linkButtonClass()} href={legacyUrl(contract.legacy_url)}>Ver</a>} />
+      aside={<AppLink className={linkButtonClass()} href={contract.legacy_url}>Ver</AppLink>} />
   );
 }
 
@@ -79,9 +82,9 @@ function EvaluationsCard({ evaluations }: { evaluations: Evaluation[] }) {
   return (
     <Card className="mt-6">
       <SectionHead title="Evaluaciones recientes" subtitle="Últimos registros ergonómicos"
-        action={<a className={linkButtonClass()} href={legacyUrl("/evaluaciones/")}>Ver todas</a>} />
+        action={<AppLink className={linkButtonClass()} href={"/evaluaciones/"}>Ver todas</AppLink>} />
       {evaluations.length === 0 ? <EmptyText>Aún no hay evaluaciones.</EmptyText> : (
-        <div className="-mx-5 overflow-x-auto">
+        <div className="relative -mx-5 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr><th className="px-5 py-2.5">Evaluación</th><th className="px-3">Empresa</th><th className="px-3">Área y puesto</th><th className="px-3">Fecha</th><th className="px-3">Riesgo</th><th className="px-5">Estado</th></tr>
@@ -89,7 +92,7 @@ function EvaluationsCard({ evaluations }: { evaluations: Evaluation[] }) {
             <tbody>
               {evaluations.map((evaluation) => (
                 <tr key={evaluation.id} className="border-t border-slate-100">
-                  <td className="px-5 py-3 font-semibold"><a className="hover:text-teal-700" href={legacyUrl(evaluation.legacy_url)}>{evaluation.code}</a></td>
+                  <td className="px-5 py-3 font-semibold"><AppLink className="hover:text-teal-700" href={evaluation.legacy_url}>{evaluation.code}</AppLink></td>
                   <td className="px-3">{evaluation.company}</td>
                   <td className="px-3">{evaluation.area} · {evaluation.position}</td>
                   <td className="px-3">{formatShortDate(evaluation.evaluated_on)}</td>
@@ -110,18 +113,18 @@ function SupportPanel({ data }: { data: SupportDashboard }) {
     <>
       <Head data={data} subtitle="Gestionas las cuentas y el mantenimiento. Las evaluaciones, visitas y contratos son del ingeniero y de las empresas." />
       {!data.has_engineer ? (
-        <a href={legacyUrl("/usuarios/nuevo/")} className="mb-6 flex items-center gap-4 rounded-xl bg-teal-700 p-5 text-white shadow-sm hover:bg-teal-800">
+        <AppLink href={"/usuarios/nuevo/"} className="mb-6 flex items-center gap-4 rounded-xl bg-teal-700 p-5 text-white shadow-sm hover:bg-teal-800">
           <Icon name="user-plus" />
           <div className="flex-1"><p className="font-semibold">Crea la cuenta del ingeniero industrial</p><p className="text-sm text-teal-50/80">Es el primer paso: el ingeniero registra después sus empresas cliente y les da acceso.</p></div>
           <Icon name="chevron-right" />
-        </a>
+        </AppLink>
       ) : null}
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         {data.users_by_role.map((row) => <Metric key={row.role} label={row.label} value={row.total} detail={plural(row.total, "cuenta activa", "cuentas activas")} />)}
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <SectionHead title="Cuentas recientes" subtitle="Últimas creadas" action={<a className={linkButtonClass()} href={legacyUrl("/usuarios/")}>Gestionar</a>} />
+          <SectionHead title="Cuentas recientes" subtitle="Últimas creadas" action={<AppLink className={linkButtonClass()} href={"/usuarios/"}>Gestionar</AppLink>} />
           <ul>
             {data.recent_accounts.map((account) => (
               <Row key={account.id} icon="users" title={account.full_name}
@@ -136,7 +139,7 @@ function SupportPanel({ data }: { data: SupportDashboard }) {
             <Row icon="sparkles" title="Lectura de contratos con IA"
               detail={data.ai_ready ? "Configurada (ANTHROPIC_API_KEY)." : "Sin configurar: falta ANTHROPIC_API_KEY."}
               aside={<Badge tone={data.ai_ready ? "teal" : "amber"}>{data.ai_ready ? "Activa" : "Pendiente"}</Badge>} />
-            <Row icon="shield-check" title="Panel técnico" detail="Consulta de datos para diagnóstico." aside={<a className={linkButtonClass()} href={legacyUrl("/admin/")}>Abrir</a>} />
+            <Row icon="shield-check" title="Panel técnico" detail="Consulta de datos para diagnóstico." aside={<AppLink className={linkButtonClass()} href={"/admin/"}>Abrir</AppLink>} />
           </ul>
         </Card>
       </div>
@@ -172,7 +175,7 @@ function EngineerPanel({ data }: { data: EngineerDashboard }) {
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <SectionHead title="Visitas" subtitle="Agendadas por las empresas" action={<a className={linkButtonClass()} href={legacyUrl("/visitas/")}>Calendario</a>} />
+          <SectionHead title="Visitas" subtitle="Agendadas por las empresas" action={<AppLink className={linkButtonClass()} href={"/visitas/"}>Calendario</AppLink>} />
           {data.to_close.length + data.upcoming_visits.length === 0 ? <EmptyText>No hay visitas programadas.</EmptyText> : (
             <ul>{[...data.to_close, ...data.upcoming_visits].map((visit) => <VisitRow key={visit.id} visit={visit} />)}</ul>
           )}
@@ -184,7 +187,7 @@ function EngineerPanel({ data }: { data: EngineerDashboard }) {
               {data.expiring_contracts.map((contract) => <ContractRow key={contract.id} contract={contract} />)}
               {data.without_evaluation.map((visit) => (
                 <Row key={visit.id} icon="clipboard-check" title={visit.company} detail={`Visita del ${formatDay(visit.starts_at)} sin evaluación`}
-                  aside={<a className={linkButtonClass()} href={legacyUrl(`/evaluaciones/nueva/?visita=${visit.id}`)}>Evaluar</a>} />
+                  aside={<AppLink className={linkButtonClass()} href={`/evaluaciones/nueva/?visita=${visit.id}`}>Evaluar</AppLink>} />
               ))}
             </ul>
           )}
@@ -209,7 +212,7 @@ function CompanyPanel({ data }: { data: CompanyDashboard }) {
               <p className="font-semibold">{contract.code} · {contract.kind_label}</p>
               <p className="text-sm text-slate-500">Del {formatLongDate(contract.start_date)} al {formatLongDate(contract.end_date)}</p>
               {contract.status === "por_vencer" ? <p className="text-sm text-amber-800">Vence en {plural(contract.days_left, "día", "días")}. Habla con el ingeniero si quieres renovarlo.</p> : null}
-              <a className={linkButtonClass()} href={legacyUrl(contract.legacy_url)}>Ver contrato</a>
+              <AppLink className={linkButtonClass()} href={contract.legacy_url}>Ver contrato</AppLink>
             </div>
           ) : (
             <EmptyText>No hay un contrato vigente. Sin contrato no se pueden agendar visitas: comunícate con el ingeniero.</EmptyText>
@@ -221,12 +224,12 @@ function CompanyPanel({ data }: { data: CompanyDashboard }) {
             { href: "/evaluaciones/", icon: "clipboard-check", title: "Ver resultados", detail: "Evaluaciones terminadas de tus puestos", main: false },
             { href: "/tareas/", icon: "layout-list", title: "Recomendaciones por atender", detail: plural(data.pending_count, "pendiente", "pendientes"), main: false },
           ].map((link) => (
-            <a key={link.href} href={legacyUrl(link.href)}
+            <AppLink key={link.href} href={link.href}
               className={`flex items-center gap-4 rounded-xl p-4 shadow-sm ${link.main ? "bg-teal-700 text-white hover:bg-teal-800" : "border border-slate-200 bg-white hover:border-teal-300"}`}>
               <Icon name={link.icon} />
               <div className="flex-1"><p className="font-semibold">{link.title}</p><p className={`text-sm ${link.main ? "text-teal-50/80" : "text-slate-500"}`}>{link.detail}</p></div>
               <Icon name="chevron-right" />
-            </a>
+            </AppLink>
           ))}
         </div>
       </div>
@@ -239,7 +242,7 @@ function CompanyPanel({ data }: { data: CompanyDashboard }) {
         </div>
       ) : null}
       <Card>
-        <SectionHead title="Próximas visitas" subtitle="Las siguientes en el calendario" action={<a className={linkButtonClass()} href={legacyUrl("/visitas/")}>Ver todas</a>} />
+        <SectionHead title="Próximas visitas" subtitle="Las siguientes en el calendario" action={<AppLink className={linkButtonClass()} href={"/visitas/"}>Ver todas</AppLink>} />
         {data.upcoming_visits.length === 0 ? <EmptyText>No hay visitas programadas.</EmptyText> : <ul>{data.upcoming_visits.map((visit) => <VisitRow key={visit.id} visit={visit} />)}</ul>}
       </Card>
       <EvaluationsCard evaluations={data.recent_evaluations} />

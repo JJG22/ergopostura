@@ -71,6 +71,9 @@ def handler(exc, context):
         # 401 sin desafio WWW-Authenticate: la sesion es por cookie.
         response.status_code = status.HTTP_401_UNAUTHORIZED
         code = "not_authenticated"
-    message = MESSAGES.get(code) or str(getattr(exc, "detail", "")) or "Ocurrió un error."
+    detail = str(getattr(exc, "detail", ""))
+    # Un mensaje propio de la vista (por ejemplo, por qué se negó el permiso) se respeta.
+    custom = detail and detail != str(getattr(exc, "default_detail", ""))
+    message = (detail if custom else MESSAGES.get(code)) or detail or "Ocurrió un error."
     response.data = error_body(code, message)
     return response

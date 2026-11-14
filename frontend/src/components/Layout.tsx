@@ -3,11 +3,22 @@ import { NavLink, Outlet, useNavigate } from "react-router";
 
 import { useAuth, useSession } from "../auth/AuthContext";
 import { legacyUrl } from "../lib/format";
+import { Notice, PageProvider, useCrumb } from "./Page";
 import { Icon } from "./ui";
 
 const itemClass = "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition";
 
 export function Layout() {
+  return (
+    <PageProvider>
+      <Shell />
+      <Notice />
+    </PageProvider>
+  );
+}
+
+function Shell() {
+  const crumb = useCrumb();
   const session = useSession();
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +48,7 @@ export function Layout() {
               <NavLink
                 key={item.label}
                 to={item.to}
-                end
+                end={item.to === "/"}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) => `${itemClass} ${isActive ? "bg-teal-100 font-semibold text-teal-800" : "text-slate-600 hover:bg-slate-100"}`}
               >
@@ -83,7 +94,7 @@ export function Layout() {
           </button>
           <span className="text-sm text-slate-500">ErgoPostura</span>
           <Icon name="chevron-right" className="size-4 text-slate-400" />
-          <span className="text-sm font-semibold">Panel principal</span>
+          <span className="truncate text-sm font-semibold">{crumb}</span>
         </header>
         <main className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-8">
           <Outlet />
