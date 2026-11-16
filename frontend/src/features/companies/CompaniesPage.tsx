@@ -43,10 +43,10 @@ export function CompaniesPage() {
           <>
             <Table head={["Empresa", "NIT", "Ubicación", "Sedes", "Estado"]}>
               {resource.data.results.map((company) => (
-                <tr key={company.id} className="hover:bg-slate-50">
-                  <td className="px-5 py-3"><Link to={`/empresas/${company.id}`} className="font-semibold text-slate-900 hover:text-teal-700">{company.name}</Link></td>
-                  <td className="px-5 py-3 tabular-nums text-slate-600">{company.nit}</td>
-                  <td className="px-5 py-3 text-slate-600">{company.location}</td>
+                <tr key={company.id} className="hover:bg-ink-50">
+                  <td className="px-5 py-3"><Link to={`/empresas/${company.id}`} className="font-semibold text-ink-900 hover:text-brand-700">{company.name}</Link></td>
+                  <td className="px-5 py-3 tabular-nums text-ink-600">{company.nit}</td>
+                  <td className="px-5 py-3 text-ink-600">{company.location}</td>
                   <td className="px-5 py-3 tabular-nums">{company.site_count}</td>
                   <td className="px-5 py-3">{company.is_active ? <Badge tone="teal">Activa</Badge> : <Badge>Inactiva</Badge>}</td>
                 </tr>

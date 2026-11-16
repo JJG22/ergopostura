@@ -81,7 +81,7 @@ function VisitForm({ title, visit, initial, options, onClose, onSaved }: {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-0.5 py-2 sm:grid-cols-[9rem_1fr]">
-      <dt className="text-sm text-slate-500">{label}</dt>
+      <dt className="text-sm text-ink-500">{label}</dt>
       <dd className="whitespace-pre-line text-sm">{children}</dd>
     </div>
   );
@@ -101,15 +101,15 @@ export function VisitDetailView({ visit, onChanged }: { visit: VisitDetail; onCh
         <span className="mt-1.5 size-3 shrink-0 rounded-full" style={{ background: color.fg }} aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <strong className="block">{visit.company.name}</strong>
-          <p className="text-sm text-slate-500">{formatDay(visit.starts_at)} · {formatTime(visit.starts_at)} – {formatTime(visit.ends_at)}</p>
+          <p className="text-sm text-ink-500">{formatDay(visit.starts_at)} · {formatTime(visit.starts_at)} – {formatTime(visit.ends_at)}</p>
         </div>
         <Badge tone={visit.level.tone} dot>{visit.level.label}</Badge>
       </div>
-      <dl className="divide-y divide-slate-100">
+      <dl className="divide-y divide-ink-100">
         <Row label="Sede">{visit.site} · {visit.municipality}{visit.address ? `\n${visit.address}` : ""}</Row>
         <Row label="Duración">{visit.duration_label}</Row>
         <Row label="Motivo">{visit.purpose}</Row>
-        <Row label="Recibe">{visit.contact_name}{visit.contact_phone ? <> · <a className="text-teal-700" href={`tel:${visit.contact_phone}`}>{visit.contact_phone}</a></> : null}</Row>
+        <Row label="Recibe">{visit.contact_name}{visit.contact_phone ? <> · <a className="text-brand-700" href={`tel:${visit.contact_phone}`}>{visit.contact_phone}</a></> : null}</Row>
         <Row label="Agendada por">{visit.requested_by ?? "Sin registrar"}{visit.created_at ? ` · ${formatInstant(visit.created_at)}` : ""}</Row>
         {visit.status === "realizada" ? (
           <>
@@ -124,7 +124,7 @@ export function VisitDetailView({ visit, onChanged }: { visit: VisitDetail; onCh
         ) : null}
         {visit.evaluations.length ? (
           <Row label="Evaluaciones">
-            {visit.evaluations.map((e, i) => <span key={e.id}>{i ? ", " : ""}<AppLink href={e.url} className="text-teal-700 hover:underline">{e.code}</AppLink></span>)}
+            {visit.evaluations.map((e, i) => <span key={e.id}>{i ? ", " : ""}<AppLink href={e.url} className="text-brand-700 hover:underline">{e.code}</AppLink></span>)}
           </Row>
         ) : null}
       </dl>
@@ -134,7 +134,7 @@ export function VisitDetailView({ visit, onChanged }: { visit: VisitDetail; onCh
         </p>
       ) : null}
       {visit.can_cancel || visit.can_reschedule || visit.can_complete || visit.can_evaluate ? (
-        <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
+        <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-ink-100 pt-4">
           {visit.can_cancel ? <Button variant="dangerGhost" onClick={() => setStep("cancel")}>Cancelar visita</Button> : null}
           {visit.can_reschedule ? <Button onClick={() => setStep("reschedule")}>Reprogramar</Button> : null}
           {visit.can_complete ? <Button onClick={() => setStep("complete")}><Icon name="check" />Registrar realizada</Button> : null}

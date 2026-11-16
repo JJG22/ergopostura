@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { toApiError, type ApiError } from "../../api/client";
 import { ConfirmModal } from "../../components/Modal";
 import { useNotify, usePageTitle } from "../../components/Page";
-import { Button, Card, ContractBadge, ErrorState, Icon, linkButtonClass, SectionHead, Spinner } from "../../components/ui";
+import { Button, Card, ContractBadge, ErrorState, Icon, linkButtonClass, Meta, SectionHead, Spinner } from "../../components/ui";
 import { formatInstantDate, formatLongDate, formatShortDate } from "../../lib/format";
 import { useResource } from "../../lib/useResource";
 import { contractsApi, formatMoney, formatSize, type ComparisonRow, type ContractDetail } from "./api";
@@ -19,7 +19,7 @@ export function ContractDetailPage() {
 }
 
 function Banner({ tone, children }: { tone: "amber" | "red" | "neutral"; children: ReactNode }) {
-  const tones = { amber: "bg-amber-50 text-amber-900", red: "bg-red-50 text-red-900", neutral: "bg-slate-100 text-slate-700" };
+  const tones = { amber: "bg-amber-50 text-amber-900", red: "bg-red-50 text-red-900", neutral: "bg-ink-100 text-ink-700" };
   return (
     <div role="status" className={`mb-4 flex gap-2.5 rounded-lg px-4 py-3 text-sm ${tones[tone]}`}>
       <Icon name="circle-exclamation-point" className="mt-0.5 size-4" /><span>{children}</span>
@@ -30,8 +30,8 @@ function Banner({ tone, children }: { tone: "amber" | "red" | "neutral"; childre
 function Item({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid gap-1 py-2.5 sm:grid-cols-[9rem_1fr]">
-      <dt className="text-sm text-slate-500">{label}</dt>
-      <dd className="whitespace-pre-line text-sm text-slate-900">{children}</dd>
+      <dt className="text-sm text-ink-500">{label}</dt>
+      <dd className="whitespace-pre-line text-sm text-ink-900">{children}</dd>
     </div>
   );
 }
@@ -71,16 +71,14 @@ function Detail({ initial }: { initial: ContractDetail }) {
   const summary = contract.ai_summary;
   return (
     <>
-      <Link to={contract.can_manage ? "/contratos" : "/"} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline">
+      <Link to={contract.can_manage ? "/contratos" : "/"} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
         <Icon name="arrow-left" className="size-4" />{contract.can_manage ? "Volver a contratos" : "Volver al panel"}
       </Link>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-bold tracking-wider text-teal-700">CONTRATO {contract.code}</p>
-          <h1 className="text-2xl font-bold">{contract.company.name}</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {contract.kind_label} · {formatLongDate(contract.start_date)} al {formatLongDate(contract.end_date)} ({contract.duration_label})
-          </p>
+          <p className="mb-1.5 text-sm font-semibold text-brand-700">Contrato <span className="tabular">{contract.code}</span></p>
+          <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">{contract.company.name}</h1>
+          <Meta items={[contract.kind_label, `${formatLongDate(contract.start_date)} al ${formatLongDate(contract.end_date)}`, contract.duration_label]} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <ContractBadge status={contract.status} label={contract.status_label} />
@@ -106,7 +104,7 @@ function Detail({ initial }: { initial: ContractDetail }) {
       <div className={`grid gap-5 ${contract.can_manage ? "lg:grid-cols-2" : ""}`}>
         <Card>
           <SectionHead title="Datos registrados" />
-          <dl className="divide-y divide-slate-100">
+          <dl className="divide-y divide-ink-100">
             <Item label="Empresa">{contract.company.name} · NIT {contract.company.nit}</Item>
             <Item label="Tipo">{contract.kind_label}</Item>
             <Item label="Servicio">{contract.service}</Item>
@@ -114,17 +112,17 @@ function Detail({ initial }: { initial: ContractDetail }) {
             <Item label="Valor">{contract.value !== null ? `${formatMoney(contract.value)} COP` : "Sin registrar"}</Item>
             <Item label="Encargado">
               {contract.responsible_name}{contract.responsible_role ? `, ${contract.responsible_role}` : ""}
-              {contract.responsible_email ? <><br /><a className="text-teal-700 hover:underline" href={`mailto:${contract.responsible_email}`}>{contract.responsible_email}</a></> : null}
+              {contract.responsible_email ? <><br /><a className="text-brand-700 hover:underline" href={`mailto:${contract.responsible_email}`}>{contract.responsible_email}</a></> : null}
               {contract.responsible_phone ? <><br />{contract.responsible_phone}</> : null}
             </Item>
             {contract.notes ? <Item label="Notas">{contract.notes}</Item> : null}
             <Item label="Documento">
-              <a className="text-teal-700 hover:underline" href={`${contract.file_url}?descargar=1`}>{contract.file_name}</a> · {formatSize(contract.file_size)}
+              <a className="text-brand-700 hover:underline" href={`${contract.file_url}?descargar=1`}>{contract.file_name}</a> · {formatSize(contract.file_size)}
             </Item>
             {contract.created_at ? <Item label="Registrado">{formatInstantDate(contract.created_at)}{contract.created_by ? ` por ${contract.created_by}` : ""}</Item> : null}
           </dl>
           {contract.can_manage ? (
-            <div className="mt-4 border-t border-slate-100 pt-4">
+            <div className="mt-4 border-t border-ink-100 pt-4">
               <Button variant="dangerGhost" onClick={() => setDeleting({ sending: false, error: null })}>
                 <Icon name="trash" />Eliminar contrato
               </Button>
@@ -148,12 +146,12 @@ function Detail({ initial }: { initial: ContractDetail }) {
             {readError ? <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{readError.message}</p> : null}
             {summary ? <Summary contract={contract} /> : contract.ai_ready ? (
               <div className="py-6 text-center">
-                <span className="mx-auto mb-2 grid size-12 place-items-center rounded-full bg-violet-50 text-violet-700"><Icon name="sparkles" /></span>
+                <span className="mx-auto mb-2 grid size-11 place-items-center rounded-md bg-violet-50 text-violet-700"><Icon name="sparkles" /></span>
                 <p className="font-semibold">Aún no hay resumen</p>
-                <p className="mx-auto max-w-sm text-sm text-slate-500">La IA lee el PDF y te da la duración, el tipo de contrato, el servicio, el encargado, el NIT y lo que conviene revisar. Tarda entre 10 y 40 segundos.</p>
+                <p className="mx-auto max-w-sm text-sm text-ink-500">La IA lee el PDF y te da la duración, el tipo de contrato, el servicio, el encargado, el NIT y lo que conviene revisar. Tarda entre 10 y 40 segundos.</p>
               </div>
             ) : (
-              <p className="text-sm text-slate-500">La lectura con IA no está configurada en este servidor (falta ANTHROPIC_API_KEY). Soporte puede activarla.</p>
+              <p className="text-sm text-ink-500">La lectura con IA no está configurada en este servidor (falta ANTHROPIC_API_KEY). Soporte puede activarla.</p>
             )}
           </Card>
         ) : null}
@@ -162,13 +160,13 @@ function Detail({ initial }: { initial: ContractDetail }) {
       {contract.history && contract.history.length ? (
         <Card className="mt-5">
           <SectionHead title="Otros contratos de la empresa" />
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-ink-100">
             {contract.history.map((other) => (
               <li key={other.id} className="flex items-center gap-3 py-2.5">
-                <Icon name="file-signature" className="size-4 text-slate-400" />
+                <Icon name="file-signature" className="size-4 text-ink-400" />
                 <span className="min-w-0 flex-1">
                   <strong className="block text-sm">{other.code} · {other.kind_label}</strong>
-                  <small className="text-slate-500">{formatShortDate(other.start_date)} – {formatShortDate(other.end_date)}</small>
+                  <small className="text-ink-500">{formatShortDate(other.start_date)} – {formatShortDate(other.end_date)}</small>
                 </span>
                 <ContractBadge status={other.status} label={other.status_label} />
                 <Link to={`/contratos/${other.id}`} className={linkButtonClass()}>Ver</Link>
@@ -188,7 +186,7 @@ function Detail({ initial }: { initial: ContractDetail }) {
 }
 
 function List({ title, items }: { title: string; items: string[] }) {
-  return <div><strong className="text-sm">{title}</strong><ul className="ml-5 mt-1 list-disc text-sm text-slate-700">{items.map((i) => <li key={i}>{i}</li>)}</ul></div>;
+  return <div><strong className="text-sm">{title}</strong><ul className="ml-5 mt-1 list-disc text-sm text-ink-700">{items.map((i) => <li key={i}>{i}</li>)}</ul></div>;
 }
 
 function Summary({ contract }: { contract: ContractDetail }) {
@@ -199,11 +197,11 @@ function Summary({ contract }: { contract: ContractDetail }) {
   ];
   return (
     <div className="space-y-4">
-      {summary.summary ? <p className="text-sm leading-relaxed text-slate-800">{summary.summary}</p> : null}
+      {summary.summary ? <p className="text-sm leading-relaxed text-ink-800">{summary.summary}</p> : null}
       {summary.alerts?.length ? (
         <div className="rounded-lg bg-amber-50 px-3 py-2.5 text-amber-900"><List title="Para revisar" items={summary.alerts} /></div>
       ) : null}
-      <dl className="divide-y divide-slate-100">
+      <dl className="divide-y divide-ink-100">
         {details.filter(([, value]) => value).map(([label, value]) => <Item key={label} label={label}>{value}</Item>)}
       </dl>
       {summary.provider_obligations?.length || summary.client_obligations?.length ? (
@@ -213,7 +211,7 @@ function Summary({ contract }: { contract: ContractDetail }) {
         </div>
       ) : null}
       {contract.comparison?.length ? <Comparison rows={contract.comparison} /> : null}
-      <p className="text-xs text-slate-500">La IA puede equivocarse. Lo que vale es lo registrado y el documento firmado.</p>
+      <p className="text-xs text-ink-500">La IA puede equivocarse. Lo que vale es lo registrado y el documento firmado.</p>
     </div>
   );
 }
@@ -231,17 +229,17 @@ function Comparison({ rows }: { rows: ComparisonRow[] }) {
       <h3 className="mb-2 text-sm font-semibold">Leído frente a registrado</h3>
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[420px] text-left text-sm">
-          <thead className="text-xs uppercase tracking-wide text-slate-500">
+          <thead className="text-xs text-ink-500">
             <tr><th scope="col" className="py-2 pr-3">Dato</th><th scope="col" className="py-2 pr-3">En el documento</th><th scope="col" className="py-2">Registrado</th></tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-ink-100">
             {rows.map((row) => (
               <tr key={row.label} className={row.differs ? "bg-red-50" : ""}>
                 <th scope="row" className="py-2 pr-3 font-medium">{row.label}</th>
-                <td className="py-2 pr-3">{row.missing ? <span className="text-slate-400">No aparece</span> : show(row, row.read)}</td>
+                <td className="py-2 pr-3">{row.missing ? <span className="text-ink-400">No aparece</span> : show(row, row.read)}</td>
                 <td className="py-2">
-                  {row.registered === null ? <span className="text-slate-400">Sin registrar</span> : show(row, row.registered)}
-                  {row.differs ? <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">No coincide</span> : null}
+                  {row.registered === null ? <span className="text-ink-400">Sin registrar</span> : show(row, row.registered)}
+                  {row.differs ? <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">No coincide</span> : null}
                 </td>
               </tr>
             ))}

@@ -24,13 +24,13 @@ export function Modal({ title, onClose, children, wide = false }: {
         event.preventDefault();
         onClose();
       }}
-      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border-0 bg-white p-0 text-slate-900 shadow-xl backdrop:bg-slate-900/40 ${
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border-0 bg-white p-0 text-ink-950 shadow-float backdrop:bg-ink-950/45 backdrop:backdrop-blur-[2px] ${
         wide ? "max-w-2xl" : "max-w-lg"
       }`}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-        <h2 id={titleId} className="text-lg font-semibold">{title}</h2>
-        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Cerrar">
+      <div className="flex items-center justify-between gap-3 border-b border-ink-100 px-5 py-4">
+        <h2 id={titleId} className="font-display text-lg font-bold">{title}</h2>
+        <button type="button" onClick={onClose} className="rounded-md p-1.5 text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-900" aria-label="Cerrar">
           <Icon name="x" />
         </button>
       </div>
@@ -44,7 +44,7 @@ export function FormAlert({ error }: { error: ApiError | null }) {
   if (!error) return null;
   const general = error.field("__all__");
   return (
-    <div role="alert" className="mb-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-800">
+    <div role="alert" className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800">
       {error.message}
       {general && general !== error.message ? <span className="mt-1 block font-medium">{general}</span> : null}
     </div>
@@ -73,9 +73,9 @@ export function FormModal({ title, note, submitLabel = "Guardar", sending, error
         <div className="px-5 pt-5">
           <FormAlert error={error} />
           {children}
-          {note ? <p className="mb-4 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600">{note}</p> : null}
+          {note ? <p className="mb-4 rounded-md border-l-2 border-brand-300 bg-brand-50/60 px-3 py-2.5 text-sm text-ink-700">{note}</p> : null}
         </div>
-        <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-4">
+        <div className="flex justify-end gap-2 border-t border-ink-100 px-5 py-4">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
           <Button type="submit" disabled={sending}>{sending ? "Guardando…" : submitLabel}</Button>
         </div>
@@ -92,9 +92,9 @@ export function ConfirmModal({ title, message, confirmLabel, danger = false, sen
     <Modal title={title} onClose={onClose}>
       <div className="px-5 pt-5">
         <FormAlert error={error} />
-        <p className="mb-5 text-sm text-slate-600">{message}</p>
+        <p className="mb-5 text-sm text-ink-600">{message}</p>
       </div>
-      <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-4">
+      <div className="flex justify-end gap-2 border-t border-ink-100 px-5 py-4">
         <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
         <Button type="button" variant={danger ? "danger" : "primary"} disabled={sending} onClick={onConfirm}>
           {sending ? "Guardando…" : confirmLabel}

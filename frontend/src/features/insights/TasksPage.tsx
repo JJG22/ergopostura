@@ -71,8 +71,8 @@ export function TasksPage() {
             <Table head={["Evaluación", "Empresa y puesto", "Qué falta"]}>
               {data.in_progress.map((item) => (
                 <tr key={item.id}>
-                  <td className="px-5 py-3"><Link to={`/evaluaciones/${item.id}`} className="font-semibold hover:text-teal-700">{item.code}</Link></td>
-                  <td className="px-5 py-3"><strong className="block">{item.company}</strong><small className="text-slate-500">{item.position}</small></td>
+                  <td className="px-5 py-3"><Link to={`/evaluaciones/${item.id}`} className="font-semibold hover:text-brand-700">{item.code}</Link></td>
+                  <td className="px-5 py-3"><strong className="block">{item.company}</strong><small className="text-ink-500">{item.position}</small></td>
                   <td className="px-5 py-3">
                     {item.problems.length ? (
                       <ul className="ml-4 list-disc text-sm text-amber-800">{item.problems.map((p) => <li key={p}>{p}</li>)}</ul>
@@ -87,11 +87,11 @@ export function TasksPage() {
 
       {data.shows_recommendations ? (
         <Card>
-          <div className="-mx-5 -mt-1 mb-4 flex border-b border-slate-200 px-5">
+          <div className="-mx-5 -mt-1 mb-4 flex border-b border-ink-200 px-5">
             {([["", "Por atender"], ["atendidas", "Atendidas"]] as const).map(([value, label]) => (
               <button key={label} type="button" onClick={() => go({ ver: value, pagina: 1 })}
                 aria-current={(value === "atendidas") === attended ? "page" : undefined}
-                className={`-mb-px border-b-2 px-3 py-2.5 text-sm font-semibold ${(value === "atendidas") === attended ? "border-teal-700 text-teal-800" : "border-transparent text-slate-500 hover:text-slate-800"}`}>
+                className={`-mb-px border-b-2 px-3 py-2.5 text-sm font-semibold ${(value === "atendidas") === attended ? "border-brand-700 text-brand-800" : "border-transparent text-ink-500 hover:text-ink-800"}`}>
                 {label}
               </button>
             ))}
@@ -105,15 +105,15 @@ export function TasksPage() {
               <Table head={["Tarea", "Empresa y puesto", "Evaluación relacionada", "Riesgo", attended ? "Atendida" : "Estado", ...(data.can_attend ? [""] : [])]}>
                 {data.results.map((task) => (
                   <tr key={task.id}>
-                    <td className="max-w-xs px-5 py-3"><strong className="block">{task.text}</strong><small className="text-slate-500">{task.posture}</small></td>
-                    <td className="px-5 py-3"><strong className="block">{task.company}</strong><small className="text-slate-500">{task.position}</small></td>
+                    <td className="max-w-xs px-5 py-3"><strong className="block">{task.text}</strong><small className="text-ink-500">{task.posture}</small></td>
+                    <td className="px-5 py-3"><strong className="block">{task.company}</strong><small className="text-ink-500">{task.position}</small></td>
                     <td className="px-5 py-3">
-                      {task.evaluation.id !== null ? <Link to={`/evaluaciones/${task.evaluation.id}`} className="text-teal-700 hover:underline">{task.evaluation.code}</Link> : task.evaluation.code}
+                      {task.evaluation.id !== null ? <Link to={`/evaluaciones/${task.evaluation.id}`} className="text-brand-700 hover:underline">{task.evaluation.code}</Link> : task.evaluation.code}
                     </td>
                     <td className="px-5 py-3"><RiskBadge risk={task.risk} /></td>
                     <td className="px-5 py-3">
                       {attended && task.attended_at ? (
-                        <><strong className="block">{formatInstantDate(task.attended_at)}</strong><small className="text-slate-500">{task.attended_by ?? ""}</small></>
+                        <><strong className="block">{formatInstantDate(task.attended_at)}</strong><small className="text-ink-500">{task.attended_by ?? ""}</small></>
                       ) : <Badge tone="amber">Pendiente</Badge>}
                     </td>
                     {data.can_attend ? (

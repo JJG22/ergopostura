@@ -31,7 +31,7 @@ interface Indicators {
   areas: RiskRow[] | null;
 }
 
-const COLORS = { green: "#16a34a", yellow: "#f59e0b", red: "#dc2626" } as const;
+const COLORS = { green: "#10b981", yellow: "#f59e0b", red: "#dc2626" } as const;
 
 export function IndicatorsPage() {
   usePageTitle("Indicadores");
@@ -47,10 +47,10 @@ export function IndicatorsPage() {
   return (
     <>
       {head}
-      <div className="mb-5 grid gap-4 sm:grid-cols-3">
-        <Metric label="PUESTOS EVALUADOS" value={data.totals.total} detail={`En ${data.area_count} área${data.area_count === 1 ? "" : "s"}`} />
-        <Metric label="REQUIEREN SEGUIMIENTO" value={data.totals.follow_up} detail={`${data.totals.follow_up_percent}% de los puestos evaluados`} />
-        <Metric label="EMPRESAS EVALUADAS" value={data.company_count} detail="Con evaluaciones terminadas" />
+      <div className="mb-6 grid gap-px overflow-hidden rounded-lg border border-ink-200 bg-ink-200 sm:grid-cols-3">
+        <Metric label="Puestos evaluados" value={data.totals.total} detail={`En ${data.area_count} área${data.area_count === 1 ? "" : "s"}`} />
+        <Metric label="Requieren seguimiento" value={data.totals.follow_up} detail={`${data.totals.follow_up_percent}% de los puestos evaluados`} />
+        <Metric label="Empresas evaluadas" value={data.company_count} detail="Con evaluaciones terminadas" />
       </div>
 
       {data.shows_all_companies ? (
@@ -67,15 +67,15 @@ export function IndicatorsPage() {
         <Card className="mb-5">
           <SectionHead title="Comparación entre áreas" subtitle={data.selected_company?.name || "Tu empresa"}
             action={data.shows_all_companies ? (
-              <button type="button" onClick={() => setParams({})} className="text-sm font-semibold text-teal-700 hover:underline">Quitar selección</button>
+              <button type="button" onClick={() => setParams({})} className="text-sm font-semibold text-brand-700 hover:underline">Quitar selección</button>
             ) : undefined} />
           {data.areas.length ? <RiskTable first="Sede y área" rows={data.areas} selected={null} /> : (
-            <p className="text-sm text-slate-500">Esta empresa aún no tiene áreas registradas.</p>
+            <p className="text-sm text-ink-500">Esta empresa aún no tiene áreas registradas.</p>
           )}
         </Card>
       ) : null}
 
-      <p className="flex gap-2 text-sm text-slate-500">
+      <p className="flex gap-2 text-sm text-ink-500">
         <Icon name="circle-exclamation-point" className="mt-0.5 size-4" />
         <span>Cada puesto cuenta una vez: se toma la evaluación terminada más reciente de cada puesto y, dentro de ella, la postura de mayor riesgo. No se promedian puntajes, porque RULA no lo define.</span>
       </p>
@@ -85,11 +85,11 @@ export function IndicatorsPage() {
 
 function Metric({ label, value, detail }: { label: string; value: number; detail: string }) {
   return (
-    <Card>
-      <small className="text-[11px] font-bold tracking-wider text-slate-500">{label}</small>
-      <strong className="block text-3xl font-bold">{value}</strong>
-      <span className="text-sm text-slate-500">{detail}</span>
-    </Card>
+    <div className="min-w-0 bg-white px-5 py-5">
+      <small className="block text-sm font-medium text-ink-600">{label}</small>
+      <strong className="mt-3 block font-display text-[2rem] sm:text-[2.5rem] font-bold leading-none tabular text-ink-950">{value}</strong>
+      <span className="mt-2 block text-xs text-ink-500">{detail}</span>
+    </div>
   );
 }
 
@@ -99,12 +99,12 @@ function Dot({ color }: { color: keyof typeof COLORS }) {
 
 function RiskTable({ first, rows, selected, onSelect }: { first: string; rows: RiskRow[]; selected: number | null; onSelect?: (id: number) => void }) {
   return (
-    <Table head={[first, "Puestos", "● Adecuado", "● Revisión", "● Intervención", "Distribución"]}>
+    <Table head={[first, "Puestos", "Adecuado", "Revisión", "Intervención", "Distribución"]}>
       {rows.map((row) => (
-        <tr key={row.label} className={row.id !== null && row.id === selected ? "bg-teal-50" : ""}>
+        <tr key={row.label} className={row.id !== null && row.id === selected ? "bg-brand-50" : ""}>
           <td className="px-5 py-3">
             {row.id !== null && onSelect ? (
-              <button type="button" onClick={() => onSelect(row.id as number)} className="text-left font-semibold text-slate-900 hover:text-teal-700">{row.label}</button>
+              <button type="button" onClick={() => onSelect(row.id as number)} className="text-left font-semibold text-brand-700 hover:underline">{row.label}</button>
             ) : <strong>{row.label}</strong>}
           </td>
           {row.risk.total ? (
@@ -114,14 +114,14 @@ function RiskTable({ first, rows, selected, onSelect }: { first: string; rows: R
               <td className="px-5 py-3 tabular-nums"><Dot color="yellow" />{row.risk.yellow}</td>
               <td className="px-5 py-3 tabular-nums"><Dot color="red" />{row.risk.red}</td>
               <td className="px-5 py-3">
-                <div className="flex h-3 w-40 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+                <div className="flex h-2.5 w-40 gap-px overflow-hidden rounded-sm bg-ink-100" aria-hidden="true">
                   {(["green", "yellow", "red"] as const).map((color) => row.risk[color] ? (
                     <i key={color} style={{ flexGrow: row.risk[color], background: COLORS[color] }} title={`${color === "green" ? "Adecuado" : color === "yellow" ? "Revisión" : "Intervención"}: ${row.risk[color]}`} />
                   ) : null)}
                 </div>
               </td>
             </>
-          ) : <td colSpan={5} className="px-5 py-3 text-slate-400">Sin evaluaciones terminadas</td>}
+          ) : <td colSpan={5} className="px-5 py-3 text-ink-400">Sin evaluaciones terminadas</td>}
         </tr>
       ))}
     </Table>

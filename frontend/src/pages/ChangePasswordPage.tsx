@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router";
 
 import { toApiError, type ApiError } from "../api/client";
 import { useAuth, useSession } from "../auth/AuthContext";
-import { Button, Card, Field, FormError } from "../components/ui";
+import { Button, Card, Field, FormError, linkButtonClass, Logo } from "../components/ui";
 
 export function ChangePasswordPage() {
   const { user } = useSession();
@@ -32,15 +32,16 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
+    <div className="grid min-h-screen place-items-center bg-ink-50 p-6">
       <div className="w-full max-w-md">
-        <h1 className="mb-1 text-2xl font-bold">Cambiar contraseña</h1>
-        <p className="mb-5 text-sm text-slate-500">
+        <div className="mb-10"><Logo /></div>
+        <h1 className="font-display text-[1.75rem] font-bold leading-tight">Cambiar contraseña</h1>
+        <p className="mb-6 mt-2 text-sm text-ink-500">
           {forced
             ? "Ingresaste con una contraseña temporal. Elige una propia para continuar; solo tú la conocerás."
             : "Usa al menos 8 caracteres que no sean fáciles de adivinar."}
         </p>
-        <Card>
+        <Card className="p-6">
           <form onSubmit={handleSubmit} noValidate>
             {error && !Object.keys(error.fields).some((name) => name !== "__all__") ? <FormError error={error} /> : null}
             <Field id="old_password" label="Contraseña actual" type="password" autoComplete="current-password"
@@ -50,11 +51,11 @@ export function ChangePasswordPage() {
               value={values.new_password1} onChange={update("new_password1")} error={error?.field("new_password1")} />
             <Field id="new_password2" label="Confirma la contraseña nueva" type="password" autoComplete="new-password"
               value={values.new_password2} onChange={update("new_password2")} error={error?.field("new_password2")} />
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <div className="flex justify-end gap-2 border-t border-ink-100 pt-4">
               {forced ? (
                 <Button type="button" variant="secondary" onClick={() => void logout().then(() => navigate("/ingresar"))}>Salir</Button>
               ) : (
-                <Link to="/" className="inline-flex h-10 items-center rounded-lg border border-slate-300 px-4 text-sm font-semibold">Cancelar</Link>
+                <Link to="/" className={linkButtonClass("secondary")}>Cancelar</Link>
               )}
               <Button type="submit" disabled={sending}>{sending ? "Guardando…" : "Guardar contraseña"}</Button>
             </div>

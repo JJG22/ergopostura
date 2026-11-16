@@ -3,8 +3,8 @@ import type { ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "re
 /** Campos de formulario con la misma presentación que `Field`: etiqueta, ayuda y error accesibles. */
 
 export const controlClass = (error?: string, full = true) =>
-  `${full ? "w-full " : ""}rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-teal-600/30 disabled:bg-slate-100 disabled:text-slate-400 ${
-    error ? "border-red-600" : "border-slate-300 focus:border-teal-600"
+  `${full ? "w-full " : ""}rounded-md border bg-white px-3 text-sm text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-400 focus:ring-4 disabled:bg-ink-100 disabled:text-ink-400 ${
+    error ? "border-red-600 focus:ring-red-600/15" : "border-ink-200 hover:border-ink-300 focus:border-brand-600 focus:ring-brand-600/15"
   }`;
 
 interface ShellProps {
@@ -18,9 +18,9 @@ interface ShellProps {
 export function FieldShell({ id, label, error, hint, children }: ShellProps) {
   return (
     <div className="mb-4">
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-ink-700">{label}</label>
       {children}
-      {hint && !error ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+      {hint && !error ? <p className="mt-1.5 text-xs text-ink-500">{hint}</p> : null}
       {error ? <p id={`${id}-error`} role="alert" className="mt-1 text-xs font-medium text-red-700">{error}</p> : null}
     </div>
   );
@@ -73,12 +73,12 @@ export function CheckboxField({ id, label, checked, onChange, hint }: {
 }) {
   return (
     <div className="mb-4">
-      <label htmlFor={id} className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="flex items-center gap-2.5 text-sm font-medium text-ink-700">
         <input id={id} type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)}
-          className="size-4 rounded border-slate-300 accent-teal-700" />
+          className="size-4 rounded border-ink-300 accent-brand-700" />
         {label}
       </label>
-      {hint ? <p className="mt-1 pl-6.5 text-xs text-slate-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 pl-6.5 text-xs text-ink-500">{hint}</p> : null}
     </div>
   );
 }

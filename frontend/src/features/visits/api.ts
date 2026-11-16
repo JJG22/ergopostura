@@ -139,9 +139,9 @@ export const visitsApi = {
 
 /** Mismos colores por empresa que el calendario actual (calendar.css, .c0 a .c7). */
 export const PALETTE: readonly { fg: string; bg: string }[] = [
-  { fg: "#0f766e", bg: "#ccfbf1" }, { fg: "#1d4ed8", bg: "#dbeafe" }, { fg: "#6d28d9", bg: "#ede9fe" },
-  { fg: "#4338ca", bg: "#e0e7ff" }, { fg: "#0369a1", bg: "#e0f2fe" }, { fg: "#a21caf", bg: "#fae8ff" },
-  { fg: "#0e7490", bg: "#cffafe" }, { fg: "#334155", bg: "#e2e8f0" },
+  { fg: "#3343d3", bg: "#e4e8ff" }, { fg: "#0369a1", bg: "#e0f2fe" }, { fg: "#6d28d9", bg: "#ede9fe" },
+  { fg: "#0f766e", bg: "#d5f5ef" }, { fg: "#9d174d", bg: "#fce7f3" }, { fg: "#a21caf", bg: "#fae8ff" },
+  { fg: "#0e7490", bg: "#cffafe" }, { fg: "#373d52", bg: "#e9ebf2" },
 ];
 
-export const colorOf = (index: number | undefined) => PALETTE[index ?? 7] ?? { fg: "#334155", bg: "#e2e8f0" };
+export const colorOf = (index: number | undefined) => PALETTE[index ?? 7] ?? { fg: "#373d52", bg: "#e9ebf2" };

@@ -133,13 +133,13 @@ function Assessment({ data }: { data: AssessmentForm }) {
       const from = result.points[a], to = result.points[b];
       if (!from?.visible || !to?.visible) continue;
       const p1 = place(from), p2 = place(to);
-      ctx.strokeStyle = "#2dd4bf";
+      ctx.strokeStyle = "#7383f2";
       ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
     }
     for (const [name, point] of Object.entries(result.points)) {
       if (!point?.visible || name === "nose") continue;
       const at = place(point);
-      ctx.fillStyle = "#f0fdfa"; ctx.strokeStyle = "#0f766e";
+      ctx.fillStyle = "#eef1ff"; ctx.strokeStyle = "#3343d3";
       ctx.beginPath(); ctx.arc(at.x, at.y, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     }
     cv.hidden = false;
@@ -156,19 +156,19 @@ function Assessment({ data }: { data: AssessmentForm }) {
 
   return (
     <>
-      <Link to={back} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline">
+      <Link to={back} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
         <Icon name="arrow-left" className="size-4" />Volver a la evaluación
       </Link>
-      <p className="text-xs font-bold tracking-wider text-teal-700">ANÁLISIS RULA · {data.posture.side_label.toUpperCase()}</p>
-      <h1 className="text-2xl font-bold">{data.posture.name}</h1>
-      <p className="mb-5 mt-1 text-sm text-slate-500">Mide los ángulos sobre la fotografía y registra lo observado. El sistema calcula el resultado.</p>
+      <p className="mb-1.5 text-sm font-semibold text-brand-700">Análisis RULA, {data.posture.side_label.toLowerCase()}</p>
+      <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">{data.posture.name}</h1>
+      <p className="mb-5 mt-1 text-sm text-ink-500">Mide los ángulos sobre la fotografía y registra lo observado. El sistema calcula el resultado.</p>
 
       <form noValidate onSubmit={(ev) => { ev.preventDefault(); void save(); }}>
         <FormAlert error={form.error} />
         <div className="grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             <Card>
-              <div className="relative grid h-80 place-items-center overflow-hidden rounded-lg bg-slate-900 sm:h-96">
+              <div className="relative grid h-80 place-items-center overflow-hidden rounded-lg bg-ink-900 sm:h-96">
                 <img ref={image} src={photoUrl} alt={`Fotografía analizada de ${data.posture.name}`} className="h-full w-full object-contain" />
                 <canvas ref={canvas} hidden aria-hidden="true" className="pointer-events-none absolute inset-0" />
               </div>
@@ -176,30 +176,30 @@ function Assessment({ data }: { data: AssessmentForm }) {
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <strong className="block text-sm">Sugerir ángulos con IA</strong>
-                    <small className="text-slate-600">Detecta el cuerpo en la fotografía y propone los cinco ángulos del {data.posture.side_label.toLowerCase()}. Funciona mejor con una foto de perfil. La foto no sale de tu equipo.</small>
+                    <small className="text-ink-600">Detecta el cuerpo en la fotografía y propone los cinco ángulos del {data.posture.side_label.toLowerCase()}. Funciona mejor con una foto de perfil. La foto no sale de tu equipo.</small>
                   </div>
                   <Button type="button" variant="secondary" disabled={pose.state === "busy"} onClick={() => void suggest()}><Icon name="activity" />Sugerir</Button>
                 </div>
                 {pose.message ? (
-                  <p role="status" aria-live="polite" className={`mt-2 text-sm ${pose.state === "error" || (pose.state === "done" && pose.warning) ? "font-medium text-red-700" : pose.state === "done" ? "text-teal-800" : "text-violet-800"}`}>{pose.message}</p>
+                  <p role="status" aria-live="polite" className={`mt-2 text-sm ${pose.state === "error" || (pose.state === "done" && pose.warning) ? "font-medium text-red-700" : pose.state === "done" ? "text-brand-800" : "text-violet-800"}`}>{pose.message}</p>
                 ) : null}
                 {pose.state === "done" ? (
                   <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">
                     {ANGLE_NAMES.map((name) => (
                       <li key={name} className="rounded bg-white px-2 py-1">
-                        <span className="text-slate-500">{LABELS[name]}</span>{" "}
+                        <span className="text-ink-500">{LABELS[name]}</span>{" "}
                         {pose.result.angles[name] === null ? <em className="text-xs">No se detectó</em> : <strong>{formatNumber(pose.result.angles[name] ?? 0)}°</strong>}
                       </li>
                     ))}
                   </ul>
                 ) : null}
-                <p className="mt-2 text-xs text-slate-500">Es una ayuda para medir: revisa cada valor sobre la fotografía. Giros, inclinaciones laterales, abducción y apoyos no se ven de perfil; regístralos tú.</p>
+                <p className="mt-2 text-xs text-ink-500">Es una ayuda para medir: revisa cada valor sobre la fotografía. Giros, inclinaciones laterales, abducción y apoyos no se ven de perfil; regístralos tú.</p>
               </div>
               <fieldset className="mt-4">
                 <legend className="mb-2 text-sm font-semibold">Fotografía analizada</legend>
                 <div className="flex flex-wrap gap-2">
                   {data.photos.map((p, index) => (
-                    <label key={p.id} className={`cursor-pointer overflow-hidden rounded-lg border-2 ${photo === p.id ? "border-teal-600" : "border-transparent"}`}>
+                    <label key={p.id} className={`cursor-pointer overflow-hidden rounded-lg border-2 ${photo === p.id ? "border-brand-600" : "border-transparent"}`}>
                       <input type="radio" name="photo" value={p.id} checked={photo === p.id} onChange={() => setPhoto(p.id)} className="sr-only" />
                       <img src={p.url} alt={`Fotografía ${index + 1}`} loading="lazy" className="size-16 object-cover" />
                     </label>
@@ -236,8 +236,8 @@ function Assessment({ data }: { data: AssessmentForm }) {
             ))}
           </div>
         </div>
-        <div className="mt-5 flex justify-end gap-2 border-t border-slate-200 pt-4">
-          <Link to={back} className="inline-flex h-10 items-center rounded-lg border border-slate-300 px-4 text-sm font-semibold hover:bg-slate-50">Cancelar</Link>
+        <div className="mt-5 flex justify-end gap-2 border-t border-ink-200 pt-4">
+          <Link to={back} className="inline-flex h-10 items-center rounded-lg border border-ink-300 px-4 text-sm font-semibold hover:bg-ink-50">Cancelar</Link>
           <Button type="submit" disabled={form.sending}><Icon name="activity" />{form.sending ? "Calculando…" : "Calcular y guardar"}</Button>
         </div>
       </form>

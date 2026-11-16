@@ -3,11 +3,11 @@ import { isRouteErrorResponse, Link, useRouteError } from "react-router";
 
 function Crash({ title, detail }: { title: string; detail: string }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
-      <div className="max-w-md rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="mb-2 text-xl font-bold">{title}</h1>
-        <p className="mb-6 text-sm text-slate-500">{detail}</p>
-        <a href="/app/" className="font-semibold text-teal-700 hover:underline">Volver al panel principal</a>
+    <div className="grid min-h-screen place-items-center bg-ink-50 p-6">
+      <div className="max-w-md rounded-lg border border-ink-200 bg-white p-8 text-center">
+        <h1 className="mb-2 font-display text-xl font-bold">{title}</h1>
+        <p className="mb-6 text-sm text-ink-500">{detail}</p>
+        <a href="/app/" className="font-semibold text-brand-700 hover:underline">Volver al panel principal</a>
       </div>
     </div>
   );
@@ -25,11 +25,11 @@ export function RouteError() {
 
 export function NotFound() {
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center">
+    <div className="grid min-h-screen place-items-center bg-ink-50 p-6 text-center">
       <div>
-        <p className="text-sm font-semibold text-teal-700">404</p>
-        <h1 className="mb-2 text-2xl font-bold">Página no encontrada</h1>
-        <Link to="/" className="font-semibold text-teal-700 hover:underline">Volver al panel principal</Link>
+        <p className="font-display text-6xl font-bold text-ink-300">404</p>
+        <h1 className="mb-2 font-display text-2xl font-bold">Página no encontrada</h1>
+        <Link to="/" className="font-semibold text-brand-700 hover:underline">Volver al panel principal</Link>
       </div>
     </div>
   );

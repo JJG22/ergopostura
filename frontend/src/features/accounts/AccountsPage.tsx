@@ -12,7 +12,7 @@ import { accountsApi } from "./api";
 const ROLE_TONES: Record<string, string> = {
   admin: "bg-violet-100 text-violet-800",
   ingeniero: "bg-blue-100 text-blue-800",
-  empresa: "bg-teal-100 text-teal-800",
+  empresa: "bg-brand-100 text-brand-800",
 };
 
 export function AccountsPage() {
@@ -63,10 +63,10 @@ export function AccountsPage() {
                 <tr key={account.id} className={account.is_active ? "" : "opacity-60"}>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-700">{account.initials}</span>
+                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-ink-100 text-xs font-bold text-ink-700">{account.initials}</span>
                       <span className="min-w-0">
                         <strong className="block truncate">{account.full_name}</strong>
-                        <small className="block truncate text-slate-500">{account.email}</small>
+                        <small className="block truncate text-ink-500">{account.email}</small>
                       </span>
                     </div>
                   </td>
@@ -74,10 +74,10 @@ export function AccountsPage() {
                     <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_TONES[account.role] ?? ""}`}>{account.role_label}</span>
                   </td>
                   <td className="px-5 py-3">
-                    {account.company ? <Link className="hover:text-teal-700 hover:underline" to={`/empresas/${account.company.id}`}>{account.company.name}</Link> : <span className="text-slate-400">—</span>}
+                    {account.company ? <Link className="hover:text-brand-700 hover:underline" to={`/empresas/${account.company.id}`}>{account.company.name}</Link> : <span className="text-ink-400">—</span>}
                   </td>
-                  <td className="whitespace-nowrap px-5 py-3 text-slate-600">
-                    {account.last_login ? formatInstant(account.last_login) : <span className="text-slate-400">Nunca</span>}
+                  <td className="whitespace-nowrap px-5 py-3 text-ink-600">
+                    {account.last_login ? formatInstant(account.last_login) : <span className="text-ink-400">Nunca</span>}
                   </td>
                   <td className="px-5 py-3"><AccountStatus account={account} /></td>
                   <td className="px-5 py-3"><AccountActions account={account} options={optionsOf(resource.data)} onChanged={refresh} /></td>

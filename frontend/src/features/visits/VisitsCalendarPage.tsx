@@ -42,7 +42,7 @@ export function VisitsHeader({ info, onSchedule }: { info: ScheduleInfo; onSched
 
 function Notice({ tone, icon = "circle-exclamation-point", children }: { tone: "amber" | "neutral"; icon?: string; children: ReactNode }) {
   return (
-    <div role="status" className={`mb-4 flex gap-2.5 rounded-lg px-4 py-3 text-sm ${tone === "amber" ? "bg-amber-50 text-amber-900" : "bg-slate-100 text-slate-700"}`}>
+    <div role="status" className={`mb-4 flex gap-2.5 rounded-lg px-4 py-3 text-sm ${tone === "amber" ? "bg-amber-50 text-amber-900" : "bg-ink-100 text-ink-700"}`}>
       <Icon name={icon} className="mt-0.5 size-4" /><span>{children}</span>
     </div>
   );
@@ -96,24 +96,24 @@ export function VisitsCalendarPage() {
       <VisitsHeader info={cal} onSchedule={() => setDialog({ type: "new" })} />
       <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_18rem]">
         <Card className="p-0!">
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 p-4">
+          <div className="flex flex-wrap items-center gap-2 border-b border-ink-200 p-4">
             <Button variant="secondary" onClick={() => go(view)}>Hoy</Button>
             <div className="flex">
-              <button type="button" className="rounded-lg p-2 hover:bg-slate-100" aria-label={view === "semana" ? "Semana anterior" : "Mes anterior"}
+              <button type="button" className="rounded-lg p-2 hover:bg-ink-100" aria-label={view === "semana" ? "Semana anterior" : "Mes anterior"}
                 onClick={() => go(view, cal.previous)}><Icon name="chevron-right" className="size-5 rotate-180" /></button>
-              <button type="button" className="rounded-lg p-2 hover:bg-slate-100" aria-label={view === "semana" ? "Semana siguiente" : "Mes siguiente"}
+              <button type="button" className="rounded-lg p-2 hover:bg-ink-100" aria-label={view === "semana" ? "Semana siguiente" : "Mes siguiente"}
                 onClick={() => go(view, cal.next)}><Icon name="chevron-right" className="size-5" /></button>
             </div>
             <h2 className="min-w-0 flex-1 text-lg font-semibold" aria-live="polite">{cal.title}</h2>
-            <nav aria-label="Vista del calendario" className="flex rounded-lg border border-slate-300 p-0.5 text-sm font-semibold">
+            <nav aria-label="Vista del calendario" className="flex rounded-lg border border-ink-300 p-0.5 text-sm font-semibold">
               {(["mes", "semana"] as const).map((option) => (
                 <button key={option} type="button" aria-current={view === option ? "page" : undefined}
                   onClick={() => go(option, option === "semana" ? (cal.contains_today ? cal.today : cal.anchor) : cal.anchor)}
-                  className={`rounded-md px-3 py-1.5 ${view === option ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+                  className={`rounded-md px-3 py-1.5 ${view === option ? "bg-brand-700 text-white" : "text-ink-600 hover:bg-ink-100"}`}>
                   {option === "mes" ? "Mes" : "Semana"}
                 </button>
               ))}
-              <Link to="/visitas/agenda" className="rounded-md px-3 py-1.5 text-slate-600 hover:bg-slate-100">Agenda</Link>
+              <Link to="/visitas/agenda" className="rounded-md px-3 py-1.5 text-ink-600 hover:bg-ink-100">Agenda</Link>
             </nav>
           </div>
           {cal.view === "semana"
@@ -136,8 +136,8 @@ function Chip({ event, onOpen }: { event: CalendarEvent; onOpen: (id: number) =>
   const time = formatTime(event.starts_at);
   if (event.busy) {
     return (
-      <span title={`${time} · Horario ocupado`} className="flex items-center gap-1.5 truncate rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-500">
-        <span className="size-1.5 shrink-0 rounded-full bg-slate-400" /><b className="font-semibold">{time}</b><span className="truncate">Ocupado</span>
+      <span title={`${time} · Horario ocupado`} className="flex items-center gap-1.5 truncate rounded bg-ink-100 px-1.5 py-0.5 text-xs text-ink-500">
+        <span className="size-1.5 shrink-0 rounded-full bg-ink-400" /><b className="font-semibold">{time}</b><span className="truncate">Ocupado</span>
       </span>
     );
   }
@@ -157,7 +157,7 @@ function MonthGrid({ cal, onOpen, onAdd, onWeek }: { cal: Calendar; onOpen: (id:
   const names = cal.days.slice(0, 7).map((d) => d.weekday);
   return (
     <div role="grid" aria-label={cal.title}>
-      <div role="row" className="grid grid-cols-7 border-b border-slate-200 text-center text-xs font-semibold uppercase text-slate-500">
+      <div role="row" className="grid grid-cols-7 border-b border-ink-200 text-center text-xs font-medium text-ink-500 capitalize">
         {names.map((name) => (
           <div role="columnheader" key={name} className="py-2"><span className="hidden sm:inline">{name}</span><span className="sm:hidden" aria-hidden="true">{name.slice(0, 3)}</span></div>
         ))}
@@ -173,20 +173,20 @@ function MonthDay({ day, cal, onOpen, onAdd, onWeek }: { day: CalendarDay; cal: 
   const hidden = day.events.length - cal.max_chips;
   const canAdd = cal.can_schedule && !day.is_past && new Date(`${day.date}T12:00:00Z`).getUTCDay() !== 0;
   return (
-    <div role="gridcell" className={`group min-h-24 min-w-0 border-b border-r border-slate-100 p-1 sm:min-h-28 sm:p-1.5 ${day.in_period ? "" : "bg-slate-50/70"} ${day.is_past ? "text-slate-400" : ""}`}>
+    <div role="gridcell" className={`group min-h-24 min-w-0 border-b border-r border-ink-100 p-1 sm:min-h-28 sm:p-1.5 ${day.in_period ? "" : "bg-ink-50/70"} ${day.is_past ? "text-ink-400" : ""}`}>
       <div className="mb-1 flex items-center justify-between">
         <button type="button" onClick={() => onWeek(day.date)} aria-label={`Ver la semana del ${labelOf(day.date)}`} aria-current={day.is_today ? "date" : undefined}
-          className={`grid size-7 place-items-center rounded-full text-sm font-semibold hover:bg-slate-100 ${day.is_today ? "bg-teal-700 text-white hover:bg-teal-800" : day.in_period ? "" : "text-slate-400"}`}>
+          className={`grid size-7 place-items-center rounded-full text-sm font-semibold hover:bg-ink-100 ${day.is_today ? "bg-brand-700 text-white hover:bg-brand-800" : day.in_period ? "" : "text-ink-400"}`}>
           {dayNumber(day.date)}
         </button>
         {canAdd ? (
           <button type="button" onClick={() => onAdd(day.date)} title="Agendar visita" aria-label={`Agendar visita el ${labelOf(day.date)}`}
-            className="rounded p-0.5 text-teal-700 opacity-60 hover:bg-teal-50 hover:opacity-100 group-hover:opacity-100"><Icon name="plus" className="size-4" /></button>
+            className="rounded p-0.5 text-brand-700 opacity-60 hover:bg-brand-50 hover:opacity-100 group-hover:opacity-100"><Icon name="plus" className="size-4" /></button>
         ) : null}
       </div>
       <div className="space-y-0.5">
         {day.events.slice(0, cal.max_chips).map((event, index) => <Chip key={event.id ?? `o${index}`} event={event} onOpen={onOpen} />)}
-        {hidden > 0 ? <button type="button" onClick={() => onWeek(day.date)} className="px-1.5 text-xs font-semibold text-slate-500 hover:underline">{hidden} más</button> : null}
+        {hidden > 0 ? <button type="button" onClick={() => onWeek(day.date)} className="px-1.5 text-xs font-semibold text-ink-500 hover:underline">{hidden} más</button> : null}
       </div>
     </div>
   );
@@ -197,29 +197,29 @@ function WeekGrid({ cal, onOpen, onAdd }: { cal: Calendar; onOpen: (id: number) 
   return (
     <div className="relative overflow-x-auto">
       <div className="min-w-[760px]">
-        <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-slate-200">
+        <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-ink-200">
           <div />
           {cal.days.map((day) => (
-            <div key={day.date} className={`py-2 text-center ${day.is_past ? "text-slate-400" : ""}`}>
-              <small className="block text-xs font-semibold uppercase text-slate-500">{day.weekday.slice(0, 3)}</small>
+            <div key={day.date} className={`py-2 text-center ${day.is_past ? "text-ink-400" : ""}`}>
+              <small className="block text-xs font-medium capitalize text-ink-500">{day.weekday.slice(0, 3)}</small>
               <strong aria-current={day.is_today ? "date" : undefined}
-                className={`mx-auto grid size-8 place-items-center rounded-full text-base ${day.is_today ? "bg-teal-700 text-white" : ""}`}>{dayNumber(day.date)}</strong>
+                className={`mx-auto grid size-8 place-items-center rounded-full text-base ${day.is_today ? "bg-brand-700 text-white" : ""}`}>{dayNumber(day.date)}</strong>
             </div>
           ))}
         </div>
         <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]" style={{ height: cal.grid_height }}>
           <div className="relative" aria-hidden="true">
             {cal.hours.map((label, row) => (
-              <span key={label} className="absolute right-2 -translate-y-1/2 text-[11px] text-slate-400" style={{ top: row * h }}>{row ? label : ""}</span>
+              <span key={label} className="absolute right-2 -translate-y-1/2 text-[11px] text-ink-400" style={{ top: row * h }}>{row ? label : ""}</span>
             ))}
           </div>
           {cal.days.map((day) => (
             <div key={day.date} aria-label={`${day.weekday} ${labelOf(day.date)}`}
-              className={`relative border-l border-slate-100 ${day.is_past ? "bg-slate-50/60" : ""} ${day.is_today ? "bg-teal-50/40" : ""}`}
-              style={{ backgroundImage: `repeating-linear-gradient(to bottom, transparent 0 ${h - 1}px, #f1f5f9 ${h - 1}px ${h}px)` }}>
+              className={`relative border-l border-ink-100 ${day.is_past ? "bg-ink-50/60" : ""} ${day.is_today ? "bg-brand-50/40" : ""}`}
+              style={{ backgroundImage: `repeating-linear-gradient(to bottom, transparent 0 ${h - 1}px, #eef0f5 ${h - 1}px ${h}px)` }}>
               {cal.can_schedule ? day.open_hours.map((hour) => (
                 <button key={hour} type="button" onClick={() => onAdd(day.date, hour)} aria-label={`Agendar visita el ${labelOf(day.date)} a las ${hour}:00`}
-                  className="absolute inset-x-0 hover:bg-teal-50" style={{ top: (hour - cal.first_hour) * h, height: h }} />
+                  className="absolute inset-x-0 hover:bg-brand-50" style={{ top: (hour - cal.first_hour) * h, height: h }} />
               )) : null}
               {day.events.map((event, index) => <WeekEvent key={event.id ?? `o${index}`} event={event} onOpen={onOpen} />)}
               {day.is_today && cal.now_top !== null ? (
@@ -238,7 +238,7 @@ function WeekEvent({ event, onOpen }: { event: CalendarEvent; onOpen: (id: numbe
   const span = `${formatTime(event.starts_at)} – ${formatTime(event.ends_at)}`;
   if (event.busy) {
     return (
-      <div className="absolute z-[1] overflow-hidden rounded-md border border-dashed border-slate-300 bg-slate-100 px-1.5 py-1 text-xs text-slate-500" style={style}>
+      <div className="absolute z-[1] overflow-hidden rounded-md border border-dashed border-ink-300 bg-ink-100 px-1.5 py-1 text-xs text-ink-500" style={style}>
         <strong className="block">Ocupado</strong><small>{span}</small>
       </div>
     );
@@ -258,14 +258,14 @@ function WeekEvent({ event, onOpen }: { event: CalendarEvent; onOpen: (id: numbe
 function Footer({ cal }: { cal: Calendar }) {
   const empty = cal.days.every((day) => day.events.length === 0);
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 p-4 text-xs">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-200 p-4 text-xs">
       {cal.shows_company && cal.legend.length ? (
         <ul aria-label="Empresas con visitas en este periodo" className="flex flex-wrap gap-x-4 gap-y-1">
           {cal.legend.map((item) => (
             <li key={item.name} className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm" style={{ background: colorOf(item.color).fg }} />{item.name}</li>
           ))}
         </ul>
-      ) : empty ? <p className="text-slate-500">No hay visitas en este periodo.</p> : <span />}
+      ) : empty ? <p className="text-ink-500">No hay visitas en este periodo.</p> : <span />}
       <ul aria-label="Niveles de las visitas" className="flex flex-wrap gap-1.5">
         {cal.levels.map((level) => <li key={level.key}><LevelBadge level={level} /></li>)}
       </ul>
@@ -291,7 +291,7 @@ function SidePanel({ cal, onOpen }: { cal: Calendar; onOpen: (id: number) => voi
       ) : null}
       <SectionHead title="Próximas visitas" subtitle={cal.upcoming.length ? `Las ${cal.upcoming.length} más cercanas` : undefined} />
       {cal.upcoming.length === 0 ? (
-        <p className="py-6 text-center text-sm text-slate-500">No hay visitas programadas</p>
+        <p className="py-6 text-center text-sm text-ink-500">No hay visitas programadas</p>
       ) : cal.upcoming.map((visit) => <UpcomingItem key={visit.id} visit={visit} onOpen={onOpen} />)}
       <Link to="/visitas/agenda" className={`${linkButtonClass()} mt-2`}>Ver la agenda completa</Link>
     </Card>
@@ -302,15 +302,15 @@ function UpcomingItem({ visit, onOpen }: { visit: VisitRow; onOpen: (id: number)
   const color = colorOf(visit.color);
   const start = new Date(visit.starts_at);
   return (
-    <button type="button" onClick={() => onOpen(visit.id)} className="flex w-full gap-3 rounded-lg p-2 text-left hover:bg-slate-50">
-      <span className="grid w-11 shrink-0 place-items-center rounded-lg py-1" style={{ background: color.bg, color: color.fg }}>
-        <small className="text-[10px] font-bold uppercase">{shortMonth.format(start).replace(".", "")}</small>
-        <strong className="text-lg leading-none">{dayNumber(visit.starts_at)}</strong>
+    <button type="button" onClick={() => onOpen(visit.id)} className="flex w-full gap-3 rounded-md p-2 text-left transition-colors hover:bg-ink-50">
+      <span className="grid w-11 shrink-0 place-items-center rounded-md py-1" style={{ background: color.bg, color: color.fg }}>
+        <small className="text-[10px] font-semibold">{shortMonth.format(start).replace(".", "")}</small>
+        <strong className="font-display text-lg leading-none tabular">{dayNumber(visit.starts_at)}</strong>
       </span>
       <span className="min-w-0 text-sm">
         <strong className="block truncate">{visit.company.name}</strong>
-        <small className="block text-slate-500">{capitalize(weekdayLong.format(start))} · {formatTime(visit.starts_at)}</small>
-        <small className="mb-1 block truncate text-slate-500">{visit.site}</small>
+        <small className="block text-ink-500">{capitalize(weekdayLong.format(start))}, {formatTime(visit.starts_at)}</small>
+        <small className="mb-1 block truncate text-ink-500">{visit.site}</small>
         <LevelBadge level={visit.level} />
       </span>
     </button>

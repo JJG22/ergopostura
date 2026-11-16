@@ -1,8 +1,40 @@
 @import "tailwindcss";
 
-/* Misma familia tipográfica y fondo de la aplicación actual. */
+/*
+ * Identidad visual de ErgoPostura.
+ * - Tinta (ink): neutros fríos con un matiz azul; el menú lateral usa los tonos oscuros.
+ * - Cobalto (brand): el color de acción. Nunca se usa para riesgo: verde, ámbar y rojo
+ *   quedan reservados para el semáforo RULA.
+ * - Archivo: tipografía con eje de ancho. Los títulos usan la versión ancha (clase font-display).
+ */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink-50: #f4f5f9;
+  --color-ink-100: #e9ebf2;
+  --color-ink-200: #d7dbe6;
+  --color-ink-300: #b8bece;
+  --color-ink-400: #8b93a9;
+  --color-ink-500: #646c84;
+  --color-ink-600: #4b5269;
+  --color-ink-700: #373d52;
+  --color-ink-800: #252a3d;
+  --color-ink-900: #181c2e;
+  --color-ink-950: #10131f;
+
+  --color-brand-50: #eef1ff;
+  --color-brand-100: #dfe4ff;
+  --color-brand-200: #c4cdff;
+  --color-brand-300: #9eabfa;
+  --color-brand-400: #7383f2;
+  --color-brand-500: #5263e9;
+  --color-brand-600: #4152de;
+  --color-brand-700: #3343d3;
+  --color-brand-800: #2a36ae;
+  --color-brand-900: #232c86;
+  --color-brand-950: #161b4f;
+
+  --shadow-float: 0 1px 2px rgb(16 19 31 / 0.06), 0 12px 32px -8px rgb(16 19 31 / 0.22);
 }
 
 html {
@@ -10,5 +42,56 @@ html {
 }
 
 body {
-  @apply bg-slate-50 font-sans text-slate-900 antialiased;
+  @apply bg-ink-50 font-sans text-ink-900 antialiased;
+  font-feature-settings: "ss01" on;
+}
+
+/* Títulos y cifras grandes: Archivo ancho, con interletrado cerrado. */
+@utility font-display {
+  font-stretch: 116%;
+  letter-spacing: -0.015em;
+}
+
+/* Cifras alineadas en tablas, puntajes y contadores. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Foco visible y consistente para teclado en todos los controles. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
+
+:where(input, select, textarea):focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
 }

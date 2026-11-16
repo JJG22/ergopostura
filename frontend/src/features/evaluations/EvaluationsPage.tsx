@@ -45,10 +45,10 @@ export function EvaluationsPage() {
           <>
             <Table head={["Evaluación", "Empresa", "Área y puesto", "Fecha", "Riesgo", "Estado"]}>
               {resource.data.results.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50">
-                  <td className="px-5 py-3"><Link to={`/evaluaciones/${e.id}`} className="font-semibold text-slate-900 hover:text-teal-700">{e.code}</Link></td>
+                <tr key={e.id} className="hover:bg-ink-50">
+                  <td className="px-5 py-3"><Link to={`/evaluaciones/${e.id}`} className="font-semibold text-ink-900 hover:text-brand-700">{e.code}</Link></td>
                   <td className="px-5 py-3">{e.company}</td>
-                  <td className="px-5 py-3 text-slate-600">{e.area} · {e.position}</td>
+                  <td className="px-5 py-3 text-ink-600">{e.area} · {e.position}</td>
                   <td className="whitespace-nowrap px-5 py-3">{formatShortDate(e.evaluated_on)}</td>
                   <td className="px-5 py-3"><RiskBadge risk={e.risk} /></td>
                   <td className="px-5 py-3"><Badge tone={e.status === "borrador" ? "amber" : "teal"}>{e.status_label}</Badge></td>

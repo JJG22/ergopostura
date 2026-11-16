@@ -148,7 +148,7 @@ export function AccountActions({ account, options, onChanged }: { account: Accou
     onChanged();
   };
   const own = account.id === user.id;
-  const iconButton = "rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900";
+  const iconButton = "rounded-lg p-2 text-ink-500 hover:bg-ink-100 hover:text-ink-900";
 
   return (
     <div className="flex shrink-0 justify-end gap-1">
