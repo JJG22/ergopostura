@@ -31,7 +31,7 @@ interface Indicators {
   areas: RiskRow[] | null;
 }
 
-const COLORS = { green: "#10b981", yellow: "#f59e0b", red: "#dc2626" } as const;
+const COLORS = { green: "#1e7a46", yellow: "#c99700", red: "#b3121f" } as const;
 
 export function IndicatorsPage() {
   usePageTitle("Indicadores");
@@ -47,7 +47,7 @@ export function IndicatorsPage() {
   return (
     <>
       {head}
-      <div className="mb-6 grid gap-px overflow-hidden rounded-lg border border-ink-200 bg-ink-200 sm:grid-cols-3">
+      <div className="mb-6 grid gap-px overflow-hidden rounded-xl border border-ink-200 bg-ink-200 sm:grid-cols-3">
         <Metric label="Puestos evaluados" value={data.totals.total} detail={`En ${data.area_count} área${data.area_count === 1 ? "" : "s"}`} />
         <Metric label="Requieren seguimiento" value={data.totals.follow_up} detail={`${data.totals.follow_up_percent}% de los puestos evaluados`} />
         <Metric label="Empresas evaluadas" value={data.company_count} detail="Con evaluaciones terminadas" />
@@ -87,7 +87,7 @@ function Metric({ label, value, detail }: { label: string; value: number; detail
   return (
     <div className="min-w-0 bg-white px-5 py-5">
       <small className="block text-sm font-medium text-ink-600">{label}</small>
-      <strong className="mt-3 block font-display text-[2rem] sm:text-[2.5rem] font-bold leading-none tabular text-ink-950">{value}</strong>
+      <strong className="mt-3 block font-display text-[2rem] sm:text-[2.5rem] leading-none tabular text-ink-950">{value}</strong>
       <span className="mt-2 block text-xs text-ink-500">{detail}</span>
     </div>
   );

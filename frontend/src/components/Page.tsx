@@ -55,8 +55,8 @@ export function Notice() {
   return (
     <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
       {notice ? (
-        <div className="flex items-center gap-2.5 rounded-lg bg-ink-950 py-3 pl-3.5 pr-4 text-sm font-medium text-white shadow-float motion-safe:animate-[toast-in_220ms_cubic-bezier(0.2,0.9,0.3,1)]">
-          <span className="grid size-5 place-items-center rounded-full bg-brand-500"><svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span>
+        <div className="flex items-center gap-2.5 bg-ink-950 py-3 pl-3 pr-5 text-sm font-medium text-white shadow-float motion-safe:animate-[toast-in_220ms_cubic-bezier(0.2,0.9,0.3,1)]">
+          <span className="grid size-5 place-items-center bg-brand-700"><svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span>
           {notice}
         </div>
       ) : null}

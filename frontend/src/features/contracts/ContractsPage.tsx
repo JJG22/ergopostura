@@ -64,7 +64,7 @@ export function ContractsPage() {
                   <td className="px-5 py-3">{c.responsible_name}</td>
                   <td className="px-5 py-3"><ContractBadge status={c.status} label={c.status_label} /></td>
                   <td className="px-5 py-3">
-                    {c.has_summary ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700"><Icon name="sparkles" className="size-4" />Listo</span> : <span className="text-ink-400">—</span>}
+                    {c.has_summary ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-800">Listo</span> : <span className="text-ink-400">—</span>}
                   </td>
                 </tr>
               ))}

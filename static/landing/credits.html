@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es" data-type="service" data-radius="sharp" data-buttons="block" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ErgoPostura: créditos de las fotografías</title>
+<meta name="description" content="Autores, licencias y páginas de origen de las fotografías del sitio de ErgoPostura.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ErgoPostura: evaluación ergonómica de puestos para empresas">
+<meta property="og:description" content="Cada postura de trabajo calificada con el método RULA, de 1 a 7, con su informe.">
+<meta property="og:image" content="/static/landing/share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#ffffff">
+<!-- <link rel="canonical" href="https://(dominio del cliente)/"> -->
+<meta name="site-kind" content="other">
+<meta name="page-type" content="service">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/landing/assets/system.css">
+<link rel="stylesheet" href="/static/landing/assets/ui/cards.css">
+<link rel="stylesheet" href="/static/landing/assets/motion/motion.css">
+<link rel="stylesheet" href="/static/landing/assets/layout/layout.css">
+<link rel="stylesheet" href="/static/landing/assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #ffffff; --p-surface: #e9eaec; --p-ink: #121418; --p-muted: #616366;
+  --p-accent: #0b4a8f; --p-accent-ink: #ffffff; --p-action: #0b4a8f; --p-action-ink: #ffffff;
+  --p-inv-bg: #121418; --p-inv-surface: #1f2125; --p-inv-ink: #ffffff; --p-inv-muted: #9b9c9e;
+  --p-inv-accent: #ffffff; --p-inv-accent-ink: #121418; --p-inv-action: #ffffff; --p-inv-action-ink: #121418;
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-text: "Archivo", system-ui, sans-serif;
+  --display-weight: 400;
+  --display-tracking: -0.025em;
+  --display-tracking-xl: -0.035em;
+  --display-stretch: 110%;
+  --ly-scale: 0.9;
+}
+</style>
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="/static/landing/assets/moments/moments.js">
+<link rel="modulepreload" href="/static/landing/assets/moments/lib.js">
+<link rel="modulepreload" href="/static/landing/assets/moments/picture-develops/moment.js">
+<!-- page CSS: only inside the visuals -->
+<style>
+  /* Fotomontaje del cartel de prevención: la foto en blanco y negro impresa sobre el azul de señal. */
+  .print-blue { background: var(--p-accent); }
+  .print-blue img { filter: grayscale(1) contrast(1.15) brightness(1.08); mix-blend-mode: multiply; }
+  /* picture-develops: la foto del servicio en la columna derecha, tan alta como el texto. */
+  .develop { margin: 0; border-radius: var(--r-lg); overflow: hidden; height: min(560px, var(--ly-fit)); }
+  .develop > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  @media (max-width: 1023px) { .develop { height: auto; aspect-ratio: 4 / 3; margin-top: var(--s-7); } }
+  /* La escala RULA como regla: siete pasos, el color de cada nivel con su trama. */
+  .rula-rule { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: var(--s-6); }
+  .rula-rule span { display: flex; align-items: flex-end; height: clamp(120px, 24vh, 240px); padding: 12px 16px; color: #fff; background-color: var(--lv); font: var(--display-weight) clamp(40px, 5.6vw, 88px)/0.9 var(--font-display); letter-spacing: -0.03em; font-stretch: 110%; font-variant-numeric: tabular-nums; }
+  .rula-rule span:nth-child(3), .rula-rule span:nth-child(4) { color: #121418; background-image: repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .22) 9px 13px); }
+  .rula-rule span:nth-child(5), .rula-rule span:nth-child(6) { background-image: repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .18) 7px 10px), repeating-linear-gradient(-45deg, transparent 0 7px, rgb(255 255 255 / .14) 7px 10px); }
+  .rula-rule span:nth-child(7) { background-image: repeating-linear-gradient(0deg, transparent 0 6px, rgb(255 255 255 / .16) 6px 9px); }
+  .lv { display: inline-block; width: 28px; height: 28px; margin-right: 12px; vertical-align: -6px; background: var(--lv); }
+  .lv1 { --lv: #1e7a46; }
+  .lv2 { --lv: #c99700; background-image: repeating-linear-gradient(45deg, transparent 0 5px, rgb(255 255 255 / .75) 5px 8px); }
+  .lv3 { --lv: #c2531a; background-image: repeating-linear-gradient(45deg, transparent 0 4px, rgb(255 255 255 / .75) 4px 6px), repeating-linear-gradient(-45deg, transparent 0 4px, rgb(255 255 255 / .55) 4px 6px); }
+  .lv4 { --lv: #b3121f; background-image: repeating-linear-gradient(0deg, transparent 0 3px, rgb(255 255 255 / .6) 3px 5px); }
+  /* Tableta: el servicio apila texto y foto y ocupa dos pantallas; la regla de la escala crece. */
+  @media (max-width: 1023px) { #servicio .rows p, #metodo .rows { display: none; } .develop { aspect-ratio: 16 / 9; } }
+  /* Teléfono: fotos más bajas para que cada sección quepa en su pantalla. */
+  @media (max-width: 639px) { .develop { aspect-ratio: 21 / 9; } #metodo .frame--split { aspect-ratio: 4 / 3; } }
+  @media (min-width: 640px) and (max-width: 1023px) { #metodo .frame--split { aspect-ratio: 16 / 9; } }
+  /* Entre 640 y 1279 los tres pasos siguen en fila, con paneles más bajos, en una pantalla. */
+  @media (min-width: 640px) and (max-width: 1279px) { #proceso .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } #proceso .grid > .span-4 { grid-column: auto; } #proceso .panel { --p-h: 200px; } }
+  /* A 320 px el botón grande del cierre parte su texto en dos líneas para caber en la pantalla. */
+  @media (max-width: 359px) { .close--type .btn--xl { font-size: 18px; white-space: normal; text-align: left; height: auto; min-height: 48px; padding-block: 12px; } .close--type h2 { overflow-wrap: anywhere; } }
+  /* Ficha de resultado tal como la entrega la aplicación. */
+  .result { height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 28px; background: #fff; }
+  .result__score { font: var(--display-weight) 88px/0.9 var(--font-display); font-stretch: 110%; letter-spacing: -0.04em; color: #b3121f; }
+  .result__score small { font-size: 18px; letter-spacing: 0; color: var(--p-muted); margin-left: 8px; }
+  .result__bar { display: block; height: 10px; background: linear-gradient(90deg, var(--p-surface) 0 85.2%, #fff 85.2% 85.8%, #b3121f 85.8% 100%); }
+  .ly-float .lv { width: 14px; height: 14px; margin-right: 0; vertical-align: -2px; }
+  .ly-float__scale { display: flex; gap: 3px; }
+</style>
+</head>
+<body>
+<!-- type: service
+     deal: hero split, nav nav-split, close close-type, footer footer-columns (footer-visit re-dealt: no street in the brief), rhythm surface-pairs, buttons block, mark: the client's own logo, grounds none
+     palette: brand (ISO mandatory-action blue on white, from the occupational-safety poster world chosen with Impeccable); type: archivo (the first pairing, instrument, is on Impeccable's overused list)
+     moments: picture-develops on #servicio (the service's own photograph develops once, like a print) -->
+<header class="nav nav--split">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Ir al contenido</a>
+    <a class="nav__logo" href="#top" aria-label="ErgoPostura, inicio"><svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true"><g fill="none" stroke-linecap="round"><path d="M32.5 20A12.5 12.5 0 1 0 29.58 28.03" stroke="#121418" stroke-width="3.4"/><path d="M7.5 20H32.5" stroke="#121418" stroke-width="3.4"/><path d="M20 20 27.9 13.4" stroke="#0b4a8f" stroke-width="3.4"/><path d="M26.2 20A6.2 6.2 0 0 0 24.75 16.01" stroke="#0b4a8f" stroke-width="1.6"/></g><circle cx="20" cy="20" r="3.1" fill="#0b4a8f"/><circle cx="20" cy="20" r="1.2" fill="#fff"/></svg>ergopostura</a>
+    <nav class="nav__links" aria-label="Principal">
+      <div class="nav__item"><a class="nav__link" href="#servicio">Servicio</a></div>
+      <div class="nav__item"><a class="nav__link" href="#escala">Escala</a></div>
+      <div class="nav__item"><a class="nav__link" href="#metodo">Método</a></div>
+      <div class="nav__item"><a class="nav__link" href="#proceso">Proceso</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="nav__link" href="/app/ingresar">Ingresar</a>
+      <a class="btn btn--primary" href="mailto:contacto@ergopostura.example?subject=Solicitud%20de%20diagn%C3%B3stico%20ergon%C3%B3mico&amp;body=Empresa%3A%0ACiudad%3A%0ASedes%3A%0APuestos%20a%20evaluar%3A%0A">Solicitar un diagnóstico</a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menú">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+<main id="top">
+  <p><a class="link" href="index.html">ErgoPostura</a></p>
+  <section class="credits-list" id="credits" aria-labelledby="credits-h">
+    <h1 id="credits-h">Créditos de las fotografías</h1>
+    <ul>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Warehouse_workers_prepare_packages_for_shipment_at_Sharpe_Army_Depot_-_DPLA_-_414220df83b823977c05c01a4b6b4106.jpeg">Department of Defense. American Forces Information Service. Defense Visual Information Center. 1994</a>, <a href="https://creativecommons.org/publicdomain/mark/1.0/">Public domain</a></li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Height_adjustable_workstation.jpg">U3145851</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a></li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Employee_Packing_Things_Into_Box.jpg">CIPHR Connect</a>, <a href="https://creativecommons.org/licenses/by/2.0">CC BY 2.0</a></li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Ford_assembly_line_-_1913.jpg">Unknown author Unknown author</a>, <a href="https://creativecommons.org/publicdomain/mark/1.0/">Public domain</a></li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Worker_focuses_on_assembling_a_frame_in_a_workshop.jpg">Shixart1985</a>, <a href="https://creativecommons.org/licenses/by/2.0">CC BY 2.0</a></li>
+    </ul>
+  </section>
+</main>
+
+<footer class="footer closing g2m" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">Solicite un diagnóstico de sus puestos</h2>
+        <p class="t-small muted">Cuéntenos cuántas sedes y cuántos puestos tiene su empresa.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="mailto:contacto@ergopostura.example?subject=Solicitud%20de%20diagn%C3%B3stico%20ergon%C3%B3mico&amp;body=Empresa%3A%0ACiudad%3A%0ASedes%3A%0APuestos%20a%20evaluar%3A%0A">Solicitar un diagnóstico<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top" aria-label="ErgoPostura, inicio"><svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true"><g fill="none" stroke-linecap="round"><path d="M32.5 20A12.5 12.5 0 1 0 29.58 28.03" stroke="#121418" stroke-width="3.4"/><path d="M7.5 20H32.5" stroke="#121418" stroke-width="3.4"/><path d="M20 20 27.9 13.4" stroke="#0b4a8f" stroke-width="3.4"/><path d="M26.2 20A6.2 6.2 0 0 0 24.75 16.01" stroke="#0b4a8f" stroke-width="1.6"/></g><circle cx="20" cy="20" r="3.1" fill="#0b4a8f"/><circle cx="20" cy="20" r="1.2" fill="#fff"/></svg>ergopostura</a>
+          <p class="footer__lede">Evaluación ergonómica RULA para empresas</p>
+        </div>
+        <div class="span-2 footer__col"><h3>Servicio</h3><ul><li><a href="#servicio">Qué incluye</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Escala</h3><ul><li><a href="#escala">Niveles de acción</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Método</h3><ul><li><a href="#metodo">Cómo se mide</a></li><li><a href="#proceso">Los 3 pasos</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Clientes</h3><ul><li><a href="/app/ingresar">Ingresar</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 ErgoPostura</span>
+        <div class="socials"></div>
+        <a class="credits" href="/static/landing/credits.html">Fotografías vía Wikimedia Commons</a>
+      </div>
+    </div>
+  </div>
+</footer>
+<nav class="actionbar" aria-label="Acciones rápidas">
+  <a class="btn btn--primary" href="mailto:contacto@ergopostura.example?subject=Solicitud%20de%20diagn%C3%B3stico%20ergon%C3%B3mico&amp;body=Empresa%3A%0ACiudad%3A%0ASedes%3A%0APuestos%20a%20evaluar%3A%0A">Solicitar un diagnóstico</a>
+</nav>
+<script type="module" src="/static/landing/assets/system.js"></script>
+<script type="module" src="/static/landing/assets/motion/motion.js"></script>
+<script type="module" src="/static/landing/assets/layout/layout.js"></script>
+</body>
+</html>

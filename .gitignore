@@ -13,3 +13,19 @@ db.sqlite3
 # Cliente React
 frontend/node_modules/
 frontend/dist/
+
+# Diseño: se versionan las decisiones (PRODUCT.md, DESIGN.md, .impeccable/surfaces,
+# .impeccable/design.json, .taste-skill/waivers.json e historiales); no los temporales.
+.impeccable/review/
+.impeccable/questions/
+.impeccable/decision/
+.impeccable/mocks/
+.taste-skill/chrome-*/
+.taste-skill/shots/
+.taste-skill/gate/
+.taste-skill/*.txt
+.taste-skill/gate.json
+.taste-skill/build*.json
+static/landing/.taste-skill/
+frontend/test-results/
+frontend/playwright-report/

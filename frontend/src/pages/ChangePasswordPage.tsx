@@ -35,7 +35,7 @@ export function ChangePasswordPage() {
     <div className="grid min-h-screen place-items-center bg-ink-50 p-6">
       <div className="w-full max-w-md">
         <div className="mb-10"><Logo /></div>
-        <h1 className="font-display text-[1.75rem] font-bold leading-tight">Cambiar contraseña</h1>
+        <h1 className="font-display text-[1.75rem] leading-tight">Cambiar contraseña</h1>
         <p className="mb-6 mt-2 text-sm text-ink-500">
           {forced
             ? "Ingresaste con una contraseña temporal. Elige una propia para continuar; solo tú la conocerás."

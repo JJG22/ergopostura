@@ -1,5 +1,6 @@
 """El servidor es una API: /api/v1/ responde JSON y /app/ entrega el cliente React.
 
+La raíz (/) es la portada pública, una página estática para empresas que aún no son clientes.
 La única página que genera el servidor es el panel técnico de Django (/admin/), para soporte.
 Las direcciones de las antiguas pantallas se redirigen a su equivalente en React.
 """
@@ -7,6 +8,7 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 
+from apps.core.landing import landing
 from apps.core.legacy import legacy_redirect
 from apps.core.spa import spa
 
@@ -21,5 +23,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include("apps.api.urls")),
     re_path(r"^app/(?P<path>.*)$", spa, name="spa"),
+    path("", landing, name="landing"),
     re_path(r"^(?P<path>.*)$", legacy_redirect),
 ]

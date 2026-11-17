@@ -6,7 +6,7 @@ import { EmptyState, Pagination } from "../../components/Table";
 import { Card, ErrorState, Icon, Spinner } from "../../components/ui";
 import { formatDay, formatTime } from "../../lib/format";
 import { useResource } from "../../lib/useResource";
-import { colorOf, visitsApi, type AgendaTab } from "./api";
+import { visitsApi, type AgendaTab } from "./api";
 import { LevelBadge, VisitsHeader } from "./VisitsCalendarPage";
 import { VisitDetailModal, VisitDetailView, VisitFormModal } from "./VisitModals";
 
@@ -61,7 +61,6 @@ export function VisitAgendaPage() {
             {data.results.map((visit) => (
               <li key={visit.id}>
                 <button type="button" onClick={() => setOpen(visit.id)} className="flex w-full flex-wrap items-center gap-3 px-1 py-3 text-left hover:bg-ink-50">
-                  <span className="h-10 w-1 shrink-0 rounded-full" style={{ background: colorOf(visit.color).fg }} aria-hidden="true" />
                   <span className="min-w-0 flex-1">
                     <strong className="block truncate text-sm">{visit.company.name}</strong>
                     <small className="block text-ink-500">{formatDay(visit.starts_at)} · {formatTime(visit.starts_at)} – {formatTime(visit.ends_at)}</small>

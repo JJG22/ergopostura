@@ -21,7 +21,7 @@ export function ContractDetailPage() {
 function Banner({ tone, children }: { tone: "amber" | "red" | "neutral"; children: ReactNode }) {
   const tones = { amber: "bg-amber-50 text-amber-900", red: "bg-red-50 text-red-900", neutral: "bg-ink-100 text-ink-700" };
   return (
-    <div role="status" className={`mb-4 flex gap-2.5 rounded-lg px-4 py-3 text-sm ${tones[tone]}`}>
+    <div role="status" className={`mb-4 flex gap-2.5 rounded-xl px-4 py-3 text-sm ${tones[tone]}`}>
       <Icon name="circle-exclamation-point" className="mt-0.5 size-4" /><span>{children}</span>
     </div>
   );
@@ -77,7 +77,7 @@ function Detail({ initial }: { initial: ContractDetail }) {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="mb-1.5 text-sm font-semibold text-brand-700">Contrato <span className="tabular">{contract.code}</span></p>
-          <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">{contract.company.name}</h1>
+          <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">{contract.company.name}</h1>
           <Meta items={[contract.kind_label, `${formatLongDate(contract.start_date)} al ${formatLongDate(contract.end_date)}`, contract.duration_label]} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -139,14 +139,13 @@ function Detail({ initial }: { initial: ContractDetail }) {
                 : "Asistente de lectura del contrato"}
               action={contract.ai_ready ? (
                 <Button variant="secondary" disabled={reading} onClick={() => void summarize()}>
-                  <Icon name="sparkles" />{reading ? "Leyendo el contrato…" : summary ? "Volver a leer" : "Generar resumen"}
+                  {reading ? "Leyendo el contrato…" : summary ? "Volver a leer" : "Generar resumen"}
                 </Button>
               ) : undefined}
             />
-            {readError ? <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{readError.message}</p> : null}
+            {readError ? <p role="alert" className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{readError.message}</p> : null}
             {summary ? <Summary contract={contract} /> : contract.ai_ready ? (
               <div className="py-6 text-center">
-                <span className="mx-auto mb-2 grid size-11 place-items-center rounded-md bg-violet-50 text-violet-700"><Icon name="sparkles" /></span>
                 <p className="font-semibold">Aún no hay resumen</p>
                 <p className="mx-auto max-w-sm text-sm text-ink-500">La IA lee el PDF y te da la duración, el tipo de contrato, el servicio, el encargado, el NIT y lo que conviene revisar. Tarda entre 10 y 40 segundos.</p>
               </div>
@@ -199,7 +198,7 @@ function Summary({ contract }: { contract: ContractDetail }) {
     <div className="space-y-4">
       {summary.summary ? <p className="text-sm leading-relaxed text-ink-800">{summary.summary}</p> : null}
       {summary.alerts?.length ? (
-        <div className="rounded-lg bg-amber-50 px-3 py-2.5 text-amber-900"><List title="Para revisar" items={summary.alerts} /></div>
+        <div className="rounded-xl bg-amber-50 px-3 py-2.5 text-amber-900"><List title="Para revisar" items={summary.alerts} /></div>
       ) : null}
       <dl className="divide-y divide-ink-100">
         {details.filter(([, value]) => value).map(([label, value]) => <Item key={label} label={label}>{value}</Item>)}

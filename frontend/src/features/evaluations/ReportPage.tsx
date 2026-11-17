@@ -34,13 +34,13 @@ function Report({ e }: { e: EvaluationDetail }) {
         </Link>
         <Button onClick={() => window.print()}><Icon name="download" />Imprimir o guardar PDF</Button>
       </div>
-      <article className="rounded-lg border border-ink-200 bg-white p-8 print:border-0 print:p-0">
+      <article className="rounded-xl border border-ink-200 bg-white p-8 print:border-0 print:p-0">
         <header className="mb-6 flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-lg bg-brand-700 text-white"><Icon name="activity" /></span>
+          <span className="grid size-8 place-items-center rounded-xl bg-brand-700 text-white"><Icon name="activity" /></span>
           <strong className="flex-1">ErgoPostura</strong>
           <Badge tone="teal">{e.code}</Badge>
         </header>
-        <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">Informe de evaluación ergonómica</h1>
+        <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">Informe de evaluación ergonómica</h1>
         <p className="mb-5 text-ink-600">{e.company} · NIT {e.company_nit}</p>
         <div className="mb-6 grid gap-x-6 gap-y-3 border-y border-ink-200 py-4 text-sm sm:grid-cols-3">
           <Item label="Sede">{e.site}</Item><Item label="Área">{e.area}</Item><Item label="Puesto">{e.position}</Item>
@@ -72,7 +72,7 @@ function Report({ e }: { e: EvaluationDetail }) {
               <h2 className="text-lg font-semibold">Postura {index + 1}: {posture.name}</h2>
               <p className="mb-4 text-sm text-ink-600">{posture.side_label} · {formatNumber(posture.duration_value)} {posture.duration_unit_label.toLowerCase()} en la postura</p>
               <div className="grid gap-5 sm:grid-cols-[14rem_1fr]">
-                {photo ? <img src={photo.url} alt={`Fotografía analizada de ${posture.name}`} className="w-full rounded-lg border border-ink-200 object-contain" /> : <span />}
+                {photo ? <img src={photo.url} alt={`Fotografía analizada de ${posture.name}`} className="w-full rounded-xl border border-ink-200 object-contain" /> : <span />}
                 <div>
                   <ResultSummary result={result} />
                   <table className="mt-4 w-full text-sm">

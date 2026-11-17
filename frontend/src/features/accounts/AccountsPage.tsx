@@ -10,9 +10,9 @@ import { AccountActions, AccountStatus, CreateAccountButton, type AccountOptions
 import { accountsApi } from "./api";
 
 const ROLE_TONES: Record<string, string> = {
-  admin: "bg-violet-100 text-violet-800",
-  ingeniero: "bg-blue-100 text-blue-800",
-  empresa: "bg-brand-100 text-brand-800",
+  admin: "border border-ink-950 bg-white text-ink-950",
+  ingeniero: "bg-brand-700 text-white",
+  empresa: "bg-brand-50 text-brand-800",
 };
 
 export function AccountsPage() {
@@ -63,7 +63,7 @@ export function AccountsPage() {
                 <tr key={account.id} className={account.is_active ? "" : "opacity-60"}>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-ink-100 text-xs font-bold text-ink-700">{account.initials}</span>
+                      <span className="grid size-9 shrink-0 place-items-center bg-ink-100 text-xs font-bold text-ink-700">{account.initials}</span>
                       <span className="min-w-0">
                         <strong className="block truncate">{account.full_name}</strong>
                         <small className="block truncate text-ink-500">{account.email}</small>
@@ -71,7 +71,7 @@ export function AccountsPage() {
                     </div>
                   </td>
                   <td className="px-5 py-3">
-                    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_TONES[account.role] ?? ""}`}>{account.role_label}</span>
+                    <span className={`whitespace-nowrap px-2 py-0.5 text-xs font-semibold ${ROLE_TONES[account.role] ?? ""}`}>{account.role_label}</span>
                   </td>
                   <td className="px-5 py-3">
                     {account.company ? <Link className="hover:text-brand-700 hover:underline" to={`/empresas/${account.company.id}`}>{account.company.name}</Link> : <span className="text-ink-400">—</span>}

@@ -1,9 +1,9 @@
-import type { ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { useState, type ReactNode, type Ref, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 /** Campos de formulario con la misma presentación que `Field`: etiqueta, ayuda y error accesibles. */
 
 export const controlClass = (error?: string, full = true) =>
-  `${full ? "w-full " : ""}rounded-md border bg-white px-3 text-sm text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-400 focus:ring-4 disabled:bg-ink-100 disabled:text-ink-400 ${
+  `${full ? "w-full " : ""}border bg-white px-3.5 text-sm text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-400 focus:ring-4 disabled:bg-ink-100 disabled:text-ink-400 ${
     error ? "border-red-600 focus:ring-red-600/15" : "border-ink-200 hover:border-ink-300 focus:border-brand-600 focus:ring-brand-600/15"
   }`;
 
@@ -80,6 +80,27 @@ export function CheckboxField({ id, label, checked, onChange, hint }: {
       </label>
       {hint ? <p className="mt-1 pl-6.5 text-xs text-ink-500">{hint}</p> : null}
     </div>
+  );
+}
+
+/**
+ * Selector de archivo en español: un botón cuadrado y el nombre del archivo elegido. El campo
+ * nativo sigue ahí (oculto a la vista), así que el teclado, la etiqueta y el formulario funcionan igual.
+ */
+export function FilePicker({ id, accept, button, inputRef, onFile, invalid, name }: {
+  id: string; accept: string; button: string; inputRef?: Ref<HTMLInputElement>;
+  onFile?: (file: File | null) => void; invalid?: boolean; name?: string;
+}) {
+  const [chosen, setChosen] = useState("");
+  return (
+    <span className="flex min-w-0 items-center gap-3">
+      <input id={id} ref={inputRef} name={name} type="file" accept={accept} className="peer sr-only" aria-invalid={invalid ? true : undefined}
+        onChange={(event) => { const file = event.target.files?.[0] ?? null; setChosen(file?.name ?? ""); onFile?.(file); }} />
+      <label htmlFor={id} className="inline-flex h-11 shrink-0 cursor-pointer items-center border border-ink-950 bg-white px-4 text-sm font-semibold text-ink-950 transition-colors hover:bg-ink-950 hover:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand-700">
+        {button}
+      </label>
+      <span className="min-w-0 truncate text-sm text-ink-600">{chosen || "Ningún archivo elegido"}</span>
+    </span>
   );
 }
 

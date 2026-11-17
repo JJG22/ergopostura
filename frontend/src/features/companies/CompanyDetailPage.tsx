@@ -72,7 +72,7 @@ function Detail({ company, selected, onSelect, refresh }: {
       ) : null}
       <div className="mb-5">
         <p className="mb-1.5 text-sm font-semibold text-brand-700">Empresa cliente</p>
-        <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">{company.name}</h1>
+        <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">{company.name}</h1>
         <Meta items={[<span className="tabular">NIT {company.nit}</span>, company.location, company.is_active ? "Activa" : "Inactiva"]} />
       </div>
 
@@ -151,14 +151,14 @@ function Stat({ icon, text }: { icon: string; text: string }) {
 }
 
 function Avatar({ text }: { text: string }) {
-  return <span className="grid size-9 shrink-0 place-items-center rounded-full bg-ink-100 text-xs font-bold text-ink-700">{text}</span>;
+  return <span className="grid size-9 shrink-0 place-items-center bg-ink-100 text-xs font-bold text-ink-700">{text}</span>;
 }
 
 function ContractCard({ company }: { company: CompanyDetail }) {
   const { contract } = company;
   return (
     <Card className="mb-5 flex flex-wrap items-center gap-4">
-      <span className={`grid size-10 place-items-center rounded-lg ${contract ? "bg-brand-50 text-brand-700" : "bg-amber-50 text-amber-700"}`}>
+      <span className={`grid size-10 place-items-center rounded-xl ${contract ? "bg-brand-50 text-brand-700" : "bg-amber-50 text-amber-700"}`}>
         <Icon name="file-signature" />
       </span>
       {contract ? (
@@ -188,7 +188,7 @@ function ContractCard({ company }: { company: CompanyDetail }) {
 function TreeItem({ icon, title, detail, active, onClick }: { icon: string; title: string; detail: string; active: boolean; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} aria-current={active ? "true" : undefined}
-      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition ${active ? "bg-brand-50 ring-1 ring-brand-200" : "hover:bg-ink-50"}`}>
+      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition ${active ? "bg-brand-50 ring-1 ring-brand-200" : "hover:bg-ink-50"}`}>
       <Icon name={icon} className={`size-4 ${active ? "text-brand-700" : "text-ink-400"}`} />
       <span className="min-w-0">
         <strong className="block truncate text-sm">{title}</strong>
@@ -268,7 +268,7 @@ function NodePanel({ company, node, onDialog }: { company: CompanyDetail; node: 
         <span className="grid size-10 place-items-center rounded-md bg-brand-50 text-brand-700"><Icon name={view.icon} /></span>
         <div className="min-w-0">
           <p className="text-xs font-medium text-ink-500">{view.kind}</p>
-          <h2 className="truncate font-display text-lg font-bold">{view.name}</h2>
+          <h2 className="truncate font-display text-lg">{view.name}</h2>
         </div>
       </div>
       <p className="mb-4 flex flex-wrap items-center gap-1 text-xs text-ink-500">
@@ -318,7 +318,7 @@ function Workers({ workers, canEdit, onEdit }: { workers: Worker[]; canEdit: boo
               </span>
               {worker.is_active ? null : <Badge>Inactivo</Badge>}
               {canEdit ? (
-                <button type="button" title="Editar" onClick={() => onEdit(worker)} className="rounded-lg p-2 text-ink-500 hover:bg-ink-100 hover:text-ink-900">
+                <button type="button" title="Editar" onClick={() => onEdit(worker)} className="rounded-xl p-2 text-ink-500 hover:bg-ink-100 hover:text-ink-900">
                   <Icon name="pencil" /><span className="sr-only">Editar {worker.full_name}</span>
                 </button>
               ) : null}

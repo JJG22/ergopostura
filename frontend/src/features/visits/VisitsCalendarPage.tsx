@@ -42,7 +42,7 @@ export function VisitsHeader({ info, onSchedule }: { info: ScheduleInfo; onSched
 
 function Notice({ tone, icon = "circle-exclamation-point", children }: { tone: "amber" | "neutral"; icon?: string; children: ReactNode }) {
   return (
-    <div role="status" className={`mb-4 flex gap-2.5 rounded-lg px-4 py-3 text-sm ${tone === "amber" ? "bg-amber-50 text-amber-900" : "bg-ink-100 text-ink-700"}`}>
+    <div role="status" className={`mb-4 flex gap-2.5 rounded-2xl px-4 py-3 text-sm ${tone === "amber" ? "bg-amber-50 text-amber-900" : "bg-ink-100 text-ink-700"}`}>
       <Icon name={icon} className="mt-0.5 size-4" /><span>{children}</span>
     </div>
   );
@@ -99,21 +99,21 @@ export function VisitsCalendarPage() {
           <div className="flex flex-wrap items-center gap-2 border-b border-ink-200 p-4">
             <Button variant="secondary" onClick={() => go(view)}>Hoy</Button>
             <div className="flex">
-              <button type="button" className="rounded-lg p-2 hover:bg-ink-100" aria-label={view === "semana" ? "Semana anterior" : "Mes anterior"}
+              <button type="button" className="grid size-9 place-items-center hover:bg-ink-100" aria-label={view === "semana" ? "Semana anterior" : "Mes anterior"}
                 onClick={() => go(view, cal.previous)}><Icon name="chevron-right" className="size-5 rotate-180" /></button>
-              <button type="button" className="rounded-lg p-2 hover:bg-ink-100" aria-label={view === "semana" ? "Semana siguiente" : "Mes siguiente"}
+              <button type="button" className="grid size-9 place-items-center hover:bg-ink-100" aria-label={view === "semana" ? "Semana siguiente" : "Mes siguiente"}
                 onClick={() => go(view, cal.next)}><Icon name="chevron-right" className="size-5" /></button>
             </div>
             <h2 className="min-w-0 flex-1 text-lg font-semibold" aria-live="polite">{cal.title}</h2>
-            <nav aria-label="Vista del calendario" className="flex rounded-lg border border-ink-300 p-0.5 text-sm font-semibold">
+            <nav aria-label="Vista del calendario" className="flex border border-ink-950 text-sm font-semibold">
               {(["mes", "semana"] as const).map((option) => (
                 <button key={option} type="button" aria-current={view === option ? "page" : undefined}
                   onClick={() => go(option, option === "semana" ? (cal.contains_today ? cal.today : cal.anchor) : cal.anchor)}
-                  className={`rounded-md px-3 py-1.5 ${view === option ? "bg-brand-700 text-white" : "text-ink-600 hover:bg-ink-100"}`}>
+                  className={`px-4 py-2 transition-colors ${view === option ? "bg-ink-950 text-white" : "text-ink-700 hover:bg-ink-100"}`}>
                   {option === "mes" ? "Mes" : "Semana"}
                 </button>
               ))}
-              <Link to="/visitas/agenda" className="rounded-md px-3 py-1.5 text-ink-600 hover:bg-ink-100">Agenda</Link>
+              <Link to="/visitas/agenda" className="px-4 py-2 text-ink-700 hover:bg-ink-100">Agenda</Link>
             </nav>
           </div>
           {cal.view === "semana"
@@ -176,7 +176,7 @@ function MonthDay({ day, cal, onOpen, onAdd, onWeek }: { day: CalendarDay; cal: 
     <div role="gridcell" className={`group min-h-24 min-w-0 border-b border-r border-ink-100 p-1 sm:min-h-28 sm:p-1.5 ${day.in_period ? "" : "bg-ink-50/70"} ${day.is_past ? "text-ink-400" : ""}`}>
       <div className="mb-1 flex items-center justify-between">
         <button type="button" onClick={() => onWeek(day.date)} aria-label={`Ver la semana del ${labelOf(day.date)}`} aria-current={day.is_today ? "date" : undefined}
-          className={`grid size-7 place-items-center rounded-full text-sm font-semibold hover:bg-ink-100 ${day.is_today ? "bg-brand-700 text-white hover:bg-brand-800" : day.in_period ? "" : "text-ink-400"}`}>
+          className={`grid size-7 place-items-center text-sm font-semibold hover:bg-ink-100 ${day.is_today ? "bg-brand-700 text-white hover:bg-brand-800" : day.in_period ? "" : "text-ink-400"}`}>
           {dayNumber(day.date)}
         </button>
         {canAdd ? (
@@ -203,7 +203,7 @@ function WeekGrid({ cal, onOpen, onAdd }: { cal: Calendar; onOpen: (id: number) 
             <div key={day.date} className={`py-2 text-center ${day.is_past ? "text-ink-400" : ""}`}>
               <small className="block text-xs font-medium capitalize text-ink-500">{day.weekday.slice(0, 3)}</small>
               <strong aria-current={day.is_today ? "date" : undefined}
-                className={`mx-auto grid size-8 place-items-center rounded-full text-base ${day.is_today ? "bg-brand-700 text-white" : ""}`}>{dayNumber(day.date)}</strong>
+                className={`mx-auto grid size-8 place-items-center text-base ${day.is_today ? "bg-brand-700 text-white" : ""}`}>{dayNumber(day.date)}</strong>
             </div>
           ))}
         </div>
@@ -246,9 +246,9 @@ function WeekEvent({ event, onOpen }: { event: CalendarEvent; onOpen: (id: numbe
   const color = colorOf(event.color);
   return (
     <button type="button" onClick={() => event.id && onOpen(event.id)}
-      className={`absolute z-[2] overflow-hidden rounded-md border-l-4 px-1.5 py-1 text-left text-xs hover:brightness-95 ${event.level?.key === "cancelada" ? "line-through opacity-60" : ""}`}
-      style={{ ...style, background: color.bg, color: color.fg, borderColor: color.fg }}>
-      <strong className="block truncate">{event.title}</strong>
+      className={`absolute z-[2] overflow-hidden border border-white px-1.5 py-1 text-left text-xs hover:brightness-95 ${event.level?.key === "cancelada" ? "line-through opacity-60" : ""}`}
+      style={{ ...style, background: color.bg, color: color.fg }}>
+      <strong className="flex items-center gap-1.5 truncate"><span className="size-1.5 shrink-0 rounded-full" style={{ background: color.fg }} aria-hidden="true" />{event.title}</strong>
       <small className="block truncate">{span}</small>
       <small className="block truncate font-semibold">{event.level?.label}</small>
     </button>
@@ -259,13 +259,7 @@ function Footer({ cal }: { cal: Calendar }) {
   const empty = cal.days.every((day) => day.events.length === 0);
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-200 p-4 text-xs">
-      {cal.shows_company && cal.legend.length ? (
-        <ul aria-label="Empresas con visitas en este periodo" className="flex flex-wrap gap-x-4 gap-y-1">
-          {cal.legend.map((item) => (
-            <li key={item.name} className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm" style={{ background: colorOf(item.color).fg }} />{item.name}</li>
-          ))}
-        </ul>
-      ) : empty ? <p className="text-ink-500">No hay visitas en este periodo.</p> : <span />}
+      {empty ? <p className="text-ink-500">No hay visitas en este periodo.</p> : <span />}
       <ul aria-label="Niveles de las visitas" className="flex flex-wrap gap-1.5">
         {cal.levels.map((level) => <li key={level.key}><LevelBadge level={level} /></li>)}
       </ul>
@@ -277,7 +271,7 @@ function SidePanel({ cal, onOpen }: { cal: Calendar; onOpen: (id: number) => voi
   return (
     <Card>
       {cal.to_close.length ? (
-        <div className="mb-5 rounded-lg bg-red-50 p-3">
+        <div className="mb-5 rounded-2xl bg-red-50 p-4">
           <h2 className="font-semibold text-red-900">Por cerrar</h2>
           <p className="mb-2 text-xs text-red-800">Ya pasaron: registra si se hicieron.</p>
           {cal.to_close.slice(0, 4).map((visit) => (
@@ -292,19 +286,18 @@ function SidePanel({ cal, onOpen }: { cal: Calendar; onOpen: (id: number) => voi
       <SectionHead title="Próximas visitas" subtitle={cal.upcoming.length ? `Las ${cal.upcoming.length} más cercanas` : undefined} />
       {cal.upcoming.length === 0 ? (
         <p className="py-6 text-center text-sm text-ink-500">No hay visitas programadas</p>
-      ) : cal.upcoming.map((visit) => <UpcomingItem key={visit.id} visit={visit} onOpen={onOpen} />)}
+      ) : <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{cal.upcoming.map((visit) => <UpcomingItem key={visit.id} visit={visit} onOpen={onOpen} />)}</div>}
       <Link to="/visitas/agenda" className={`${linkButtonClass()} mt-2`}>Ver la agenda completa</Link>
     </Card>
   );
 }
 
 function UpcomingItem({ visit, onOpen }: { visit: VisitRow; onOpen: (id: number) => void }) {
-  const color = colorOf(visit.color);
   const start = new Date(visit.starts_at);
   return (
-    <button type="button" onClick={() => onOpen(visit.id)} className="flex w-full gap-3 rounded-md p-2 text-left transition-colors hover:bg-ink-50">
-      <span className="grid w-11 shrink-0 place-items-center rounded-md py-1" style={{ background: color.bg, color: color.fg }}>
-        <small className="text-[10px] font-semibold">{shortMonth.format(start).replace(".", "")}</small>
+    <button type="button" onClick={() => onOpen(visit.id)} className="flex w-full gap-3.5 border-t-2 border-ink-950 py-3 text-left transition-colors hover:bg-ink-50">
+      <span className="flex w-12 shrink-0 flex-col items-center overflow-hidden border border-ink-950 bg-white">
+        <small className="w-full bg-brand-700 py-0.5 text-center text-[10px] font-semibold text-white">{shortMonth.format(start).replace(".", "")}</small>
         <strong className="font-display text-lg leading-none tabular">{dayNumber(visit.starts_at)}</strong>
       </span>
       <span className="min-w-0 text-sm">

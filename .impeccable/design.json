@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T21:30:00-05:00",
+  "title": "Design System: ErgoPostura",
+  "extensions": {
+    "colorMeta": {
+      "paper-white": { "role": "neutral", "displayName": "Papel blanco", "canonical": "#ffffff", "tonalRamp": ["#121418", "#24272b", "#4a4d52", "#8a8e96", "#d4d6da", "#e9eaec", "#f5f5f6", "#ffffff"] },
+      "poster-ink": { "role": "neutral", "displayName": "Tinta de cartel", "canonical": "#121418", "tonalRamp": ["#121418", "#17191d", "#24272b", "#36393e", "#4a4d52", "#616366", "#8a8e96", "#b4b7bd"] },
+      "signal-blue": { "role": "primary", "displayName": "Azul de señal obligatoria", "canonical": "#0b4a8f", "tonalRamp": ["#041c38", "#072e59", "#093c74", "#0b4a8f", "#1f64aa", "#4280c0", "#a9c6e6", "#eaf1f9"] },
+      "signal-blue-deep": { "role": "primary", "displayName": "Azul de señal profundo", "canonical": "#093c74", "tonalRamp": ["#041c38", "#072e59", "#093c74", "#0b4a8f", "#135699", "#1f64aa", "#74a3d3", "#d3e2f2"] },
+      "signal-blue-pale": { "role": "primary", "displayName": "Azul pálido de señal", "canonical": "#a9c6e6", "tonalRamp": ["#072e59", "#0b4a8f", "#1f64aa", "#4280c0", "#74a3d3", "#a9c6e6", "#d3e2f2", "#eaf1f9"] },
+      "field-grey": { "role": "neutral", "displayName": "Gris de campo", "canonical": "#e9eaec", "tonalRamp": ["#24272b", "#4a4d52", "#8a8e96", "#b4b7bd", "#d4d6da", "#e9eaec", "#f5f5f6", "#ffffff"] },
+      "rule-grey": { "role": "neutral", "displayName": "Gris de regla", "canonical": "#d4d6da", "tonalRamp": ["#24272b", "#4a4d52", "#8a8e96", "#b4b7bd", "#d4d6da", "#e9eaec", "#f5f5f6", "#ffffff"] },
+      "muted-ink": { "role": "neutral", "displayName": "Tinta tenue", "canonical": "#616366", "tonalRamp": ["#121418", "#24272b", "#36393e", "#4a4d52", "#616366", "#8a8e96", "#b4b7bd", "#e9eaec"] },
+      "body-ink": { "role": "neutral", "displayName": "Tinta de cuerpo", "canonical": "#36393e", "tonalRamp": ["#121418", "#17191d", "#24272b", "#36393e", "#4a4d52", "#616366", "#8a8e96", "#d4d6da"] },
+      "risk-green": { "role": "tertiary", "displayName": "Verde de riesgo (RULA 1-2, liso)", "canonical": "#1e7a46", "tonalRamp": ["#0b2e1a", "#124a2b", "#1e7a46", "#2e9a5d", "#5bb684", "#92cfab", "#c6e6d2", "#ebf6ef"] },
+      "risk-amber": { "role": "tertiary", "displayName": "Ámbar de riesgo (RULA 3-4, rayado 45°)", "canonical": "#c99700", "tonalRamp": ["#3a2c00", "#5c4600", "#8a6700", "#c99700", "#e0b326", "#ecca66", "#f5e1a6", "#fbf3dc"] },
+      "risk-amber-text": { "role": "tertiary", "displayName": "Ámbar de riesgo para texto", "canonical": "#8a6700", "tonalRamp": ["#3a2c00", "#5c4600", "#8a6700", "#a87e00", "#c99700", "#ecca66", "#f5e1a6", "#fbf3dc"] },
+      "risk-orange": { "role": "tertiary", "displayName": "Naranja de riesgo (RULA 5-6, rayado cruzado)", "canonical": "#c2531a", "tonalRamp": ["#3d1806", "#62270b", "#a8461a", "#c2531a", "#d9763f", "#e8a078", "#f3cbb3", "#fbece3"] },
+      "risk-red": { "role": "tertiary", "displayName": "Rojo de riesgo (RULA 7, rayado horizontal)", "canonical": "#b3121f", "tonalRamp": ["#3b0509", "#5e0a10", "#8c0e18", "#b3121f", "#d33a46", "#e57a82", "#f2b6ba", "#fbe6e7"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Solo el titular del primer pliego de la portada, en blanco sobre el campo azul." },
+      "headline": { "displayName": "Headline", "purpose": "Saludo de la banda azul del panel y titulares de sección de la portada (ancho 110 % en la portada)." },
+      "title": { "displayName": "Title", "purpose": "Títulos de fichas, ventanas y secciones de la aplicación." },
+      "numeral": { "displayName": "Numeral", "purpose": "Métricas, puntaje RULA, día del calendario y casillas de la escala; siempre cifras tabulares." },
+      "body": { "displayName": "Body", "purpose": "Párrafos y entradillas de la portada." },
+      "body-sm": { "displayName": "Body small", "purpose": "Tablas, metadatos y descripciones de la aplicación." },
+      "label": { "displayName": "Label", "purpose": "Etiquetas de campo y encabezados de métrica; sin mayúsculas sostenidas." },
+      "button": { "displayName": "Button", "purpose": "Texto de botones y enlaces con forma de botón." }
+    },
+    "shadows": [
+      { "name": "float", "value": "0 2px 4px rgb(18 20 24 / 0.08), 0 16px 32px -12px rgb(18 20 24 / 0.28)", "purpose": "Solo menús desplegables y ventanas modales, siempre con borde de tinta o regla azul superior." }
+    ],
+    "motion": [
+      { "name": "press", "value": "150ms ease-out; translateY(1px) on :active", "purpose": "Cambio de color de botones y presión al hacer clic." },
+      { "name": "pop-in", "value": "160ms cubic-bezier(0.2, 0.9, 0.3, 1)", "purpose": "Apertura del menú de la cuenta (desde −4 px)." },
+      { "name": "sheet-in", "value": "240ms cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "Hoja de navegación del teléfono." },
+      { "name": "rise", "value": "520ms cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "Entrada del contenido de la banda azul del panel (desde 12 px)." },
+      { "name": "segment-highlight", "value": "150ms ease-out", "purpose": "Resalte del segmento medido sobre la foto del método en la portada." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ],
+    "riskPatterns": [
+      { "level": "1-2", "color": "#1e7a46", "pattern": "none", "numeralInk": "#ffffff" },
+      { "level": "3-4", "color": "#c99700", "pattern": "repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .22) 9px 13px)", "numeralInk": "#121418" },
+      { "level": "5-6", "color": "#c2531a", "pattern": "repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .18) 7px 10px), repeating-linear-gradient(-45deg, transparent 0 7px, rgb(255 255 255 / .14) 7px 10px)", "numeralInk": "#ffffff" },
+      { "level": "7", "color": "#b3121f", "pattern": "repeating-linear-gradient(0deg, transparent 0 6px, rgb(255 255 255 / .16) 6px 9px)", "numeralInk": "#ffffff" }
+    ],
+    "photoPrint": {
+      "ground": "#0b4a8f",
+      "filter": "grayscale(1) contrast(1.15) brightness(1.08)",
+      "filterLight": "grayscale(1) contrast(0.95) brightness(2.1)",
+      "blend": "multiply"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "La acción principal: rectángulo macizo en azul de señal.",
+      "html": "<button class=\"ds-btn-primary\">Terminar evaluación</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; background: #0b4a8f; color: #fff; border: 0; border-radius: 2px; font: 600 14px/1 Archivo, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, transform 150ms ease-out; } .ds-btn-primary:hover { background: #093c74; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid #0b4a8f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción secundaria: blanco con borde de tinta que se invierte en hover.",
+      "html": "<button class=\"ds-btn-secondary\">Agregar postura</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 20px; background: #fff; color: #121418; border: 1px solid #121418; border-radius: 2px; font: 600 14px/1 Archivo, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out; } .ds-btn-secondary:hover { background: #121418; color: #fff; } .ds-btn-secondary:active { transform: translateY(1px); } .ds-btn-secondary:focus-visible { outline: 2px solid #0b4a8f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Inverse Buttons on Signal Blue",
+      "kind": "button",
+      "refersTo": "button-inverse",
+      "description": "Sobre el campo azul: botón blanco macizo y contorno blanco.",
+      "html": "<div class=\"ds-blue-field\"><button class=\"ds-btn-inverse\">Ver calendario</button><button class=\"ds-btn-inverse-outline\">Evaluaciones</button></div>",
+      "css": ".ds-blue-field { display: flex; gap: 12px; padding: 32px; background: #0b4a8f; } .ds-btn-inverse, .ds-btn-inverse-outline { height: 44px; padding: 0 20px; border-radius: 2px; font: 600 14px/1 Archivo, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out; } .ds-btn-inverse { background: #fff; color: #093c74; border: 0; } .ds-btn-inverse:hover { background: #e9eaec; } .ds-btn-inverse-outline { background: transparent; color: #fff; border: 1px solid #fff; } .ds-btn-inverse-outline:hover { background: #fff; color: #093c74; } .ds-btn-inverse:focus-visible, .ds-btn-inverse-outline:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-text",
+      "description": "Campo de formulario con etiqueta encima y foco azul.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Nombre del puesto</span><input class=\"ds-field__input\" placeholder=\"Auxiliar de recepción\"></label>",
+      "css": ".ds-field { display: block; max-width: 360px; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-field__label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: #36393e; } .ds-field__input { width: 100%; height: 44px; padding: 0 14px; background: #fff; color: #121418; border: 1px solid #d4d6da; border-radius: 2px; font: 400 14px Archivo, ui-sans-serif, system-ui, sans-serif; outline: none; transition: border-color 150ms, box-shadow 150ms; } .ds-field__input:hover { border-color: #b4b7bd; } .ds-field__input:focus-visible { border-color: #135699; box-shadow: 0 0 0 4px rgb(19 86 153 / 0.15); }"
+    },
+    {
+      "name": "Header Band Navigation",
+      "kind": "nav",
+      "refersTo": "header-band",
+      "description": "Franja azul de la aplicación; la sección activa lleva una barra blanca de 4 px.",
+      "html": "<nav class=\"ds-band\"><strong class=\"ds-band__logo\">ergopostura</strong><a class=\"ds-band__link is-active\" href=\"#\">Inicio</a><a class=\"ds-band__link\" href=\"#\">Empresas</a><a class=\"ds-band__link\" href=\"#\">Evaluaciones</a></nav>",
+      "css": ".ds-band { display: flex; align-items: stretch; gap: 8px; height: 64px; padding: 0 24px; background: #0b4a8f; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-band__logo { display: flex; align-items: center; margin-right: 16px; color: #fff; font-weight: 800; font-size: 19px; letter-spacing: -0.03em; font-stretch: 104%; } .ds-band__link { position: relative; display: flex; align-items: center; padding: 0 12px; color: rgb(255 255 255 / 0.8); font-size: 15px; font-weight: 500; text-decoration: none; transition: color 150ms; } .ds-band__link::after { content: \"\"; position: absolute; left: 12px; right: 12px; bottom: 0; height: 4px; background: transparent; } .ds-band__link:hover { color: #fff; } .ds-band__link.is-active { color: #fff; } .ds-band__link.is-active::after { background: #fff; } .ds-band__link:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }"
+    },
+    {
+      "name": "Risk Badge",
+      "kind": "chip",
+      "refersTo": "risk-chip-red",
+      "description": "Nivel de acción RULA: tinta, trama, número y texto juntos.",
+      "html": "<span class=\"ds-risk\"><span class=\"ds-risk__chip ds-risk__chip--red\">Nivel 4</span><span class=\"ds-risk__text\">Puede requerir intervención inmediata</span></span> <span class=\"ds-risk\"><span class=\"ds-risk__chip ds-risk__chip--amber\">Nivel 2</span><span class=\"ds-risk__text ds-risk__text--amber\">Requiere revisión</span></span> <span class=\"ds-risk\"><span class=\"ds-risk__chip ds-risk__chip--green\">Nivel 1</span><span class=\"ds-risk__text ds-risk__text--green\">Adecuado, sin intervención</span></span>",
+      "css": ".ds-risk { display: inline-flex; align-items: center; gap: 8px; margin: 4px 12px 4px 0; font: 600 12px Archivo, ui-sans-serif, system-ui, sans-serif; white-space: nowrap; } .ds-risk__chip { display: grid; place-items: center; height: 20px; padding: 0 6px; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-risk__chip--green { background: #1e7a46; color: #fff; } .ds-risk__chip--amber { background-color: #c99700; color: #121418; background-image: repeating-linear-gradient(45deg, transparent 0 5px, rgb(255 255 255 / .28) 5px 7px); } .ds-risk__chip--red { background-color: #b3121f; color: #fff; background-image: repeating-linear-gradient(0deg, transparent 0 3px, rgb(255 255 255 / .2) 3px 5px); } .ds-risk__text { color: #b3121f; } .ds-risk__text--amber { color: #8a6700; } .ds-risk__text--green { color: #1e7a46; }"
+    },
+    {
+      "name": "RULA Printed Strip",
+      "kind": "custom",
+      "refersTo": "risk-chip-green",
+      "description": "La escala 1-7 como tira impresa: cuatro tintas, cuatro tramas, número en cada casilla.",
+      "html": "<div class=\"ds-rula\" role=\"img\" aria-label=\"Escala RULA de 1 a 7\"><span class=\"g\">1</span><span class=\"g\">2</span><span class=\"a\">3</span><span class=\"a\">4</span><span class=\"o\">5</span><span class=\"o\">6</span><span class=\"r\">7</span></div>",
+      "css": ".ds-rula { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; max-width: 560px; } .ds-rula span { display: flex; align-items: flex-end; height: 120px; padding: 10px 12px; color: #fff; font: 800 44px/0.9 Archivo, ui-sans-serif, system-ui, sans-serif; font-stretch: 110%; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; } .ds-rula .g { background: #1e7a46; } .ds-rula .a { color: #121418; background-color: #c99700; background-image: repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .22) 9px 13px); } .ds-rula .o { background-color: #c2531a; background-image: repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .18) 7px 10px), repeating-linear-gradient(-45deg, transparent 0 7px, rgb(255 255 255 / .14) 7px 10px); } .ds-rula .r { background-color: #b3121f; background-image: repeating-linear-gradient(0deg, transparent 0 6px, rgb(255 255 255 / .16) 6px 9px); }"
+    },
+    {
+      "name": "Metric Row",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Métricas sin caja bajo una regla de tinta de 2 px, divididas por reglas finas.",
+      "html": "<div class=\"ds-metrics\"><div class=\"ds-metric\"><p class=\"ds-metric__label\">Empresas</p><p class=\"ds-metric__value\">6</p><p class=\"ds-metric__detail\">17 puestos registrados</p></div><div class=\"ds-metric\"><p class=\"ds-metric__label\">Contratos vigentes</p><p class=\"ds-metric__value\">5</p><p class=\"ds-metric__detail\">1 por vencer</p></div><div class=\"ds-metric\"><p class=\"ds-metric__label\">Evaluaciones en curso</p><p class=\"ds-metric__value\">4</p><p class=\"ds-metric__detail\">Por terminar</p></div></div>",
+      "css": ".ds-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 2px solid #121418; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-metric { padding: 24px; transition: background-color 150ms; } .ds-metric + .ds-metric { border-left: 1px solid #d4d6da; } .ds-metric:hover { background: #f5f5f6; } .ds-metric p { margin: 0; } .ds-metric__label { font-size: 14px; font-weight: 500; color: #4a4d52; } .ds-metric__value { margin-top: 16px !important; font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; font-stretch: 104%; font-variant-numeric: tabular-nums; color: #121418; } .ds-metric__detail { margin-top: 12px !important; font-size: 12px; color: #616366; }"
+    },
+    {
+      "name": "Blue Print Photo",
+      "kind": "custom",
+      "refersTo": "poster-band",
+      "description": "Foto de trabajo en blanco y negro multiplicada sobre el azul de señal.",
+      "html": "<figure class=\"ds-print\"><div class=\"ds-print__photo\"></div></figure>",
+      "css": ".ds-print { margin: 0; width: 320px; aspect-ratio: 4 / 3; background: #0b4a8f; } .ds-print__photo { width: 100%; height: 100%; background: repeating-linear-gradient(100deg, #222 0 30px, #bbb 30px 60px, #666 60px 110px); filter: grayscale(1) contrast(1.15) brightness(1.08); mix-blend-mode: multiply; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El cartel de prevención laboral",
+    "overview": "Cada pantalla se lee como un cartel de seguridad industrial del estilo tipográfico internacional: un campo de color plano que ocupa una región entera, una frase grande en grotesca pesada y una foto de trabajo real impresa sobre el azul. El sistema es papel blanco, tinta de imprenta y un solo azul de señal obligatoria; nada brilla, nada flota, nada se difumina. La autoridad viene de la escala y del contraste, no de efectos.\n\nHay dos densidades del mismo mundo. La portada pública (modo persuadir) trabaja a tamaño de cartel: campos a sangre, una sección por pantalla, titulares de hasta 92 px. La aplicación (modo operar) conserva el mismo vocabulario a tamaño de formulario: franja azul arriba, una banda de cartel azul al inicio del panel, tablas y fichas blancas bajo reglas de tinta. El panel técnico de Django hereda la paleta y la tipografía, en una versión más tenue.\n\nLa escala RULA de 1 a 7 es la firma del sistema: una tira impresa de siete casillas en cuatro tintas de riesgo, cada una con su trama, que reaparece en la portada (regla vertical del primer pliego, regla grande de la escala, tercer paso del proceso) y en la aplicación (escala del puntaje en cada postura). La dirección proviene de la semilla seed:ab5ed8ade45fd4eb (forma: cartel de seguridad laboral tipo Suva).",
+    "keyCharacteristics": [
+      "Campos planos de azul de señal a sangre; sin degradados, vidrio ni sombras difusas.",
+      "Una sola familia, Archivo: 800 con eje de ancho para títulos y cifras, 400/500 para texto.",
+      "Esquinas rectas: 0 en la portada, 2 px en la aplicación y el panel técnico.",
+      "Reglas de tinta de 2 a 4 px como estructura, en lugar de cajas.",
+      "Fotos en blanco y negro sobreimpresas en azul por multiplicación.",
+      "El riesgo nunca va solo con color: tinta, trama, número y texto juntos."
+    ],
+    "rules": [
+      { "name": "The One Signal Rule", "body": "El azul de señal es el único color que invita a actuar. Si algo se puede pulsar y tiene color, es azul (o blanco sobre azul).", "section": "colors" },
+      { "name": "The Risk-Only Inks Rule", "body": "Verde, ámbar, naranja y rojo están reservados para el riesgo RULA. Los estados que no son riesgo (contratos, visitas) se expresan en tinta, gris o azul: un estado «rojo» se imprime en tinta negra, un estado «verde» en gris de campo.", "section": "colors" },
+      { "name": "The Never-Color-Alone Rule", "body": "Cada tinta de riesgo lleva su trama, su número y su texto. Una escala o insignia de riesgo que se lea solo por el color está rota.", "section": "colors" },
+      { "name": "The One Family Rule", "body": "Archivo es la única familia. La jerarquía sale del peso, el ancho y el tamaño, nunca de una segunda fuente.", "section": "typography" },
+      { "name": "The Tabular Numbers Rule", "body": "Toda cifra que se compara (puntajes, métricas, fechas en tablas, códigos) usa cifras tabulares.", "section": "typography" },
+      { "name": "The One Screen Per Section Rule", "body": "En la portada cada sección cabe en una pantalla en todos los anchos; si no cabe, se acorta la foto o se oculta el texto secundario, no se deja desbordar.", "section": "layout" },
+      { "name": "The Flat Poster Rule", "body": "Fichas, botones, tablas y bandas no tienen sombra. Si una superficie no flota sobre otra, no proyecta sombra.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** llenar regiones enteras con azul de señal plano y poner encima el titular en blanco y el botón inverso.",
+      "**Do** acompañar cada tinta de riesgo con su trama (liso, 45°, cruzado, horizontal), su número y su texto.",
+      "**Do** imprimir las fotos de trabajo en blanco y negro multiplicadas sobre el azul.",
+      "**Do** separar con reglas de tinta de 2 a 4 px en lugar de cajas y sombras.",
+      "**Do** usar Archivo 800 con ancho extendido y interletrado de −0.03 em para títulos y cifras, y cifras tabulares en toda comparación.",
+      "**Do** repetir la escala RULA 1-7 como tira impresa donde se hable del resultado."
+    ],
+    "donts": [
+      "**Don't** usar degradados, vidrio, desenfoques de fondo ni sombras difusas; la única sombra es la flotante de menús y ventanas.",
+      "**Don't** redondear esquinas más de 2 px ni hacer botones en píldora; solo los puntos indicadores son redondos.",
+      "**Don't** usar verde, ámbar, naranja o rojo para acciones o estados que no sean riesgo RULA.",
+      "**Don't** mostrar el riesgo solo con color.",
+      "**Don't** añadir una segunda familia tipográfica."
+    ]
+  }
+}

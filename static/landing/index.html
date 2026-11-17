@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="es" data-type="service" data-radius="sharp" data-buttons="block" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ErgoPostura: evaluación ergonómica de puestos para empresas</title>
+<meta name="description" content="Visitamos su sede, calificamos cada postura con el método RULA y le entregamos un informe por puesto con las acciones a tomar.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ErgoPostura: evaluación ergonómica de puestos para empresas">
+<meta property="og:description" content="Cada postura de trabajo calificada con el método RULA, de 1 a 7, con su informe.">
+<meta property="og:image" content="/static/landing/share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#ffffff">
+<!-- <link rel="canonical" href="https://(dominio del cliente)/"> -->
+<meta name="site-kind" content="other">
+<meta name="page-type" content="service">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/landing/assets/system.css">
+<link rel="stylesheet" href="/static/landing/assets/ui/cards.css">
+<link rel="stylesheet" href="/static/landing/assets/motion/motion.css">
+<link rel="stylesheet" href="/static/landing/assets/layout/layout.css">
+<link rel="stylesheet" href="/static/landing/assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #ffffff; --p-surface: #e9eaec; --p-ink: #121418; --p-muted: #616366;
+  --p-accent: #0b4a8f; --p-accent-ink: #ffffff; --p-action: #0b4a8f; --p-action-ink: #ffffff;
+  --p-inv-bg: #121418; --p-inv-surface: #1f2125; --p-inv-ink: #ffffff; --p-inv-muted: #9b9c9e;
+  --p-inv-accent: #ffffff; --p-inv-accent-ink: #121418; --p-inv-action: #ffffff; --p-inv-action-ink: #121418;
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-text: "Archivo", system-ui, sans-serif;
+  --display-weight: 800;
+  --display-tracking: -0.025em;
+  --display-tracking-xl: -0.035em;
+  --display-stretch: 110%;
+  --ly-scale: 0.9;
+}
+</style>
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="/static/landing/assets/moments/moments.js">
+<link rel="modulepreload" href="/static/landing/assets/moments/lib.js">
+<link rel="modulepreload" href="/static/landing/assets/moments/picture-develops/moment.js">
+<!-- page CSS: only inside the visuals -->
+<style>
+  /* Mundo del cartel de prevención: esquinas rectas y reglas de tinta. */
+  html[data-radius] { --r-sm: 0px; --r-md: 0px; --r-lg: 0px; --r-btn: 0px; }
+  header.nav { border-bottom: 2px solid var(--p-ink); }
+  .rows { --line: var(--p-ink); }
+  /* La portada es un campo azul plano: el titular en blanco, el botón blanco, la foto impresa encima. */
+  .hero { position: relative; background: var(--p-accent); color: #fff; --ink: #fff; --muted: rgb(255 255 255 / .82); --action: #fff; --action-ink: #0b4a8f; --p-action: #fff; --p-action-ink: #0b4a8f; }
+  .hero::before { content: ""; position: absolute; inset: 0 0 0 auto; width: 46%; background: #fff; }
+  .hero > .wrap { position: relative; }
+  .hero h1 { color: #fff; font-size: clamp(36px, 6.2vw, 92px); line-height: .96; font-stretch: 100%; letter-spacing: -0.035em; hyphens: manual; }
+  @media (max-width: 1023px) { .hero::before { display: none; } }
+  .hero .hero__lead { color: rgb(255 255 255 / .88); }
+  .hero .btn--primary { background: #fff; color: #0b4a8f; border-color: #fff; }
+  .hero .link { color: #fff; text-decoration-color: rgb(255 255 255 / .5); }
+  .hero .hero__media { background: #082f5c; }
+  /* La escala RULA como regla vertical en el borde de la foto. */
+  .hero-rule { position: absolute; top: 0; right: 0; bottom: 0; width: 64px; display: grid; grid-template-rows: repeat(7, 1fr); z-index: 2; }
+  .hero-rule span { display: flex; align-items: flex-end; padding: 0 0 8px 10px; color: #fff; font: 800 22px/1 var(--font-display); font-variant-numeric: tabular-nums; background: var(--lv); }
+  .hero-rule span:nth-child(3), .hero-rule span:nth-child(4) { color: #121418; background-image: repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .22) 7px 10px); }
+  .hero-rule span:nth-child(5), .hero-rule span:nth-child(6) { background-color: #a8461a; background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgb(255 255 255 / .07) 6px 9px), repeating-linear-gradient(-45deg, transparent 0 6px, rgb(255 255 255 / .05) 6px 9px); }
+  .hero-rule span:nth-child(7) { background-image: repeating-linear-gradient(0deg, transparent 0 5px, rgb(255 255 255 / .16) 5px 8px); }
+  @media (max-width: 639px) { .hero-rule { width: 40px; } .hero-rule span { font-size: 15px; padding: 0 0 4px 6px; } }
+  /* Fotomontaje: la foto en blanco y negro impresa sobre el azul de señal. */
+  .print-blue { background: var(--p-accent); }
+  .print-blue img { filter: grayscale(1) contrast(1.15) brightness(1.08); mix-blend-mode: multiply; }
+  .print-blue.print-light img { filter: grayscale(1) contrast(0.95) brightness(2.1); }
+  /* La foto que se revela: el filtro va en la figura y el azul encima, para no chocar con el momento. */
+  .print-over { position: relative; }
+  .print-over > .develop { filter: grayscale(1) contrast(1.15) brightness(1.08); }
+  .print-over::after { content: ""; position: absolute; inset: 0; background: var(--p-accent); mix-blend-mode: multiply; pointer-events: none; }
+  @media (max-width: 1023px) { .print-over::after { top: var(--s-7); } }
+  /* El método: la foto y su lámina de medición, una al lado de la otra. */
+  .posture { position: relative; align-self: stretch; min-height: 420px; }
+  .posture > .frame__img { object-position: 0% 50%; }
+  .posture > .trace { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; z-index: 1; }
+  .trace .seg { fill: none; stroke: #fff; stroke-width: 9; stroke-linecap: round; opacity: .85; transition: stroke .15s ease-out, stroke-width .15s ease-out, opacity .15s ease-out; }
+  .trace .ref { stroke: rgb(255 255 255 / .7); stroke-width: 2.5; stroke-dasharray: 8 9; fill: none; }
+  .trace .joint { fill: #fff; }
+  .trace .tag rect { fill: #121418; }
+  .trace .tag text { fill: #fff; font: 800 22px var(--font-display); text-anchor: middle; }
+  .trace .tag { transition: transform .15s ease-out; }
+  @media (max-width: 639px) { .trace .tag { display: none; } }
+  @media (max-width: 1023px) { .posture { align-self: start; width: 100%; min-height: 0; aspect-ratio: 4 / 3; margin-top: var(--s-6); } }
+  @media (max-width: 639px) { #proceso .panel { --p-h: 205px; } }
+  @media (max-width: 639px) { .posture { aspect-ratio: 21 / 9; } }
+  #metodo .rows--measure li { cursor: default; }
+  #metodo .rows--measure .rows__name { color: var(--p-ink); }
+  #metodo .rows--measure li:hover, #metodo .rows--measure li:focus { background: var(--p-surface); }
+  #metodo .rows--measure li:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+  #metodo:has([data-seg="tronco"]:is(:hover, :focus)) .trace .seg[data-seg="tronco"],
+  #metodo:has([data-seg="cuello"]:is(:hover, :focus)) .trace .seg[data-seg="cuello"],
+  #metodo:has([data-seg="brazo"]:is(:hover, :focus)) .trace .seg[data-seg="brazo"],
+  #metodo:has([data-seg="antebrazo"]:is(:hover, :focus)) .trace .seg[data-seg="antebrazo"] { stroke: #fff; stroke-width: 15; opacity: 1; }
+  #metodo:has(.rows--measure li:is(:hover, :focus)) .trace .seg { opacity: .3; }
+  #metodo:has(.rows--measure li:is(:hover, :focus)) .trace .tag rect { fill: #4a4d52; }
+  #metodo:has([data-seg="tronco"]:is(:hover, :focus)) .trace .tag[data-seg="tronco"] rect,
+  #metodo:has([data-seg="cuello"]:is(:hover, :focus)) .trace .tag[data-seg="cuello"] rect,
+  #metodo:has([data-seg="brazo"]:is(:hover, :focus)) .trace .tag[data-seg="brazo"] rect,
+  #metodo:has([data-seg="antebrazo"]:is(:hover, :focus)) .trace .tag[data-seg="antebrazo"] rect { fill: #0b4a8f; }
+  /* Los pasos: tres columnas bajo una regla negra, sin cajas. */
+  #proceso .card { background: none; border: 0; border-top: 3px solid var(--p-ink); border-radius: 0; padding-inline: 0; box-shadow: none; }
+  #proceso .step-num { border-radius: 0; background: var(--p-ink); color: #fff; }
+  .step-scale { height: 100%; display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; background: #fff; }
+  .step-scale span { display: flex; align-items: flex-end; padding: 8px; color: #fff; font: 800 28px/1 var(--font-display); background: var(--lv); }
+  .step-scale span:nth-child(3), .step-scale span:nth-child(4) { color: #121418; background-image: repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .22) 9px 13px); }
+  .step-scale span:nth-child(5), .step-scale span:nth-child(6) { background-image: repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .18) 7px 10px), repeating-linear-gradient(-45deg, transparent 0 7px, rgb(255 255 255 / .14) 7px 10px); }
+  .step-scale span:nth-child(7) { background-image: repeating-linear-gradient(0deg, transparent 0 6px, rgb(255 255 255 / .16) 6px 9px); }
+  .step-scale span:not(:last-child) { opacity: 1; }
+  #proceso .card > .panel { margin-inline: 0; margin-bottom: 0; }
+  #proceso .panel.print-blue { background: var(--p-accent); }
+  #proceso .panel::before { display: none; }
+  /* picture-develops: la foto del servicio en la columna derecha, tan alta como el texto. */
+  .develop { margin: 0; border-radius: var(--r-lg); overflow: hidden; height: min(660px, var(--ly-fit)); }
+  .develop > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  @media (max-width: 1023px) { .develop { height: auto; aspect-ratio: 4 / 3; margin-top: var(--s-7); } }
+  /* La escala RULA como regla: siete pasos, el color de cada nivel con su trama. */
+  .rula-rule { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: var(--s-6); }
+  .rula-rule span { display: flex; align-items: flex-end; height: clamp(120px, 24vh, 240px); padding: 12px 16px; color: #fff; background-color: var(--lv); font: var(--display-weight) clamp(40px, 5.6vw, 88px)/0.9 var(--font-display); letter-spacing: -0.03em; font-stretch: 110%; font-variant-numeric: tabular-nums; }
+  .rula-rule span:nth-child(3), .rula-rule span:nth-child(4) { color: #121418; background-image: repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .22) 9px 13px); }
+  .rula-rule span:nth-child(5), .rula-rule span:nth-child(6) { background-image: repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .18) 7px 10px), repeating-linear-gradient(-45deg, transparent 0 7px, rgb(255 255 255 / .14) 7px 10px); }
+  .rula-rule span:nth-child(7) { background-image: repeating-linear-gradient(0deg, transparent 0 6px, rgb(255 255 255 / .16) 6px 9px); }
+  .lv { display: inline-block; width: 28px; height: 28px; margin-right: 12px; vertical-align: -6px; background: var(--lv); }
+  .lv1 { --lv: #1e7a46; }
+  .lv2 { --lv: #c99700; background-image: repeating-linear-gradient(45deg, transparent 0 5px, rgb(255 255 255 / .75) 5px 8px); }
+  .lv3 { --lv: #c2531a; background-image: repeating-linear-gradient(45deg, transparent 0 4px, rgb(255 255 255 / .75) 4px 6px), repeating-linear-gradient(-45deg, transparent 0 4px, rgb(255 255 255 / .55) 4px 6px); }
+  .lv4 { --lv: #b3121f; background-image: repeating-linear-gradient(0deg, transparent 0 3px, rgb(255 255 255 / .6) 3px 5px); }
+  /* Tableta: el servicio apila texto y foto y ocupa dos pantallas; la regla de la escala crece. */
+  @media (max-width: 1023px) { #servicio .rows p { display: none; } .develop { aspect-ratio: 16 / 9; } }
+  /* Teléfono: fotos más bajas para que cada sección quepa en su pantalla. */
+  @media (max-width: 639px) { .develop { aspect-ratio: 21 / 9; } #metodo .frame--split { aspect-ratio: 4 / 3; } }
+  @media (min-width: 640px) and (max-width: 1023px) { #metodo .frame--split { aspect-ratio: 16 / 9; } }
+  /* Entre 640 y 1279 los tres pasos siguen en fila, con paneles más bajos, en una pantalla. */
+  @media (min-width: 640px) and (max-width: 1279px) { #proceso .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } #proceso .grid > .span-4 { grid-column: auto; } #proceso .panel { --p-h: 300px; } }
+  /* En el teléfono el pie lleva lo esencial: el logo, el ingreso y la línea legal, en una pantalla. */
+  @media (max-width: 639px) { .closing__links .footer__col:not(:last-child) { display: none; } }
+  /* A 320 px el botón grande del cierre parte su texto en dos líneas para caber en la pantalla. */
+  @media (max-width: 359px) { .close--type .btn--xl { font-size: 18px; white-space: normal; text-align: left; height: auto; min-height: 48px; padding-block: 12px; } .close--type h2 { overflow-wrap: anywhere; } }
+</style>
+</head>
+<body>
+<!-- type: service
+     deal: hero split, nav nav-split, close close-type, footer footer-columns (footer-visit re-dealt: no street in the brief), rhythm surface-pairs, buttons block, mark: the client's own logo, grounds none
+     palette: brand (ISO mandatory-action blue on white, from the occupational-safety poster world chosen with Impeccable); type: archivo (the first pairing, instrument, is on Impeccable's overused list)
+     moments: picture-develops on #servicio (the service's own photograph develops once, like a print) -->
+<header class="nav nav--split">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Ir al contenido</a>
+    <a class="nav__logo" href="#top" aria-label="ErgoPostura, inicio"><svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true"><g fill="none" stroke-linecap="round"><path d="M32.5 20A12.5 12.5 0 1 0 29.58 28.03" stroke="#121418" stroke-width="3.4"/><path d="M7.5 20H32.5" stroke="#121418" stroke-width="3.4"/><path d="M20 20 27.9 13.4" stroke="#0b4a8f" stroke-width="3.4"/><path d="M26.2 20A6.2 6.2 0 0 0 24.75 16.01" stroke="#0b4a8f" stroke-width="1.6"/></g><circle cx="20" cy="20" r="3.1" fill="#0b4a8f"/><circle cx="20" cy="20" r="1.2" fill="#fff"/></svg>ergopostura</a>
+    <nav class="nav__links" aria-label="Principal">
+      <div class="nav__item"><a class="nav__link" href="#servicio">Servicio</a></div>
+      <div class="nav__item"><a class="nav__link" href="#escala">Escala</a></div>
+      <div class="nav__item"><a class="nav__link" href="#metodo">Método</a></div>
+      <div class="nav__item"><a class="nav__link" href="#proceso">Proceso</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="nav__link" href="/app/ingresar">Ingresar</a>
+      <a class="btn btn--primary" href="mailto:contacto@ergopostura.example?subject=Solicitud%20de%20diagn%C3%B3stico%20ergon%C3%B3mico&amp;body=Empresa%3A%0ACiudad%3A%0ASedes%3A%0APuestos%20a%20evaluar%3A%0A">Solicitar un diagnóstico</a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menú">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+<main id="top">
+  <section class="hero hero--split" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-6">
+        <h1 id="hero-h">Evaluación ergonómica para empresas</h1>
+        <p class="hero__lead">Visitamos su sede, fotografiamos cada postura de trabajo y la calificamos con el método RULA, de 1 a 7. Usted recibe un informe por puesto con las acciones a tomar.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="mailto:contacto@ergopostura.example?subject=Solicitud%20de%20diagn%C3%B3stico%20ergon%C3%B3mico&amp;body=Empresa%3A%0ACiudad%3A%0ASedes%3A%0APuestos%20a%20evaluar%3A%0A">Solicitar un diagnóstico<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="link" href="#escala">Ver la escala RULA</a></div>
+      </div>
+      <div class="hero__media print-blue span-6 start-7">
+        <img src="/static/landing/assets/img/photo-f3147232-1280.jpg" srcset="/static/landing/assets/img/photo-f3147232-500.jpg 500w, /static/landing/assets/img/photo-f3147232-960.jpg 960w, /static/landing/assets/img/photo-f3147232-1280.jpg 1280w" sizes="(max-width: 639px) 100vw, 1000px" width="1280" height="921" alt="Operarios inclinados sobre una línea de ensamble, con el tronco y los brazos flexionados" style="--ly-pos: 40% 50%" fetchpriority="high" decoding="async" data-source="stand-in" data-subject="stand-in">
+        <div class="hero-rule" role="img" aria-label="Escala RULA de 1 a 7"><span style="--lv:#1e7a46">1</span><span style="--lv:#1e7a46">2</span><span style="--lv:#c99700">3</span><span style="--lv:#c99700">4</span><span style="--lv:#c2531a">5</span><span style="--lv:#c2531a">6</span><span style="--lv:#b3121f">7</span></div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section ground-surface" id="servicio" aria-labelledby="servicio-h">
+    <div class="wrap">
+      <div class="grid grid--top fill">
+        <div class="span-5">
+          <div class="section-head">
+            <h2 id="servicio-h">El servicio de evaluación postural</h2>
+            <p>Cada puesto queda registrado con su foto, su puntaje y sus recomendaciones.</p>
+          </div>
+          <ul class="rows">
+            <li><span class="rows__name">Visita a la sede</span><p>En el día y la hora que la empresa elige.</p></li>
+            <li><span class="rows__name">Evaluación RULA de cada postura</span><p>Con fotografía y ángulos medidos.</p></li>
+            <li><span class="rows__name">Informe por puesto</span><p>Imprimible y en PDF, con su nivel de acción.</p></li>
+            <li><span class="rows__name">Seguimiento e indicadores</span><p>Recomendaciones pendientes y riesgo por área.</p></li>
+          </ul>
+        </div>
+        <div class="print-over span-6 start-7"><figure class="develop" data-moment="picture-develops"><img src="/static/landing/assets/img/photo-f194185620.jpg" srcset="/static/landing/assets/img/photo-f194185620-500.jpg 500w, /static/landing/assets/img/photo-f194185620-960.jpg 960w, /static/landing/assets/img/photo-f194185620.jpg 1280w" sizes="(max-width: 1023px) 100vw, 900px" width="1280" height="853" alt="Un trabajador arma un marco sobre una mesa de trabajo, con los brazos extendidos" loading="lazy" decoding="async" data-source="stand-in" data-subject="stand-in"></figure></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section ground-surface" id="escala" aria-labelledby="escala-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="escala-h">La escala RULA y sus cuatro niveles</h2>
+        <p>RULA puntúa la postura de brazos, cuello, tronco y piernas, más la carga. El puntaje dice qué tan pronto hay que actuar.</p>
+      </div>
+      <div class="rula-rule" role="img" aria-label="Escala RULA de 1 a 7: verde 1 y 2, ámbar 3 y 4, naranja 5 y 6, rojo 7">
+        <span style="--lv:#1e7a46">1</span><span style="--lv:#1e7a46">2</span><span style="--lv:#c99700">3</span><span style="--lv:#c99700">4</span><span style="--lv:#c2531a">5</span><span style="--lv:#c2531a">6</span><span style="--lv:#b3121f">7</span>
+      </div>
+      <ul class="rows rows--spec">
+        <li><span class="rows__name"><i class="lv lv1" aria-hidden="true"></i>Aceptable, si no se mantiene mucho tiempo</span><span class="rows__value">Puntaje 1 y 2</span></li>
+        <li><span class="rows__name"><i class="lv lv2" aria-hidden="true"></i>Investigar: pueden hacer falta cambios</span><span class="rows__value">Puntaje 3 y 4</span></li>
+        <li><span class="rows__name"><i class="lv lv3" aria-hidden="true"></i>Cambiar el puesto pronto</span><span class="rows__value">Puntaje 5 y 6</span></li>
+        <li><span class="rows__name"><i class="lv lv4" aria-hidden="true"></i>Cambiar el puesto de inmediato</span><span class="rows__value">Puntaje 7</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="metodo" aria-labelledby="metodo-h">
+    <div class="wrap">
+      <div class="grid grid--top fill">
+        <div class="span-5 stack-6">
+          <h2 id="metodo-h">Medición RULA de cada postura</h2>
+          <p class="t-lead">El ingeniero fotografía la postura de perfil y mide el ángulo de cada segmento. La IA solo sugiere los ángulos: él los revisa y los registra.</p>
+          <ul class="rows rows--spec rows--measure">
+            <li tabindex="0" data-seg="tronco"><span class="rows__name">Tronco, 17° de flexión</span><span class="rows__value">2 puntos</span></li>
+            <li tabindex="0" data-seg="cuello"><span class="rows__name">Cuello, 25° de flexión</span><span class="rows__value">3 puntos</span></li>
+            <li tabindex="0" data-seg="brazo"><span class="rows__name">Brazo, 24° de extensión</span><span class="rows__value">2 puntos</span></li>
+            <li tabindex="0" data-seg="antebrazo"><span class="rows__name">Antebrazo, 67° de flexión</span><span class="rows__value">1 punto</span></li>
+          </ul>
+        </div>
+          <figure class="posture frame frame--photo print-blue print-light span-6 start-7" role="img" aria-label="Medición sobre la foto: tronco a 17 grados, cuello a 25, brazo a 24 de extensión y antebrazo a 67 grados">
+            <img class="frame__img" src="/static/landing/assets/img/photo-f97087037-960.jpg" srcset="/static/landing/assets/img/photo-f97087037-500.jpg 500w, /static/landing/assets/img/photo-f97087037-960.jpg 960w" sizes="(max-width: 1023px) 100vw, 800px" width="960" height="644" alt="" loading="lazy" decoding="async" data-source="stand-in" data-subject="stand-in">
+            <svg class="trace" viewBox="0 0 960 646" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
+              <path class="ref" d="M72 420V150M128 228V130"/>
+              <path class="seg" data-seg="tronco" d="M72 420 128 228"/>
+              <path class="seg" data-seg="cuello" d="M136 218 176 172"/>
+              <path class="seg" data-seg="brazo" d="M112 238 64 344"/>
+              <path class="seg" data-seg="antebrazo" d="M64 344 214 346"/>
+              <circle class="joint" cx="72" cy="420" r="9"/><circle class="joint" cx="112" cy="238" r="9"/><circle class="joint" cx="64" cy="344" r="9"/><circle class="joint" cx="136" cy="218" r="9"/>
+              <g class="tag" data-seg="tronco"><rect x="150" y="372" width="74" height="34"/><text x="187" y="396">17°</text></g>
+              <g class="tag" data-seg="cuello"><rect x="186" y="120" width="74" height="34"/><text x="223" y="144">25°</text></g>
+              <g class="tag" data-seg="brazo"><rect x="4" y="268" width="74" height="34"/><text x="41" y="292">24°</text></g>
+              <g class="tag" data-seg="antebrazo"><rect x="148" y="300" width="74" height="34"/><text x="185" y="324">67°</text></g>
+            </svg>
+          </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="proceso" style="--hm: 2" aria-labelledby="proceso-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="proceso-h">El servicio en 3 pasos</h2>
+        <p>Sin un contrato vigente no se agendan visitas, y sin visita no hay evaluación.</p>
+      </div>
+      <div class="grid">
+        <article class="card card--row span-4">
+          <span class="step-num">1</span>
+          <h3>Visita a la sede</h3>
+          <p>La empresa elige el día y la hora en el calendario de la plataforma.</p>
+          <div class="panel print-blue"><img class="frame__img" src="/static/landing/assets/img/photo-f86861729-960.jpg" srcset="/static/landing/assets/img/photo-f86861729-500.jpg 500w, /static/landing/assets/img/photo-f86861729-960.jpg 960w" sizes="(max-width: 1023px) 100vw, 420px" width="960" height="720" alt="Personas empacan cajas de pie junto a mesas de trabajo" loading="lazy" decoding="async" data-source="stand-in" data-subject="stand-in"></div>
+        </article>
+        <article class="card card--row span-4">
+          <span class="step-num">2</span>
+          <h3>Evaluación de cada postura</h3>
+          <p>Fotografía, ángulos y puntaje RULA de cada postura observada en el puesto.</p>
+          <div class="panel print-blue"><img class="frame__img" src="/static/landing/assets/img/photo-f17327028-960.jpg" srcset="/static/landing/assets/img/photo-f17327028-500.jpg 500w, /static/landing/assets/img/photo-f17327028-960.jpg 960w" sizes="(max-width: 1023px) 100vw, 420px" width="960" height="768" alt="Operarios trabajan de pie y sobre escaleras en una línea de ensamble" loading="lazy" decoding="async" data-source="stand-in" data-subject="stand-in"></div>
+        </article>
+        <article class="card card--row span-4">
+          <span class="step-num">3</span>
+          <h3>Informe por puesto</h3>
+          <p>Un informe por puesto con su nivel de acción y las recomendaciones.</p>
+          <div class="panel" role="img" aria-label="La escala RULA de 1 a 7 con la que se califica cada puesto">
+            <div class="step-scale"><span style="--lv:#1e7a46">1</span><span style="--lv:#1e7a46">2</span><span style="--lv:#c99700">3</span><span style="--lv:#c99700">4</span><span style="--lv:#c2531a">5</span><span style="--lv:#c2531a">6</span><span style="--lv:#b3121f">7</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer closing" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">Solicite un diagnóstico de sus puestos</h2>
+        <p class="t-small muted">Cuéntenos cuántas sedes y cuántos puestos tiene su empresa.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="mailto:contacto@ergopostura.example?subject=Solicitud%20de%20diagn%C3%B3stico%20ergon%C3%B3mico&amp;body=Empresa%3A%0ACiudad%3A%0ASedes%3A%0APuestos%20a%20evaluar%3A%0A">Solicitar un diagnóstico<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top" aria-label="ErgoPostura, inicio"><svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true"><g fill="none" stroke-linecap="round"><path d="M32.5 20A12.5 12.5 0 1 0 29.58 28.03" stroke="#121418" stroke-width="3.4"/><path d="M7.5 20H32.5" stroke="#121418" stroke-width="3.4"/><path d="M20 20 27.9 13.4" stroke="#0b4a8f" stroke-width="3.4"/><path d="M26.2 20A6.2 6.2 0 0 0 24.75 16.01" stroke="#0b4a8f" stroke-width="1.6"/></g><circle cx="20" cy="20" r="3.1" fill="#0b4a8f"/><circle cx="20" cy="20" r="1.2" fill="#fff"/></svg>ergopostura</a>
+          <p class="footer__lede">Evaluación ergonómica RULA para empresas</p>
+        </div>
+        <div class="span-2 footer__col"><h3>Servicio</h3><ul><li><a href="#servicio">Qué incluye</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Escala</h3><ul><li><a href="#escala">Niveles de acción</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Método</h3><ul><li><a href="#metodo">Cómo se mide</a></li><li><a href="#proceso">Los 3 pasos</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Clientes</h3><ul><li><a href="/app/ingresar">Ingresar</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 ErgoPostura</span>
+        <div class="socials"></div>
+        <a class="credits" href="/static/landing/credits.html">Fotografías vía Wikimedia Commons</a>
+      </div>
+    </div>
+  </div>
+</footer>
+<nav class="actionbar" aria-label="Acciones rápidas">
+  <a class="btn btn--primary" href="mailto:contacto@ergopostura.example?subject=Solicitud%20de%20diagn%C3%B3stico%20ergon%C3%B3mico&amp;body=Empresa%3A%0ACiudad%3A%0ASedes%3A%0APuestos%20a%20evaluar%3A%0A">Solicitar un diagnóstico</a>
+</nav>
+<script type="module" src="/static/landing/assets/system.js"></script>
+<script type="module" src="/static/landing/assets/motion/motion.js"></script>
+<script type="module" src="/static/landing/assets/layout/layout.js"></script>
+</body>
+</html>

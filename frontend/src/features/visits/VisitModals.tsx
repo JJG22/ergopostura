@@ -129,7 +129,7 @@ export function VisitDetailView({ visit, onChanged }: { visit: VisitDetail; onCh
         ) : null}
       </dl>
       {visit.level.key === "por_cerrar" && visit.can_complete ? (
-        <p className="mt-3 flex gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-900">
+        <p className="mt-3 flex gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-900">
           <Icon name="circle-exclamation-point" className="mt-0.5 size-4" />La hora de la visita ya pasó. Registra si se hizo para poder evaluar, o cancélala si no se realizó.
         </p>
       ) : null}

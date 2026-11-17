@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 
 import { toApiError, type ApiError } from "../../api/client";
-import { FieldShell, Grid, SelectField, TextAreaField, controlClass } from "../../components/forms";
+import { FieldShell, FilePicker, Grid, SelectField, TextAreaField } from "../../components/forms";
 import { FormAlert } from "../../components/Modal";
 import { useNotify, usePageTitle } from "../../components/Page";
 import { Button, Card, ErrorState, Field, Icon, Spinner } from "../../components/ui";
@@ -107,7 +107,7 @@ function ContractForm({ options, contract }: { options: ContractOptions; contrac
       <Link to={back} className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
         <Icon name="arrow-left" className="size-4" />Volver
       </Link>
-      <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">{contract ? `Editar contrato ${contract.code}` : "Registrar contrato"}</h1>
+      <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">{contract ? `Editar contrato ${contract.code}` : "Registrar contrato"}</h1>
       <p className="mb-5 mt-1 text-sm text-ink-500">Los datos registrados son los que valen; lo que lea la IA es una ayuda que debes revisar.</p>
 
       <Card>
@@ -116,24 +116,23 @@ function ContractForm({ options, contract }: { options: ContractOptions; contrac
 
           <FieldShell id="document" label="Contrato firmado (PDF)" error={err("document")}
             hint={contract ? "Déjalo vacío para conservar el documento actual. Máximo 10 MB." : "Máximo 10 MB."}>
-            <input id="document" type="file" accept="application/pdf" className={`py-2 ${controlClass(err("document"))}`}
-              onChange={(event) => { setDocument(event.target.files?.[0] ?? null); setReading({ state: "idle" }); }} />
+            <FilePicker id="document" accept="application/pdf" button="Elegir PDF" invalid={Boolean(err("document"))}
+              onFile={(file) => { setDocument(file); setReading({ state: "idle" }); }} />
           </FieldShell>
 
           {options.ai_ready ? (
-            <div className="mb-5 rounded-lg border border-violet-200 bg-violet-50/60 p-4">
+            <div className="mb-5 border-t-2 border-ink-950 pt-4">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="grid size-9 place-items-center rounded-md bg-violet-100 text-violet-700"><Icon name="sparkles" /></span>
                 <div className="min-w-0 flex-1">
                   <strong className="block text-sm">Leer el contrato con IA</strong>
                   <small className="text-ink-600">La IA propone fechas, tipo, servicio, encargado y valor. El documento se envía a Anthropic (Claude) para leerlo; revisa cada dato antes de guardar.</small>
                 </div>
                 <Button type="button" variant="secondary" disabled={!document || reading.state === "busy"} onClick={() => void read()}>
-                  <Icon name="sparkles" />{reading.state === "busy" ? "Leyendo…" : "Leer contrato"}
+                  {reading.state === "busy" ? "Leyendo…" : "Leer contrato"}
                 </Button>
               </div>
               <div aria-live="polite" className="mt-2 text-sm">
-                {reading.state === "busy" ? <p className="text-violet-800">Leyendo el contrato. Puede tardar entre 10 y 40 segundos…</p> : null}
+                {reading.state === "busy" ? <p className="text-brand-800">Leyendo el contrato. Puede tardar entre 10 y 40 segundos…</p> : null}
                 {reading.state === "error" ? <p className="font-medium text-red-700">{reading.error.message}</p> : null}
                 {reading.state === "done" ? <ReadingResult reading={reading.result} filled={reading.filled} /> : null}
               </div>
@@ -177,7 +176,7 @@ function ContractForm({ options, contract }: { options: ContractOptions; contrac
             onChange={(e) => set("notes", e.target.value)} error={err("notes")} />
 
           <div className="flex justify-end gap-2 border-t border-ink-100 pt-4">
-            <Link to={back} className="inline-flex h-10 items-center rounded-lg border border-ink-300 px-4 text-sm font-semibold hover:bg-ink-50">Cancelar</Link>
+            <Link to={back} className="inline-flex h-10 items-center rounded-xl border border-ink-300 px-4 text-sm font-semibold hover:bg-ink-50">Cancelar</Link>
             <Button type="submit" disabled={form.sending}>{form.sending ? "Guardando…" : contract ? "Guardar cambios" : "Guardar contrato"}</Button>
           </div>
         </form>
@@ -192,9 +191,9 @@ function ReadingResult({ reading, filled }: { reading: Reading; filled: number }
       <p className="font-medium text-brand-800">Se llenaron {filled} campos. Revísalos antes de guardar.</p>
       {reading.summary ? <p>{reading.summary}</p> : null}
       {reading.client_nit && !reading.company_found ? (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-amber-900">El NIT del documento ({reading.client_nit}) no corresponde a ninguna empresa registrada. Regístrala antes de guardar el contrato.</p>
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-900">El NIT del documento ({reading.client_nit}) no corresponde a ninguna empresa registrada. Regístrala antes de guardar el contrato.</p>
       ) : !reading.fields.company && reading.client ? (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-amber-900">No se identificó la empresa «{reading.client}». Elígela en la lista.</p>
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-900">No se identificó la empresa «{reading.client}». Elígela en la lista.</p>
       ) : null}
       {reading.alerts.length ? (
         <div><strong>Para revisar</strong><ul className="ml-5 list-disc">{reading.alerts.map((a) => <li key={a}>{a}</li>)}</ul></div>

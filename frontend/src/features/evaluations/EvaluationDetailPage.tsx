@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 
 import { toApiError, type ApiError } from "../../api/client";
-import { controlClass, Grid, SelectField } from "../../components/forms";
+import { controlClass, FilePicker, Grid, SelectField } from "../../components/forms";
 import { ConfirmModal, FormModal } from "../../components/Modal";
 import { useNotify, usePageTitle } from "../../components/Page";
 import { Badge, Button, Card, ErrorState, Field, Icon, linkButtonClass, Meta, RISK_COLORS, RiskBadge, Spinner } from "../../components/ui";
@@ -60,16 +60,15 @@ function Detail({ evaluation, refresh }: { evaluation: EvaluationDetail; refresh
       <Link to="/evaluaciones" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
         <Icon name="arrow-left" className="size-4" />Volver a evaluaciones
       </Link>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="mb-1.5 flex items-center gap-2.5 text-sm font-semibold text-brand-700">
+      <section className="mb-10 grid items-end gap-8 lg:grid-cols-[1.3fr_1fr] lg:gap-12">
+        <div className="min-w-0 motion-safe:animate-[rise_480ms_cubic-bezier(0.2,0.8,0.2,1)]">
+          <p className="mb-3 flex items-center gap-2.5 text-sm font-semibold text-brand-700">
             <span className="tabular">{e.code}</span>
             <Badge tone={e.status === "terminada" ? "teal" : "amber"}>{e.status_label}</Badge>
           </p>
-          <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">{e.position}</h1>
+          <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">{e.position}</h1>
           <Meta items={[e.company, e.site, e.area]} />
-        </div>
-        <div className="flex flex-wrap gap-2">
+          <div className="mt-7 flex flex-wrap gap-2">
           {e.can_edit ? <Button variant="secondary" onClick={() => setDialog({ type: "edit" })}>Editar datos</Button> : null}
           {e.status === "terminada" ? <Link to={`/evaluaciones/${e.id}/informe`} className={linkButtonClass("secondary")}><Icon name="file-text" />Ver informe</Link> : null}
           {e.can_reopen ? (
@@ -79,15 +78,25 @@ function Detail({ evaluation, refresh }: { evaluation: EvaluationDetail; refresh
               action: () => evaluationsApi.reopen(e.id),
             })}>Reabrir</Button>
           ) : null}
+          </div>
         </div>
-      </div>
-
-      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-ink-200 bg-white px-4 py-3 text-sm text-ink-600">
-        <span>Mayor riesgo entre las posturas</span><RiskBadge risk={e.risk} />
-      </div>
+        <div className="border-2 border-ink-950 bg-white p-7 motion-safe:animate-[rise_580ms_100ms_cubic-bezier(0.2,0.8,0.2,1)_backwards]">
+          <p className="border-b-2 border-ink-950 pb-3 text-sm font-semibold text-ink-950">Mayor riesgo entre las posturas</p>
+          {e.risk ? (
+            <div className="mt-5">
+              <div className="flex items-baseline gap-2">
+                <strong className={`font-display text-8xl leading-none tabular ${RISK_COLORS[e.risk.traffic_light].text}`}>{e.risk.score}</strong>
+                <span className="text-ink-500">de 7</span>
+              </div>
+              <div className="mt-4"><RiskBadge risk={e.risk} /></div>
+              <RiskScale score={e.risk.score} />
+            </div>
+          ) : <p className="mt-4 text-[15px] text-ink-600">Aún no hay posturas analizadas.</p>}
+        </div>
+      </section>
 
       <Card className="mb-5">
-        <h2 className="mb-2 text-[15px] font-semibold">Actividad observada</h2>
+        <h2 className="mb-3 font-display text-lg">Actividad observada</h2>
         <p className="whitespace-pre-line text-sm text-ink-800">{e.activity_description}</p>
         {e.worker_context ? <p className="mt-2 whitespace-pre-line text-sm text-ink-600">{e.worker_context}</p> : null}
         <div className="mt-5 grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -101,7 +110,7 @@ function Detail({ evaluation, refresh }: { evaluation: EvaluationDetail; refresh
       </Card>
 
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-bold">Posturas</h2>
+        <h2 className="font-display text-3xl">Posturas</h2>
         {e.can_edit ? <Button variant="secondary" onClick={() => setDialog({ type: "posture" })}><Icon name="plus" />Agregar postura</Button> : null}
       </div>
       {e.postures.length === 0 ? (
@@ -188,25 +197,26 @@ const SCORE_LABELS: [string, (s: Record<string, number>) => string][] = [
 ];
 
 /** Zonas de la escala RULA (puntaje final de 1 a 7) y su nivel de acción. */
+
 const ZONES = [
-  { from: 1, to: 2, color: "bg-emerald-500" },
-  { from: 3, to: 4, color: "bg-amber-400" },
-  { from: 5, to: 6, color: "bg-orange-500" },
-  { from: 7, to: 7, color: "bg-red-600" },
+  { from: 1, to: 2, color: "#1e7a46", pattern: "none" },
+  { from: 3, to: 4, color: "#c99700", pattern: "repeating-linear-gradient(45deg, transparent 0 5px, rgb(255 255 255 / .3) 5px 7px)" },
+  { from: 5, to: 6, color: "#c2531a", pattern: "repeating-linear-gradient(45deg, transparent 0 4px, rgb(255 255 255 / .28) 4px 6px), repeating-linear-gradient(-45deg, transparent 0 4px, rgb(255 255 255 / .2) 4px 6px)" },
+  { from: 7, to: 7, color: "#b3121f", pattern: "repeating-linear-gradient(0deg, transparent 0 3px, rgb(255 255 255 / .25) 3px 5px)" },
 ] as const;
 
 /** Escala de 1 a 7 con el puntaje marcado: muestra qué tan lejos está el puesto de lo aceptable. */
 export function RiskScale({ score }: { score: number }) {
   return (
-    <div role="img" aria-label={`Puntaje RULA ${score} de 7`} className="mt-4 max-w-sm">
-      <div className="flex items-end gap-1">
+    <div role="img" aria-label={`Puntaje RULA ${score} de 7`} className="mt-5 max-w-sm">
+      <div className="flex items-end gap-1 border-b-2 border-ink-950">
         {[1, 2, 3, 4, 5, 6, 7].map((n) => {
           const zone = ZONES.find((z) => n >= z.from && n <= z.to) ?? ZONES[0];
-          return <span key={n} className={`flex-1 rounded-sm ${zone.color} ${n === score ? "h-3.5" : "h-2 opacity-25"}`} />;
+          return <span key={n} className={`flex-1 ${n === score ? "h-6" : "h-3"}`} style={{ backgroundColor: zone.color, backgroundImage: zone.pattern }} />;
         })}
       </div>
-      <div className="mt-1.5 flex gap-1 text-center text-[11px] tabular text-ink-400" aria-hidden="true">
-        {[1, 2, 3, 4, 5, 6, 7].map((n) => <span key={n} className={`flex-1 ${n === score ? "font-bold text-ink-950" : ""}`}>{n}</span>)}
+      <div className="mt-1.5 flex gap-1 text-center text-xs tabular text-ink-700" aria-hidden="true">
+        {[1, 2, 3, 4, 5, 6, 7].map((n) => <span key={n} className={`flex-1 ${n === score ? "font-bold text-ink-950 underline decoration-2 underline-offset-4" : ""}`}>{n}</span>)}
       </div>
     </div>
   );
@@ -216,7 +226,7 @@ export function ResultSummary({ result }: { result: PostureResult }) {
   return (
     <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
       <div className="flex items-baseline gap-1.5">
-        <strong className={`font-display text-6xl font-bold leading-none tabular ${RISK_COLORS[result.risk.traffic_light].text}`}>{result.grand_score}</strong>
+        <strong className={`font-display text-7xl leading-none tabular ${RISK_COLORS[result.risk.traffic_light].text}`}>{result.grand_score}</strong>
         <span className="text-sm text-ink-500">de 7</span>
       </div>
       <div className="min-w-60 flex-1">
@@ -230,7 +240,7 @@ export function ResultSummary({ result }: { result: PostureResult }) {
 
 export function ScoreGrid({ result }: { result: PostureResult }) {
   return (
-    <div className="grid gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 xl:grid-cols-4">
       {SCORE_LABELS.map(([label, value]) => <Fact key={label} label={label}>{value(result.partial_scores)}</Fact>)}
       <Fact label="Método">RULA</Fact>
     </div>
@@ -241,7 +251,7 @@ export function AiTrace({ result }: { result: PostureResult }) {
   const trace = result.ai_trace;
   if (!trace) return null;
   return (
-    <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50/60 p-3 text-sm">
+    <div className="mt-5 border-t-2 border-ink-950 pt-4 text-sm">
       <p className="mb-2 text-ink-700">
         <strong>Ángulos medidos con apoyo de IA.</strong> La detección de pose propuso estos valores
         {trace.on_other_photo ? " sobre otra fotografía de la postura" : ""} y el evaluador registró los de la derecha.
@@ -252,10 +262,10 @@ export function AiTrace({ result }: { result: PostureResult }) {
         <thead className="text-xs text-ink-500"><tr><th scope="col" className="py-1">Ángulo</th><th scope="col">Sugerido</th><th scope="col">Registrado</th></tr></thead>
         <tbody>
           {trace.rows.map((row) => (
-            <tr key={row.label} className="border-t border-violet-100">
+            <tr key={row.label} className="border-t border-ink-200">
               <th scope="row" className="py-1 font-medium">{row.label}</th>
               <td>{row.suggested === null ? "No detectado" : `${formatNumber(row.suggested)}°`}</td>
-              <td className={row.changed ? "font-semibold text-violet-800" : ""}>{formatNumber(row.registered)}°{row.changed ? " (corregido)" : ""}</td>
+              <td className={row.changed ? "font-semibold text-brand-800" : ""}>{formatNumber(row.registered)}°{row.changed ? " (corregido)" : ""}</td>
             </tr>
           ))}
         </tbody>
@@ -270,6 +280,7 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
   const notify = useNotify();
   const fileRef = useRef<HTMLInputElement>(null);
   const [upload, setUpload] = useState<{ sending: boolean; error: string | null }>({ sending: false, error: null });
+  const [pickerKey, setPickerKey] = useState(0);
   const [text, setText] = useState("");
   const [recError, setRecError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -283,6 +294,7 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
     try {
       await evaluationsApi.uploadPhoto(posture.id, file);
       if (fileRef.current) fileRef.current.value = "";
+      setPickerKey((k) => k + 1);
       notify("Fotografía agregada");
       setUpload({ sending: false, error: null });
       refresh();
@@ -325,11 +337,11 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
   return (
     <Card className="mb-5" >
       <section id={`postura-${posture.id}`} className="flex gap-4">
-        <span className="grid size-8 shrink-0 place-items-center rounded-md bg-ink-950 font-display text-sm font-bold text-white tabular">{number}</span>
+        <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-ink-950 font-display text-base text-white tabular">{number}</span>
         <div className="min-w-0 flex-1">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="font-display text-lg font-bold">{posture.name}</h3>
+              <h3 className="font-display text-2xl">{posture.name}</h3>
               <p className="text-sm text-ink-500">{posture.side_label}, {formatNumber(posture.duration_value)} {posture.duration_unit_label.toLowerCase()} en la postura</p>
             </div>
             {canEdit ? (
@@ -340,11 +352,13 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
             ) : null}
           </div>
 
-          <h4 className="mb-2 text-sm font-semibold">Evidencia</h4>
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10">
+          <div className="min-w-0">
+          <h4 className="mb-3 text-sm font-semibold text-ink-700">Evidencia</h4>
           {posture.photos.length ? (
-            <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
               {posture.photos.map((photo) => (
-                <figure key={photo.id} className="relative overflow-hidden rounded-lg border border-ink-200 bg-ink-100">
+                <figure key={photo.id} className="relative overflow-hidden rounded-2xl bg-ink-100 ring-1 ring-ink-500/10">
                   <a href={photo.url} target="_blank" rel="noopener"><img src={photo.url} alt={`Evidencia de ${posture.name}`} loading="lazy" className="aspect-square w-full object-cover" /></a>
                   {result?.photo_id === photo.id ? <figcaption className="absolute bottom-1 left-1"><Badge tone="teal">Analizada</Badge></figcaption> : null}
                   {canEdit ? (
@@ -358,18 +372,19 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
           {photoError ? <p role="alert" className="mb-3 text-sm font-medium text-red-700">{photoError}</p> : null}
           {canEdit ? (
             <form onSubmit={(ev) => void sendPhoto(ev)} className="mb-2 flex flex-wrap items-end gap-2">
-              <label className="min-w-56 flex-1 text-sm">
-                <span className="mb-1 block font-medium text-ink-700">Agregar fotografía (JPG, PNG o WEBP, hasta 10 MB)</span>
-                <input ref={fileRef} type="file" name="photo" accept="image/jpeg,image/png,image/webp" className="w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-ink-100 file:px-2.5 file:py-1 file:text-sm file:font-medium file:text-ink-800" />
-              </label>
+              <div className="min-w-56 flex-1 text-sm">
+                <span className="mb-1.5 block font-medium text-ink-700">Agregar fotografía (JPG, PNG o WEBP, hasta 10 MB)</span>
+                <FilePicker key={pickerKey} id={`foto-${posture.id}`} name="photo" inputRef={fileRef} accept="image/jpeg,image/png,image/webp" button="Elegir fotografía" />
+              </div>
               <Button type="submit" variant="secondary" disabled={upload.sending}><Icon name="cloud-upload" />{upload.sending ? "Subiendo…" : "Subir"}</Button>
             </form>
           ) : null}
           {upload.error ? <p role="alert" className="text-sm font-medium text-red-700">{upload.error}</p> : null}
 
-          <hr className="my-5 border-ink-100" />
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h4 className="text-sm font-semibold">Resultado RULA</h4>
+          </div>
+          <div className="min-w-0 lg:border-l lg:border-ink-500/10 lg:pl-10">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h4 className="text-sm font-semibold text-ink-700">Resultado RULA</h4>
             {canEdit && posture.photos.length ? (
               <Link to={`/evaluaciones/posturas/${posture.id}/analisis`} className={linkButtonClass("primary")}>{result ? "Repetir análisis" : "Hacer análisis"}</Link>
             ) : null}
@@ -384,7 +399,7 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
               {posture.recommendations.length === 0 ? <p className="text-sm text-ink-500">Aún no hay recomendaciones.</p> : (
                 <ol className="mb-3 space-y-2">
                   {posture.recommendations.map((r, i) => (
-                    <li key={r.id} className="flex items-start gap-3 rounded-md border border-ink-200 px-3 py-2.5 text-sm">
+                    <li key={r.id} className="flex items-start gap-3 rounded-2xl bg-ink-500/[0.05] px-4 py-3 text-sm">
                       <b className="tabular text-brand-700">{i + 1}</b><p className="flex-1">{r.text}</p>
                       {r.attended ? <Badge tone="teal">Atendida</Badge> : null}
                       {canEdit ? (
@@ -408,8 +423,10 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
               {recError ? <p role="alert" className="mt-1 text-sm font-medium text-red-700">{recError}</p> : null}
             </>
           ) : (
-            <p className="text-sm text-ink-500">{canEdit ? "Agrega una fotografía y haz el análisis para ver el resultado." : "Sin análisis."}</p>
+            <p className="rounded-2xl bg-ink-500/[0.05] p-4 text-sm text-ink-600">{canEdit ? "Agrega una fotografía y haz el análisis para ver el resultado." : "Sin análisis."}</p>
           )}
+          </div>
+          </div>
         </div>
       </section>
     </Card>

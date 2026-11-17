@@ -160,7 +160,7 @@ function Assessment({ data }: { data: AssessmentForm }) {
         <Icon name="arrow-left" className="size-4" />Volver a la evaluación
       </Link>
       <p className="mb-1.5 text-sm font-semibold text-brand-700">Análisis RULA, {data.posture.side_label.toLowerCase()}</p>
-      <h1 className="font-display text-[1.75rem] font-bold leading-tight text-ink-950">{data.posture.name}</h1>
+      <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">{data.posture.name}</h1>
       <p className="mb-5 mt-1 text-sm text-ink-500">Mide los ángulos sobre la fotografía y registra lo observado. El sistema calcula el resultado.</p>
 
       <form noValidate onSubmit={(ev) => { ev.preventDefault(); void save(); }}>
@@ -168,11 +168,11 @@ function Assessment({ data }: { data: AssessmentForm }) {
         <div className="grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             <Card>
-              <div className="relative grid h-80 place-items-center overflow-hidden rounded-lg bg-ink-900 sm:h-96">
+              <div className="relative grid h-80 place-items-center overflow-hidden rounded-xl bg-ink-900 sm:h-96">
                 <img ref={image} src={photoUrl} alt={`Fotografía analizada de ${data.posture.name}`} className="h-full w-full object-contain" />
                 <canvas ref={canvas} hidden aria-hidden="true" className="pointer-events-none absolute inset-0" />
               </div>
-              <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
+              <div className="mt-4 border-t-2 border-ink-950 pt-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <strong className="block text-sm">Sugerir ángulos con IA</strong>
@@ -181,7 +181,7 @@ function Assessment({ data }: { data: AssessmentForm }) {
                   <Button type="button" variant="secondary" disabled={pose.state === "busy"} onClick={() => void suggest()}><Icon name="activity" />Sugerir</Button>
                 </div>
                 {pose.message ? (
-                  <p role="status" aria-live="polite" className={`mt-2 text-sm ${pose.state === "error" || (pose.state === "done" && pose.warning) ? "font-medium text-red-700" : pose.state === "done" ? "text-brand-800" : "text-violet-800"}`}>{pose.message}</p>
+                  <p role="status" aria-live="polite" className={`mt-2 text-sm ${pose.state === "error" || (pose.state === "done" && pose.warning) ? "font-medium text-red-700" : pose.state === "done" ? "text-brand-800" : "text-ink-700"}`}>{pose.message}</p>
                 ) : null}
                 {pose.state === "done" ? (
                   <ul className="mt-2 grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">
@@ -199,7 +199,7 @@ function Assessment({ data }: { data: AssessmentForm }) {
                 <legend className="mb-2 text-sm font-semibold">Fotografía analizada</legend>
                 <div className="flex flex-wrap gap-2">
                   {data.photos.map((p, index) => (
-                    <label key={p.id} className={`cursor-pointer overflow-hidden rounded-lg border-2 ${photo === p.id ? "border-brand-600" : "border-transparent"}`}>
+                    <label key={p.id} className={`cursor-pointer overflow-hidden rounded-xl border-2 ${photo === p.id ? "border-brand-600" : "border-transparent"}`}>
                       <input type="radio" name="photo" value={p.id} checked={photo === p.id} onChange={() => setPhoto(p.id)} className="sr-only" />
                       <img src={p.url} alt={`Fotografía ${index + 1}`} loading="lazy" className="size-16 object-cover" />
                     </label>
@@ -237,7 +237,7 @@ function Assessment({ data }: { data: AssessmentForm }) {
           </div>
         </div>
         <div className="mt-5 flex justify-end gap-2 border-t border-ink-200 pt-4">
-          <Link to={back} className="inline-flex h-10 items-center rounded-lg border border-ink-300 px-4 text-sm font-semibold hover:bg-ink-50">Cancelar</Link>
+          <Link to={back} className="inline-flex h-10 items-center rounded-xl border border-ink-300 px-4 text-sm font-semibold hover:bg-ink-50">Cancelar</Link>
           <Button type="submit" disabled={form.sending}><Icon name="activity" />{form.sending ? "Calculando…" : "Calcular y guardar"}</Button>
         </div>
       </form>

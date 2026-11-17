@@ -1,0 +1,7 @@
+[
+  {
+    "check": "hero-lines",
+    "target": "section.hero h1",
+    "reason": "The page's own h1 is final at 35 characters and sets on 3 lines at 1440. The stress test fills it to 45, which a wide grotesk (Archivo at 110% width) sets on 4. The next dealt pairing is a serif (Newsreader) that breaks the occupational-safety poster world chosen in the Impeccable direction round, so the h1 stays short instead."
+  }
+]

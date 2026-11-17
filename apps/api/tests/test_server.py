@@ -28,6 +28,12 @@ class LegacyAddressTests(TestCase):
             with self.subTest(path=path):
                 self.assertEqual(target_for(path, {}), target)
 
+    def test_root_is_the_public_landing(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Evaluación ergonómica para empresas")
+        self.assertContains(response, 'href="/app/ingresar"')
+
     def test_filters_are_kept_and_unknown_parameters_dropped(self):
         response = self.client.get("/visitas/agenda/?ver=por_cerrar&x=1")
         self.assertEqual(response.status_code, 302)
