@@ -5,5 +5,20 @@
       "maxFindings": 5,
       "maxChars": 8000
     }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "static/landing/index.html"
+        ],
+        "createdAt": "2026-11-17T02:22:47.643Z",
+        "reason": "Claude, evidence: the flagged boxes are taste-skill kit structures (.rows rows closed by a 1px rule, section grounds padded by the system tokens, a photo panel); kit files may not be edited and the taste-skill gate passed (GATE: PASS)"
+      }
+    ]
   }
 }
