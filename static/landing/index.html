@@ -45,6 +45,16 @@
 <link rel="modulepreload" href="/static/landing/assets/moments/picture-develops/moment.js">
 <!-- page CSS: only inside the visuals -->
 <style>
+  /* Alturas: cada sección mide al menos una pantalla y crece con su contenido, para que en un
+     portátil (ventanas de 600 a 700 px de alto) nada se encime con la sección siguiente. El kit ya
+     lo hace entre 640 y 1279 px; aquí también desde 1280. El mínimo tiene un tope de 900 px para
+     no dejar franjas vacías en monitores altos. */
+  @media (min-width: 1024px) { main > .hero { height: max(100svh, 780px); } }
+  @media (min-width: 1280px) {
+    main > :is(section, .section):not(.hero), footer.closing { height: auto; min-height: calc(var(--h, 1) * min(100svh, 900px)); display: flex; flex-direction: column; }
+    main > :is(section, .section):not(.hero) > .wrap, footer.closing > .wrap { flex: 1 0 auto; height: auto; min-height: 0; }
+    main > :is(section, .section):not(.hero) > .wrap > .fill { flex: 1 0 auto; }
+  }
   /* Mundo del cartel de prevención: esquinas rectas y reglas de tinta. */
   html[data-radius] { --r-sm: 0px; --r-md: 0px; --r-lg: 0px; --r-btn: 0px; }
   header.nav { border-bottom: 2px solid var(--p-ink); }
