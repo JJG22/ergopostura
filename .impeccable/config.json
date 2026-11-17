@@ -18,6 +18,24 @@
         ],
         "createdAt": "2026-11-17T02:22:47.643Z",
         "reason": "Claude, evidence: the flagged boxes are taste-skill kit structures (.rows rows closed by a 1px rule, section grounds padded by the system tokens, a photo panel); kit files may not be edited and the taste-skill gate passed (GATE: PASS)"
+      },
+      {
+        "rule": "pulsing-dot",
+        "value": "*",
+        "files": [
+          "static/landing/credits.html"
+        ],
+        "createdAt": "2026-11-17T02:27:20.724Z",
+        "reason": "Claude, evidence: the rule lives in the taste-skill kit stylesheets (layout.css) that the credits page links; the page uses no live dot and no halo element, and kit files may not be edited"
+      },
+      {
+        "rule": "radial-halo",
+        "value": "*",
+        "files": [
+          "static/landing/credits.html"
+        ],
+        "createdAt": "2026-11-17T02:27:21.062Z",
+        "reason": "Claude, evidence: the rule lives in the taste-skill kit stylesheets (layout.css) that the credits page links; the page uses no live dot and no halo element, and kit files may not be edited"
       }
     ]
   }
