@@ -4,51 +4,324 @@
   "title": "Design System: ErgoPostura",
   "extensions": {
     "colorMeta": {
-      "paper-white": { "role": "neutral", "displayName": "Papel blanco", "canonical": "#ffffff", "tonalRamp": ["#121418", "#24272b", "#4a4d52", "#8a8e96", "#d4d6da", "#e9eaec", "#f5f5f6", "#ffffff"] },
-      "poster-ink": { "role": "neutral", "displayName": "Tinta de cartel", "canonical": "#121418", "tonalRamp": ["#121418", "#17191d", "#24272b", "#36393e", "#4a4d52", "#616366", "#8a8e96", "#b4b7bd"] },
-      "signal-blue": { "role": "primary", "displayName": "Azul de señal obligatoria", "canonical": "#0b4a8f", "tonalRamp": ["#041c38", "#072e59", "#093c74", "#0b4a8f", "#1f64aa", "#4280c0", "#a9c6e6", "#eaf1f9"] },
-      "signal-blue-deep": { "role": "primary", "displayName": "Azul de señal profundo", "canonical": "#093c74", "tonalRamp": ["#041c38", "#072e59", "#093c74", "#0b4a8f", "#135699", "#1f64aa", "#74a3d3", "#d3e2f2"] },
-      "signal-blue-pale": { "role": "primary", "displayName": "Azul pálido de señal", "canonical": "#a9c6e6", "tonalRamp": ["#072e59", "#0b4a8f", "#1f64aa", "#4280c0", "#74a3d3", "#a9c6e6", "#d3e2f2", "#eaf1f9"] },
-      "field-grey": { "role": "neutral", "displayName": "Gris de campo", "canonical": "#e9eaec", "tonalRamp": ["#24272b", "#4a4d52", "#8a8e96", "#b4b7bd", "#d4d6da", "#e9eaec", "#f5f5f6", "#ffffff"] },
-      "rule-grey": { "role": "neutral", "displayName": "Gris de regla", "canonical": "#d4d6da", "tonalRamp": ["#24272b", "#4a4d52", "#8a8e96", "#b4b7bd", "#d4d6da", "#e9eaec", "#f5f5f6", "#ffffff"] },
-      "muted-ink": { "role": "neutral", "displayName": "Tinta tenue", "canonical": "#616366", "tonalRamp": ["#121418", "#24272b", "#36393e", "#4a4d52", "#616366", "#8a8e96", "#b4b7bd", "#e9eaec"] },
-      "body-ink": { "role": "neutral", "displayName": "Tinta de cuerpo", "canonical": "#36393e", "tonalRamp": ["#121418", "#17191d", "#24272b", "#36393e", "#4a4d52", "#616366", "#8a8e96", "#d4d6da"] },
-      "risk-green": { "role": "tertiary", "displayName": "Verde de riesgo (RULA 1-2, liso)", "canonical": "#1e7a46", "tonalRamp": ["#0b2e1a", "#124a2b", "#1e7a46", "#2e9a5d", "#5bb684", "#92cfab", "#c6e6d2", "#ebf6ef"] },
-      "risk-amber": { "role": "tertiary", "displayName": "Ámbar de riesgo (RULA 3-4, rayado 45°)", "canonical": "#c99700", "tonalRamp": ["#3a2c00", "#5c4600", "#8a6700", "#c99700", "#e0b326", "#ecca66", "#f5e1a6", "#fbf3dc"] },
-      "risk-amber-text": { "role": "tertiary", "displayName": "Ámbar de riesgo para texto", "canonical": "#8a6700", "tonalRamp": ["#3a2c00", "#5c4600", "#8a6700", "#a87e00", "#c99700", "#ecca66", "#f5e1a6", "#fbf3dc"] },
-      "risk-orange": { "role": "tertiary", "displayName": "Naranja de riesgo (RULA 5-6, rayado cruzado)", "canonical": "#c2531a", "tonalRamp": ["#3d1806", "#62270b", "#a8461a", "#c2531a", "#d9763f", "#e8a078", "#f3cbb3", "#fbece3"] },
-      "risk-red": { "role": "tertiary", "displayName": "Rojo de riesgo (RULA 7, rayado horizontal)", "canonical": "#b3121f", "tonalRamp": ["#3b0509", "#5e0a10", "#8c0e18", "#b3121f", "#d33a46", "#e57a82", "#f2b6ba", "#fbe6e7"] }
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Papel blanco",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#121418",
+          "#24272b",
+          "#4a4d52",
+          "#8a8e96",
+          "#d4d6da",
+          "#e9eaec",
+          "#f5f5f6",
+          "#ffffff"
+        ]
+      },
+      "poster-ink": {
+        "role": "neutral",
+        "displayName": "Tinta de cartel",
+        "canonical": "#121418",
+        "tonalRamp": [
+          "#121418",
+          "#17191d",
+          "#24272b",
+          "#36393e",
+          "#4a4d52",
+          "#616366",
+          "#8a8e96",
+          "#b4b7bd"
+        ]
+      },
+      "signal-blue": {
+        "role": "primary",
+        "displayName": "Azul de señal obligatoria",
+        "canonical": "#0b4a8f",
+        "tonalRamp": [
+          "#041c38",
+          "#072e59",
+          "#093c74",
+          "#0b4a8f",
+          "#1f64aa",
+          "#4280c0",
+          "#a9c6e6",
+          "#eaf1f9"
+        ]
+      },
+      "signal-blue-deep": {
+        "role": "primary",
+        "displayName": "Azul de señal profundo",
+        "canonical": "#093c74",
+        "tonalRamp": [
+          "#041c38",
+          "#072e59",
+          "#093c74",
+          "#0b4a8f",
+          "#135699",
+          "#1f64aa",
+          "#74a3d3",
+          "#d3e2f2"
+        ]
+      },
+      "signal-blue-pale": {
+        "role": "primary",
+        "displayName": "Azul pálido de señal",
+        "canonical": "#a9c6e6",
+        "tonalRamp": [
+          "#072e59",
+          "#0b4a8f",
+          "#1f64aa",
+          "#4280c0",
+          "#74a3d3",
+          "#a9c6e6",
+          "#d3e2f2",
+          "#eaf1f9"
+        ]
+      },
+      "field-grey": {
+        "role": "neutral",
+        "displayName": "Gris de campo",
+        "canonical": "#e9eaec",
+        "tonalRamp": [
+          "#24272b",
+          "#4a4d52",
+          "#8a8e96",
+          "#b4b7bd",
+          "#d4d6da",
+          "#e9eaec",
+          "#f5f5f6",
+          "#ffffff"
+        ]
+      },
+      "rule-grey": {
+        "role": "neutral",
+        "displayName": "Gris de regla",
+        "canonical": "#d4d6da",
+        "tonalRamp": [
+          "#24272b",
+          "#4a4d52",
+          "#8a8e96",
+          "#b4b7bd",
+          "#d4d6da",
+          "#e9eaec",
+          "#f5f5f6",
+          "#ffffff"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Tinta tenue",
+        "canonical": "#616366",
+        "tonalRamp": [
+          "#121418",
+          "#24272b",
+          "#36393e",
+          "#4a4d52",
+          "#616366",
+          "#8a8e96",
+          "#b4b7bd",
+          "#e9eaec"
+        ]
+      },
+      "body-ink": {
+        "role": "neutral",
+        "displayName": "Tinta de cuerpo",
+        "canonical": "#36393e",
+        "tonalRamp": [
+          "#121418",
+          "#17191d",
+          "#24272b",
+          "#36393e",
+          "#4a4d52",
+          "#616366",
+          "#8a8e96",
+          "#d4d6da"
+        ]
+      },
+      "risk-green": {
+        "role": "tertiary",
+        "displayName": "Verde de riesgo (RULA 1-2, liso)",
+        "canonical": "#1e7a46",
+        "tonalRamp": [
+          "#0b2e1a",
+          "#124a2b",
+          "#1e7a46",
+          "#2e9a5d",
+          "#5bb684",
+          "#92cfab",
+          "#c6e6d2",
+          "#ebf6ef"
+        ]
+      },
+      "risk-amber": {
+        "role": "tertiary",
+        "displayName": "Ámbar de riesgo (RULA 3-4, rayado 45°)",
+        "canonical": "#c99700",
+        "tonalRamp": [
+          "#3a2c00",
+          "#5c4600",
+          "#8a6700",
+          "#c99700",
+          "#e0b326",
+          "#ecca66",
+          "#f5e1a6",
+          "#fbf3dc"
+        ]
+      },
+      "risk-amber-text": {
+        "role": "tertiary",
+        "displayName": "Ámbar de riesgo para texto",
+        "canonical": "#8a6700",
+        "tonalRamp": [
+          "#3a2c00",
+          "#5c4600",
+          "#8a6700",
+          "#a87e00",
+          "#c99700",
+          "#ecca66",
+          "#f5e1a6",
+          "#fbf3dc"
+        ]
+      },
+      "risk-orange": {
+        "role": "tertiary",
+        "displayName": "Naranja de riesgo (RULA 5-6, rayado cruzado)",
+        "canonical": "#c2531a",
+        "tonalRamp": [
+          "#3d1806",
+          "#62270b",
+          "#a8461a",
+          "#c2531a",
+          "#d9763f",
+          "#e8a078",
+          "#f3cbb3",
+          "#fbece3"
+        ]
+      },
+      "risk-red": {
+        "role": "tertiary",
+        "displayName": "Rojo de riesgo (RULA 7, rayado horizontal)",
+        "canonical": "#b3121f",
+        "tonalRamp": [
+          "#3b0509",
+          "#5e0a10",
+          "#8c0e18",
+          "#b3121f",
+          "#d33a46",
+          "#e57a82",
+          "#f2b6ba",
+          "#fbe6e7"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Solo el titular del primer pliego de la portada, en blanco sobre el campo azul." },
-      "headline": { "displayName": "Headline", "purpose": "Saludo de la banda azul del panel y titulares de sección de la portada (ancho 110 % en la portada)." },
-      "title": { "displayName": "Title", "purpose": "Títulos de fichas, ventanas y secciones de la aplicación." },
-      "numeral": { "displayName": "Numeral", "purpose": "Métricas, puntaje RULA, día del calendario y casillas de la escala; siempre cifras tabulares." },
-      "body": { "displayName": "Body", "purpose": "Párrafos y entradillas de la portada." },
-      "body-sm": { "displayName": "Body small", "purpose": "Tablas, metadatos y descripciones de la aplicación." },
-      "label": { "displayName": "Label", "purpose": "Etiquetas de campo y encabezados de métrica; sin mayúsculas sostenidas." },
-      "button": { "displayName": "Button", "purpose": "Texto de botones y enlaces con forma de botón." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular del primer pliego de la portada, en blanco sobre el campo azul."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Saludo de la banda azul del panel y titulares de sección de la portada (ancho 110 % en la portada)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Títulos de fichas, ventanas y secciones de la aplicación."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Métricas, puntaje RULA, día del calendario y casillas de la escala; siempre cifras tabulares."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Párrafos y entradillas de la portada."
+      },
+      "body-sm": {
+        "displayName": "Body small",
+        "purpose": "Tablas, metadatos y descripciones de la aplicación."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etiquetas de campo y encabezados de métrica; sin mayúsculas sostenidas."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Texto de botones y enlaces con forma de botón."
+      }
     },
     "shadows": [
-      { "name": "float", "value": "0 2px 4px rgb(18 20 24 / 0.08), 0 16px 32px -12px rgb(18 20 24 / 0.28)", "purpose": "Solo menús desplegables y ventanas modales, siempre con borde de tinta o regla azul superior." }
+      {
+        "name": "float",
+        "value": "0 2px 4px rgb(18 20 24 / 0.08), 0 16px 32px -12px rgb(18 20 24 / 0.28)",
+        "purpose": "Solo menús desplegables y ventanas modales, siempre con borde de tinta o regla azul superior."
+      }
     ],
     "motion": [
-      { "name": "press", "value": "150ms ease-out; translateY(1px) on :active", "purpose": "Cambio de color de botones y presión al hacer clic." },
-      { "name": "pop-in", "value": "160ms cubic-bezier(0.2, 0.9, 0.3, 1)", "purpose": "Apertura del menú de la cuenta (desde −4 px)." },
-      { "name": "sheet-in", "value": "240ms cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "Hoja de navegación del teléfono." },
-      { "name": "rise", "value": "520ms cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "Entrada del contenido de la banda azul del panel (desde 12 px)." },
-      { "name": "segment-highlight", "value": "150ms ease-out", "purpose": "Resalte del segmento medido sobre la foto del método en la portada." }
+      {
+        "name": "press",
+        "value": "150ms ease-out; translateY(1px) on :active",
+        "purpose": "Cambio de color de botones y presión al hacer clic."
+      },
+      {
+        "name": "pop-in",
+        "value": "160ms cubic-bezier(0.2, 0.9, 0.3, 1)",
+        "purpose": "Apertura del menú de la cuenta (desde −4 px)."
+      },
+      {
+        "name": "sheet-in",
+        "value": "240ms cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Hoja de navegación del teléfono."
+      },
+      {
+        "name": "rise",
+        "value": "520ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Entrada del contenido de la banda azul del panel (desde 12 px)."
+      },
+      {
+        "name": "segment-highlight",
+        "value": "150ms ease-out",
+        "purpose": "Resalte del segmento medido sobre la foto del método en la portada."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "lg", "value": "1024px" },
-      { "name": "xl", "value": "1280px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
     ],
     "riskPatterns": [
-      { "level": "1-2", "color": "#1e7a46", "pattern": "none", "numeralInk": "#ffffff" },
-      { "level": "3-4", "color": "#c99700", "pattern": "repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .22) 9px 13px)", "numeralInk": "#121418" },
-      { "level": "5-6", "color": "#c2531a", "pattern": "repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .18) 7px 10px), repeating-linear-gradient(-45deg, transparent 0 7px, rgb(255 255 255 / .14) 7px 10px)", "numeralInk": "#ffffff" },
-      { "level": "7", "color": "#b3121f", "pattern": "repeating-linear-gradient(0deg, transparent 0 6px, rgb(255 255 255 / .16) 6px 9px)", "numeralInk": "#ffffff" }
+      {
+        "level": "1-2",
+        "color": "#1e7a46",
+        "pattern": "none",
+        "numeralInk": "#ffffff"
+      },
+      {
+        "level": "3-4",
+        "color": "#c99700",
+        "pattern": "repeating-linear-gradient(45deg, transparent 0 9px, rgb(255 255 255 / .22) 9px 13px)",
+        "numeralInk": "#121418"
+      },
+      {
+        "level": "5-6",
+        "color": "#c2531a",
+        "pattern": "repeating-linear-gradient(45deg, transparent 0 7px, rgb(255 255 255 / .18) 7px 10px), repeating-linear-gradient(-45deg, transparent 0 7px, rgb(255 255 255 / .14) 7px 10px)",
+        "numeralInk": "#ffffff"
+      },
+      {
+        "level": "7",
+        "color": "#b3121f",
+        "pattern": "repeating-linear-gradient(0deg, transparent 0 6px, rgb(255 255 255 / .16) 6px 9px)",
+        "numeralInk": "#ffffff"
+      }
     ],
     "photoPrint": {
       "ground": "#0b4a8f",
@@ -88,7 +361,7 @@
       "refersTo": "input-text",
       "description": "Campo de formulario con etiqueta encima y foco azul.",
       "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Nombre del puesto</span><input class=\"ds-field__input\" placeholder=\"Auxiliar de recepción\"></label>",
-      "css": ".ds-field { display: block; max-width: 360px; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-field__label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: #36393e; } .ds-field__input { width: 100%; height: 44px; padding: 0 14px; background: #fff; color: #121418; border: 1px solid #d4d6da; border-radius: 2px; font: 400 14px Archivo, ui-sans-serif, system-ui, sans-serif; outline: none; transition: border-color 150ms, box-shadow 150ms; } .ds-field__input:hover { border-color: #b4b7bd; } .ds-field__input:focus-visible { border-color: #135699; box-shadow: 0 0 0 4px rgb(19 86 153 / 0.15); }"
+      "css": ".ds-field { display: block; max-width: 360px; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-field__label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: #36393e; } .ds-field__input { width: 100%; height: 44px; padding: 0 14px; background: #fff; color: #121418; border: 1px solid #d4d6da; border-radius: 2px; font: 400 14px Archivo, ui-sans-serif, system-ui, sans-serif; outline: none; transition: border-color 150ms, box-shadow 150ms; } .ds-field__input:hover { border-color: #b4b7bd; } .ds-field__input:focus-visible { border-color: #135699; box-shadow: 0 0 0 1px #0b4a8f; }"
     },
     {
       "name": "Header Band Navigation",
@@ -143,13 +416,41 @@
       "El riesgo nunca va solo con color: tinta, trama, número y texto juntos."
     ],
     "rules": [
-      { "name": "The One Signal Rule", "body": "El azul de señal es el único color que invita a actuar. Si algo se puede pulsar y tiene color, es azul (o blanco sobre azul).", "section": "colors" },
-      { "name": "The Risk-Only Inks Rule", "body": "Verde, ámbar, naranja y rojo están reservados para el riesgo RULA. Los estados que no son riesgo (contratos, visitas) se expresan en tinta, gris o azul: un estado «rojo» se imprime en tinta negra, un estado «verde» en gris de campo.", "section": "colors" },
-      { "name": "The Never-Color-Alone Rule", "body": "Cada tinta de riesgo lleva su trama, su número y su texto. Una escala o insignia de riesgo que se lea solo por el color está rota.", "section": "colors" },
-      { "name": "The One Family Rule", "body": "Archivo es la única familia. La jerarquía sale del peso, el ancho y el tamaño, nunca de una segunda fuente.", "section": "typography" },
-      { "name": "The Tabular Numbers Rule", "body": "Toda cifra que se compara (puntajes, métricas, fechas en tablas, códigos) usa cifras tabulares.", "section": "typography" },
-      { "name": "The One Screen Per Section Rule", "body": "En la portada cada sección cabe en una pantalla en todos los anchos; si no cabe, se acorta la foto o se oculta el texto secundario, no se deja desbordar.", "section": "layout" },
-      { "name": "The Flat Poster Rule", "body": "Fichas, botones, tablas y bandas no tienen sombra. Si una superficie no flota sobre otra, no proyecta sombra.", "section": "elevation" }
+      {
+        "name": "The One Signal Rule",
+        "body": "El azul de señal es el único color que invita a actuar. Si algo se puede pulsar y tiene color, es azul (o blanco sobre azul).",
+        "section": "colors"
+      },
+      {
+        "name": "The Risk-Only Inks Rule",
+        "body": "Verde, ámbar, naranja y rojo están reservados para el riesgo RULA. Los estados que no son riesgo (contratos, visitas) se expresan en tinta, gris o azul: un estado «rojo» se imprime en tinta negra, un estado «verde» en gris de campo.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never-Color-Alone Rule",
+        "body": "Cada tinta de riesgo lleva su trama, su número y su texto. Una escala o insignia de riesgo que se lea solo por el color está rota.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Archivo es la única familia. La jerarquía sale del peso, el ancho y el tamaño, nunca de una segunda fuente.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Toda cifra que se compara (puntajes, métricas, fechas en tablas, códigos) usa cifras tabulares.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Screen Per Section Rule",
+        "body": "En la portada cada sección cabe en una pantalla en todos los anchos; si no cabe, se acorta la foto o se oculta el texto secundario, no se deja desbordar.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Poster Rule",
+        "body": "Fichas, botones, tablas y bandas no tienen sombra. Si una superficie no flota sobre otra, no proyecta sombra.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "**Do** llenar regiones enteras con azul de señal plano y poner encima el titular en blanco y el botón inverso.",

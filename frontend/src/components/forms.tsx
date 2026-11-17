@@ -3,8 +3,8 @@ import { useState, type ReactNode, type Ref, type SelectHTMLAttributes, type Tex
 /** Campos de formulario con la misma presentación que `Field`: etiqueta, ayuda y error accesibles. */
 
 export const controlClass = (error?: string, full = true) =>
-  `${full ? "w-full " : ""}border bg-white px-3.5 text-sm text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-400 focus:ring-4 disabled:bg-ink-100 disabled:text-ink-400 ${
-    error ? "border-red-600 focus:ring-red-600/15" : "border-ink-200 hover:border-ink-300 focus:border-brand-600 focus:ring-brand-600/15"
+  `${full ? "w-full " : ""}border bg-white px-3.5 text-sm text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-400 focus:ring-1 disabled:bg-ink-100 disabled:text-ink-400 ${
+    error ? "border-red-700 focus:ring-red-700" : "border-ink-300 hover:border-ink-500 focus:border-brand-700 focus:ring-brand-700"
   }`;
 
 interface ShellProps {

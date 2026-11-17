@@ -275,7 +275,7 @@ Rectángulos macizos, sin redondeo perceptible, con una presión de 1 px al hace
 
 ### Inputs / Fields
 - **Style:** blanco, 1 px de gris de regla, 44 px de alto, 14 px de relleno, 2 px de esquina; etiqueta de 13 px en 500 encima.
-- **Focus:** el borde pasa a azul y aparece un anillo azul al 15 % de 4 px.
+- **Focus:** el borde pasa a azul de señal y una línea azul de 1 px lo duplica; sin halos difusos.
 - **Error / Disabled:** borde y mensaje de validación en rojo de error (el red-700 de Tailwind, distinto del rojo de riesgo) con aviso para lectores de pantalla; los errores de validación son la única excepción a la reserva de colores de riesgo; el selector de archivo es un botón secundario con el nombre del archivo al lado.
 
 ### Navigation

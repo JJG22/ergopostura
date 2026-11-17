@@ -245,3 +245,25 @@ a.addlink, a.changelink, a.viewlink { font-weight: 600; }
   .ep-link { padding: 8px; }
   #header { justify-content: space-between; }
 }
+
+/* Mundo del cartel de seguridad laboral (DESIGN.md): franja azul de cabecera, reglas de tinta,
+   esquinas rectas, foco azul nítido y el rojo de la escala RULA para errores. */
+:root {
+  --header-bg: #0b4a8f; --header-color: #fff; --header-branding-color: #fff; --header-link-color: #fff;
+  --error-fg: #b3121f; --delete-button-bg: #b3121f; --delete-button-hover-bg: #8c0e18;
+}
+#header { background: #0b4a8f; color: #fff; border-bottom: 0; }
+.ep-brand, .ep-brand:link, .ep-brand:visited, .ep-brand-text strong { color: #fff; }
+.ep-brand-text small { color: #d3e2f2; }
+.ep-brand-mark { outline: 2px solid #fff; }
+#user-tools, #user-tools a, #user-tools a:link, #user-tools a:visited, #logout-form button { color: #fff; }
+.ep-user { border-right-color: rgb(255 255 255 / .3); }
+.ep-user strong { color: #fff; }
+.ep-user small { color: #d3e2f2; }
+.ep-avatar { border-radius: 0; background: #fff; color: #0b4a8f; }
+#user-tools .ep-link:hover, #user-tools .ep-link:focus-visible { background: rgb(255 255 255 / .14); color: #fff; }
+.module h2, .module caption, .inline-group h2, fieldset.module > h2, fieldset.module .fieldset-heading,
+#changelist-filter h2, #recent-actions-module h2 { background: #fff; color: #121418; border-bottom: 2px solid #121418; }
+.module caption a, .module h2 a { color: #0b4a8f; }
+input:focus, textarea:focus, select:focus { outline: 1px solid #0b4a8f; border-color: #0b4a8f; }
+.errornote, ul.errorlist li { color: #8c0e18; }

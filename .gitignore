@@ -29,3 +29,6 @@ frontend/dist/
 static/landing/.taste-skill/
 frontend/test-results/
 frontend/playwright-report/
+
+# Configuración local de Claude Code (hooks y permisos de esta máquina)
+.claude/settings.local.json

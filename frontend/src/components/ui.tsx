@@ -77,7 +77,7 @@ export function Meta({ items }: { items: readonly (ReactNode | null | false | un
   );
 }
 
-/** Panel de contenido: superficie de vidrio casi opaca, para leer tablas y formularios con comodidad. */
+/** Panel de contenido: papel blanco con borde de tinta clara, para leer tablas y formularios con comodidad. */
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <section className={`surface min-w-0 p-6 ${className}`}>{children}</section>;
 }
@@ -132,8 +132,8 @@ export function Field({ label, error, hint, id, ...input }: InputHTMLAttributes<
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`h-11 w-full border bg-white px-3.5 text-sm text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-400 focus:ring-4 ${
-          error ? "border-red-600 focus:ring-red-600/15" : "border-ink-200 hover:border-ink-300 focus:border-brand-600 focus:ring-brand-600/15"
+        className={`h-11 w-full border bg-white px-3.5 text-sm text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-400 focus:ring-1 ${
+          error ? "border-red-700 focus:ring-red-700" : "border-ink-300 hover:border-ink-500 focus:border-brand-700 focus:ring-brand-700"
         }`}
         {...input}
       />
@@ -201,27 +201,31 @@ export function Badge({ tone = "neutral", children, dot = false }: { tone?: Tone
   );
 }
 
-/** Colores del semáforo RULA: solo para riesgo, nunca para acciones. */
-export const RISK_COLORS = {
-  verde: { chip: "bg-[#1e7a46] text-white", text: "text-[#1e7a46]", soft: "bg-emerald-50 text-emerald-900" },
-  amarillo: { chip: "bg-[#c99700] text-ink-950", text: "text-[#8a6700]", soft: "bg-amber-50 text-amber-950" },
-  rojo: { chip: "bg-[#b3121f] text-white", text: "text-[#b3121f]", soft: "bg-red-50 text-red-900" },
+/**
+ * Tintas de riesgo por nivel de acción RULA (1 a 4), las mismas de la escala y de la portada:
+ * verde liso, ámbar rayado, naranja con doble rayado y rojo con líneas horizontales.
+ * Solo para riesgo, nunca para acciones ni estados.
+ */
+const RISK_INKS = {
+  1: { chip: "bg-[#1e7a46] text-white", text: "text-[#1e7a46]", pattern: {} },
+  2: { chip: "bg-[#c99700] text-ink-950", text: "text-[#8a6700]", pattern: { backgroundImage: "repeating-linear-gradient(45deg, transparent 0 5px, rgb(255 255 255 / .28) 5px 7px)" } },
+  3: { chip: "bg-[#c2531a] text-white", text: "text-[#a8461a]", pattern: { backgroundImage: "repeating-linear-gradient(45deg, transparent 0 4px, rgb(255 255 255 / .2) 4px 6px), repeating-linear-gradient(-45deg, transparent 0 4px, rgb(255 255 255 / .14) 4px 6px)" } },
+  4: { chip: "bg-[#b3121f] text-white", text: "text-[#b3121f]", pattern: { backgroundImage: "repeating-linear-gradient(0deg, transparent 0 3px, rgb(255 255 255 / .2) 3px 5px)" } },
 } as const;
 
-/** Trama de cada nivel, igual que en la portada: el riesgo se lee también en blanco y negro. */
-export const RISK_PATTERN = {
-  verde: {},
-  amarillo: { backgroundImage: "repeating-linear-gradient(45deg, transparent 0 5px, rgb(255 255 255 / .28) 5px 7px)" },
-  rojo: { backgroundImage: "repeating-linear-gradient(0deg, transparent 0 3px, rgb(255 255 255 / .2) 3px 5px)" },
-} as const;
+/** La tinta, el texto y la trama del nivel de acción de un resultado. */
+export function riskInk(risk: Risk) {
+  const level = Math.min(4, Math.max(1, risk.level)) as 1 | 2 | 3 | 4;
+  return RISK_INKS[level];
+}
 
 /** El color nunca va solo: el número del nivel de acción, su texto y su trama lo acompañan (RNF-004). */
 export function RiskBadge({ risk }: { risk: Risk | null }) {
   if (!risk) return <Badge>Sin resultado</Badge>;
-  const colors = RISK_COLORS[risk.traffic_light];
+  const colors = riskInk(risk);
   return (
     <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-xs font-semibold" title={`Nivel de acción ${risk.level} de 4`}>
-      <span className={`grid h-5 place-items-center px-1.5 text-[11px] font-bold tabular ${colors.chip}`} style={RISK_PATTERN[risk.traffic_light]}>
+      <span className={`grid h-5 place-items-center px-1.5 text-[11px] font-bold tabular ${colors.chip}`} style={colors.pattern}>
         Nivel {risk.level}
       </span>
       <span className={colors.text}>{risk.label}</span>

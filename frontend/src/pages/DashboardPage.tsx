@@ -36,7 +36,7 @@ function sentence(parts: string[]): string {
 
 /**
  * Portada del panel: saludo, resumen del día en una frase y las acciones principales a la
- * izquierda; a la derecha, el panel de vidrio con lo más importante para el rol.
+ * izquierda, sobre el campo azul; a la derecha, la hoja blanca con lo más importante para el rol.
  */
 function Hero({ data, summary, actions, feature }: { data: Dashboard; summary: ReactNode; actions: ReactNode; feature: ReactNode }) {
   return (
@@ -65,7 +65,7 @@ function Feature({ label, children, footer }: { label: string; children: ReactNo
   );
 }
 
-/** Indicadores en una sola franja de vidrio: se leen de corrido, como un tablero. */
+/** Indicadores en una sola franja bajo una regla negra: se leen de corrido, como un tablero. */
 function Metrics({ children, columns }: { children: ReactNode; columns: 3 | 4 }) {
   return (
     <div className={`mb-10 grid border-t-2 border-ink-950 ${columns === 4 ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-3"} [&>*]:border-ink-200 max-lg:[&>*:nth-child(-n+2)]:border-b lg:[&>*+*]:border-l max-lg:[&>*:nth-child(even)]:border-l`}>
@@ -78,10 +78,10 @@ function Metric({ label, value, detail, href, alert = false }: { label: string; 
   const content = (
     <>
       <p className="flex items-center gap-2 pr-6 text-sm font-medium text-ink-600">
-        {alert ? <span className="size-2 rounded-full bg-red-600" aria-hidden="true" /> : null}
+        {alert ? <span className="size-2 bg-ink-950" aria-hidden="true" /> : null}
         {label}
       </p>
-      <p className={`mt-4 font-display text-[2.5rem] leading-none tabular sm:text-6xl ${alert ? "text-red-700" : "text-ink-950"}`}>{value}</p>
+      <p className={`mt-4 font-display text-[2.5rem] leading-none tabular sm:text-6xl text-ink-950 ${alert ? "underline decoration-4 underline-offset-8" : ""}`}>{value}</p>
       {detail ? <p className="mt-3 text-xs text-ink-500">{detail}</p> : null}
     </>
   );

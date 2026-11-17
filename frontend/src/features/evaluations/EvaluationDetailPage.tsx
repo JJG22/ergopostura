@@ -5,7 +5,7 @@ import { toApiError, type ApiError } from "../../api/client";
 import { controlClass, FilePicker, Grid, SelectField } from "../../components/forms";
 import { ConfirmModal, FormModal } from "../../components/Modal";
 import { useNotify, usePageTitle } from "../../components/Page";
-import { Badge, Button, Card, ErrorState, Field, Icon, linkButtonClass, Meta, RISK_COLORS, RiskBadge, Spinner } from "../../components/ui";
+import { Badge, Button, Card, ErrorState, Field, Icon, linkButtonClass, Meta, RiskBadge, riskInk, Spinner } from "../../components/ui";
 import { formatShortDate } from "../../lib/format";
 import { useForm } from "../../lib/useForm";
 import { useResource } from "../../lib/useResource";
@@ -85,7 +85,7 @@ function Detail({ evaluation, refresh }: { evaluation: EvaluationDetail; refresh
           {e.risk ? (
             <div className="mt-5">
               <div className="flex items-baseline gap-2">
-                <strong className={`font-display text-8xl leading-none tabular ${RISK_COLORS[e.risk.traffic_light].text}`}>{e.risk.score}</strong>
+                <strong className={`font-display text-8xl leading-none tabular ${riskInk(e.risk).text}`}>{e.risk.score}</strong>
                 <span className="text-ink-500">de 7</span>
               </div>
               <div className="mt-4"><RiskBadge risk={e.risk} /></div>
@@ -226,7 +226,7 @@ export function ResultSummary({ result }: { result: PostureResult }) {
   return (
     <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
       <div className="flex items-baseline gap-1.5">
-        <strong className={`font-display text-7xl leading-none tabular ${RISK_COLORS[result.risk.traffic_light].text}`}>{result.grand_score}</strong>
+        <strong className={`font-display text-7xl leading-none tabular ${riskInk(result.risk).text}`}>{result.grand_score}</strong>
         <span className="text-sm text-ink-500">de 7</span>
       </div>
       <div className="min-w-60 flex-1">

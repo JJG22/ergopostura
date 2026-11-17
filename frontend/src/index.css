@@ -78,7 +78,6 @@ body {
  * pero ya no son vidrio: son papel plano con una regla de tinta.
  * - glass: pieza destacada (barra, ventanas, menú): blanco con borde de tinta.
  * - surface: contenido (tablas, formularios): blanco con borde claro.
- * - glass-dark: pieza sobre el campo azul.
  */
 @utility glass {
   background: #fff;
@@ -88,11 +87,6 @@ body {
 @utility surface {
   background: #fff;
   border: 1px solid var(--color-ink-200);
-}
-
-@utility glass-dark {
-  background: rgb(255 255 255 / 0.08);
-  border: 1px solid rgb(255 255 255 / 0.28);
 }
 
 /* Botón principal: azul de señal macizo. */

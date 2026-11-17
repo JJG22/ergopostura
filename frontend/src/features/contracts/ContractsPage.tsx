@@ -31,7 +31,7 @@ export function ContractsPage() {
       className={`-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-semibold whitespace-nowrap ${
         status === value ? "border-brand-700 text-brand-800" : "border-transparent text-ink-500 hover:text-ink-800"}`}>
       {label}
-      {total !== undefined ? <span className="rounded-full bg-ink-100 px-2 text-xs text-ink-600">{total}</span> : null}
+      {total !== undefined ? <span className="bg-ink-100 px-2 text-xs text-ink-700">{total}</span> : null}
     </button>
   );
 
