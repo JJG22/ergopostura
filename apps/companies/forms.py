@@ -1,9 +1,11 @@
+import re
+
 from django import forms
 from django.utils import timezone
 
 from apps.geography.forms import LocationFieldsMixin
 
-from .models import Area, Company, Position, Site, Worker
+from .models import CEDULA_PATTERN, Area, Company, Position, Site, Worker
 from .nit import InvalidNit, Nit
 
 
@@ -12,24 +14,45 @@ def normalize_name(value: str) -> str:
 
 
 class CompanyForm(LocationFieldsMixin, forms.ModelForm):
-    # Campo de texto libre: acepta el NIT con puntos y guion, y guarda solo el numero base.
-    # La unicidad la valida el modelo, sobre el valor ya normalizado.
+    """Persona jurídica con NIT o persona natural con cédula.
+
+    Los dos documentos son campos de texto libre: aceptan puntos, espacios y, en el NIT, el
+    guion con el dígito de verificación; se guarda solo el número. Solo se usa el documento
+    del tipo elegido y el otro queda vacío. La unicidad la valida el modelo, sobre el valor
+    ya normalizado.
+    """
+
+    person_type = forms.ChoiceField(
+        label="Tipo de persona",
+        choices=Company.PersonType.choices,
+        error_messages={
+            "required": "Elige si la empresa es persona natural o jurídica.",
+            "invalid_choice": "Elige si la empresa es persona natural o jurídica.",
+        },
+    )
     nit = forms.CharField(
         label="NIT",
         max_length=20,
+        required=False,
         widget=forms.TextInput(attrs={"placeholder": "Ej. 900.123.456-8"}),
-        error_messages={"required": "El NIT es obligatorio."},
+    )
+    cedula = forms.CharField(
+        label="Cédula",
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Ej. 1.094.887.654", "inputmode": "numeric"}),
     )
 
     class Meta:
         model = Company
-        fields = ["name", "nit", "municipality", "is_active"]
+        fields = ["person_type", "name", "nit", "cedula", "municipality", "is_active"]
         widgets = {"name": forms.TextInput(attrs={"placeholder": "Ej. Café Montaña S.A.S."})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.initial["nit"] = self.instance.nit_display
+            self.initial["cedula"] = self.instance.cedula_display
         else:
             # Una empresa nueva siempre nace activa.
             del self.fields["is_active"]
@@ -39,10 +62,44 @@ class CompanyForm(LocationFieldsMixin, forms.ModelForm):
         return normalize_name(self.cleaned_data["name"])
 
     def clean_nit(self):
+        raw = self.cleaned_data["nit"].strip()
+        if not raw or self.data.get("person_type") != Company.PersonType.JURIDICA:
+            return None
         try:
-            return Nit.parse(self.cleaned_data["nit"]).number
+            return Nit.parse(raw).number
         except InvalidNit as error:
             raise forms.ValidationError(str(error)) from error
+
+    def clean_cedula(self):
+        raw = self.cleaned_data["cedula"].strip()
+        if not raw or self.data.get("person_type") != Company.PersonType.NATURAL:
+            return None
+        number = re.sub(r"[\s.]", "", raw)
+        if not re.fullmatch(CEDULA_PATTERN, number):
+            raise forms.ValidationError("Escribe una cédula válida: solo números, entre 4 y 10 dígitos.")
+        return number
+
+    def clean(self):
+        cleaned = super().clean()
+        person_type = cleaned.get("person_type")
+        if person_type == Company.PersonType.JURIDICA:
+            field, other_field, missing = "nit", "cedula", "El NIT es obligatorio."
+        elif person_type == Company.PersonType.NATURAL:
+            field, other_field, missing = "cedula", "nit", "La cédula es obligatoria."
+        else:
+            return cleaned
+        if field in self.errors:
+            return cleaned
+        if not cleaned.get(field):
+            self.add_error(field, missing)
+            return cleaned
+        # El NIT de una persona natural es su cédula: el mismo número con los dos tipos
+        # sería el mismo cliente registrado dos veces.
+        other = Company.objects.filter(**{other_field: cleaned[field]}).exclude(pk=self.instance.pk).first()
+        if other is not None:
+            taken_as = "el NIT" if other_field == "nit" else "la cédula"
+            self.add_error(field, f"Este número ya está registrado como {taken_as} de {other.name.rstrip('.')}.")
+        return cleaned
 
 
 class SiblingUniqueNameForm(forms.ModelForm):

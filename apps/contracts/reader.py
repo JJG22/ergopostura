@@ -80,7 +80,8 @@ Reglas:
 lo inventes.
 - Fechas en formato AAAA-MM-DD. Si el contrato da una duración pero no la fecha final, \
 calcula end_date desde start_date y explícalo en alerts.
-- client_nit: el NIT del contratante tal como aparece, con su dígito de verificación si lo tiene.
+- client_nit: el NIT del contratante tal como aparece, con su dígito de verificación si lo tiene. \
+Si el contratante es una persona natural identificada con cédula, escribe el número de la cédula.
 - value_cop: el valor total en pesos colombianos, como número sin separadores.
 - contract_type: la categoría que mejor corresponda; en contract_type_text, el nombre que \
 usa el documento.

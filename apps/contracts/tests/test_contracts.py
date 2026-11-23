@@ -12,7 +12,8 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
 from apps.accounts.models import Role
-from apps.contracts import reader
+from apps.companies.models import Company
+from apps.contracts import reader, services
 from apps.contracts.forms import ContractForm
 from apps.contracts.models import Contract, ContractStatus, duration_label
 from apps.core.tests.factories import (
@@ -22,6 +23,7 @@ from apps.core.tests.factories import (
     make_site,
     make_user,
     make_visit,
+    municipality,
     sample_pdf,
 )
 
@@ -246,3 +248,37 @@ class ReaderTests(TestCase):
         self.assertIn("anterior a la inicial", summary["alerts"][-1])
 
 
+
+
+class ClientDocumentTests(TestCase):
+    """El documento leido en el PDF se compara con el NIT o la cedula, segun el tipo de persona."""
+
+    def setUp(self):
+        self.legal = make_company(name="Café Montaña S.A.S.", nit="900123456")
+        self.natural = Company.objects.create(
+            name="Jorge Iván Cárdenas", person_type="natural", cedula="1094887654", municipality=municipality()
+        )
+
+    def test_natural_person_matches_with_cedula_or_with_its_nit(self):
+        for text in ("C.C. 1.094.887.654", "1094887654", "1.094.887.654-3"):
+            summary = {"client_nit_text": text, "client_nit": None}
+            self.assertTrue(services.same_document(summary, self.natural), text)
+            self.assertEqual(services.company_for_reading(summary), self.natural, text)
+
+    def test_natural_person_with_another_number_differs(self):
+        summary = {"client_nit_text": "C.C. 1.094.887.655", "client_nit": None}
+        self.assertFalse(services.same_document(summary, self.natural))
+        self.assertIsNone(services.company_for_reading(summary))
+
+    def test_legal_person_still_matches_by_nit(self):
+        summary = {"client_nit_text": "900.123.456-8", "client_nit": "900123456"}
+        self.assertTrue(services.same_document(summary, self.legal))
+        self.assertFalse(services.same_document(summary, self.natural))
+        self.assertEqual(services.company_for_reading(summary), self.legal)
+
+    def test_comparison_row_uses_the_document_of_the_person_type(self):
+        contract = make_contract(company=self.natural)
+        contract.ai_summary = {"client_name": "Jorge Iván Cárdenas", "client_nit_text": "C.C. 1.094.887.654", "client_nit": None}
+        row = next(r for r in services.comparison(contract) if r["label"] == "Cédula")
+        self.assertEqual((row["registered"], row["differs"]), ("1.094.887.654", False))
+        self.assertFalse(services.document_mismatch(contract))

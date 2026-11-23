@@ -44,6 +44,11 @@ def working_day(day: date) -> date:
     return day + timedelta(days=1) if day.weekday() == 6 else day
 
 
+def previous_working_day(day: date) -> date:
+    """Corre los domingos al sabado, para que una fecha pasada siga en el pasado."""
+    return day - timedelta(days=1) if day.weekday() == 6 else day
+
+
 class DemoBuilder:
     def __init__(self, password: str):
         self.password = password
@@ -62,7 +67,7 @@ class DemoBuilder:
 
     def build(self) -> dict[str, int]:
         companies = [self.company(*row) for row in data.COMPANIES]
-        users = self.users({company.nit: company for company in companies})
+        users = self.users({company.document_number: company for company in companies})
         engineer = users["ingeniero@ergopostura.test"]
         followers = {user.company_id: user for user in users.values() if user.role == Role.COMPANY}
         for index, company in enumerate(companies):
@@ -74,10 +79,15 @@ class DemoBuilder:
 
     # Estructura -------------------------------------------------------------------------
 
-    def company(self, nit, name, city, department, active, contact, sites) -> Company:
-        company, created = Company.objects.get_or_create(
-            nit=nit, defaults={"name": name, "municipality": place(city, department), "is_active": active}
-        )
+    def company(self, document, name, city, department, active, contact, sites) -> Company:
+        defaults = {"name": name, "municipality": place(city, department), "is_active": active}
+        if document.startswith("CC "):
+            company, created = Company.objects.get_or_create(
+                cedula=document.removeprefix("CC "),
+                defaults={**defaults, "person_type": Company.PersonType.NATURAL},
+            )
+        else:
+            company, created = Company.objects.get_or_create(nit=document, defaults=defaults)
         company.demo_contact = contact
         self.counts["empresas"] += created
         for site_name, site_city, site_department, address, areas in sites:
@@ -148,10 +158,15 @@ class DemoBuilder:
             end = start.replace(year=start.year + 1, day=min(start.day, 28)) - timedelta(days=1)
         value = Decimal(self.random.choice((6_500_000, 9_800_000, 12_000_000, 18_400_000)))
         code = f"CPS-{start.year}-{index + 1:03d}"
+        identification = (
+            f"identificado con cédula de ciudadanía {company.cedula_display}"
+            if company.is_natural
+            else f"identificada con NIT {company.nit_display}"
+        )
         pdf = text_pdf(
             f"Contrato de prestación de servicios {code}",
             [
-                f"Entre {company.name}, identificada con NIT {company.nit_display}, en adelante EL CONTRATANTE, "
+                f"Entre {company.name}, {identification}, en adelante EL CONTRATANTE, "
                 f"y {engineer.get_full_name()}, ingeniero industrial, en adelante EL CONTRATISTA, se celebra el "
                 "presente contrato de prestación de servicios profesionales.",
                 f"PRIMERA. OBJETO. {data.CONTRACT_SERVICE}",
@@ -212,7 +227,7 @@ class DemoBuilder:
         if upcoming <= contract.end_date:
             self.visit(site, upcoming, contact, requested_by, Visit.Status.SCHEDULED, engineer)
         if index == 0:
-            self.visit(site, working_day(self.today - timedelta(days=1)), contact, requested_by,
+            self.visit(site, previous_working_day(self.today - timedelta(days=1)), contact, requested_by,
                        Visit.Status.SCHEDULED, engineer)
         if index == 2:
             cancelled = self.visit(site, working_day(self.today + timedelta(days=4)), contact, requested_by,

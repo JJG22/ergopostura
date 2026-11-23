@@ -24,6 +24,7 @@ from .permissions import HasCapability
 
 DUPLICATE_NAME = "Ya existe un registro con ese nombre en este mismo nivel."
 DUPLICATE_DOCUMENT = "Este documento ya está registrado en el puesto."
+DUPLICATE_COMPANY = "Ya existe una empresa con ese NIT o cédula."
 INACTIVE = "La empresa está inactiva: no se le puede agregar estructura."
 
 
@@ -39,7 +40,12 @@ def company_row(company) -> dict:
     return {
         "id": company.pk,
         "name": company.name,
+        "person_type": company.person_type,
+        "person_type_label": company.get_person_type_display(),
+        "document_label": company.document_label,
+        "document": company.document_display,
         "nit": company.nit_display,
+        "cedula": company.cedula_display,
         "is_active": company.is_active,
         "site_count": getattr(company, "site_count", None),
         **place(company.municipality),
@@ -141,7 +147,7 @@ class CompanyListView(APIView):
 
     def post(self, request):
         form = CompanyForm(data=request.data)
-        return save_form(form, lambda c: {"id": c.pk}, integrity_message="Ya existe una empresa con este NIT.", created=True)
+        return save_form(form, lambda c: {"id": c.pk}, integrity_message=DUPLICATE_COMPANY, created=True)
 
 
 class CompanyDetailView(APIView):
@@ -160,7 +166,7 @@ class CompanyDetailView(APIView):
     def put(self, request, pk):
         company = get_object_or_404(selectors.visible_companies(request.user), pk=pk)
         form = CompanyForm(data=request.data, instance=company)
-        return save_form(form, lambda c: {"id": c.pk}, integrity_message="Ya existe una empresa con este NIT.")
+        return save_form(form, lambda c: {"id": c.pk}, integrity_message=DUPLICATE_COMPANY)
 
 
 class StructureView(APIView):

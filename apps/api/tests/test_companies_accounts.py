@@ -62,7 +62,7 @@ class CompaniesApiTests(ApiTestCase):
     def test_create_company_validates_nit_with_field_errors(self):
         headers = self.as_engineer()
         place = municipality()
-        payload = {"name": "  Nueva   Empresa ", "nit": "123", "department": place.department_id, "municipality": place.pk}
+        payload = {"person_type": "juridica", "name": "  Nueva   Empresa ", "nit": "123", "department": place.department_id, "municipality": place.pk}
         response = self.client.post("/api/v1/companies/", payload, format="json", **headers)
         self.assertEqual(response.status_code, 400)
         self.assertIn("nit", response.json()["error"]["fields"])
@@ -76,7 +76,7 @@ class CompaniesApiTests(ApiTestCase):
     def test_update_company_can_deactivate_and_then_blocks_new_structure(self):
         headers = self.as_engineer()
         place = self.company.municipality
-        payload = {"name": self.company.name, "nit": self.company.nit, "department": place.department_id,
+        payload = {"person_type": "juridica", "name": self.company.name, "nit": self.company.nit, "department": place.department_id,
                    "municipality": place.pk, "is_active": False}
         self.assertEqual(self.client.put(f"/api/v1/companies/{self.company.pk}/", payload, format="json", **headers).status_code, 200)
         response = self.client.post(f"/api/v1/companies/{self.company.pk}/sites/",

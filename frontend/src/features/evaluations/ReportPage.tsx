@@ -41,7 +41,7 @@ function Report({ e }: { e: EvaluationDetail }) {
           <Badge tone="teal">{e.code}</Badge>
         </header>
         <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">Informe de evaluación ergonómica</h1>
-        <p className="mb-5 text-ink-600">{e.company} · NIT {e.company_nit}</p>
+        <p className="mb-5 text-ink-600">{e.company} · {e.company_document_label} {e.company_document}</p>
         <div className="mb-6 grid gap-x-6 gap-y-3 border-y border-ink-200 py-4 text-sm sm:grid-cols-3">
           <Item label="Sede">{e.site}</Item><Item label="Área">{e.area}</Item><Item label="Puesto">{e.position}</Item>
           <Item label="Fecha">{formatShortDate(e.evaluated_on)}</Item><Item label="Ingeniero">{e.evaluator}</Item>

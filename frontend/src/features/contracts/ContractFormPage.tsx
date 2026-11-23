@@ -191,7 +191,7 @@ function ReadingResult({ reading, filled }: { reading: Reading; filled: number }
       <p className="font-medium text-brand-800">Se llenaron {filled} campos. Revísalos antes de guardar.</p>
       {reading.summary ? <p>{reading.summary}</p> : null}
       {reading.client_nit && !reading.company_found ? (
-        <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-900">El NIT del documento ({reading.client_nit}) no corresponde a ninguna empresa registrada. Regístrala antes de guardar el contrato.</p>
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-900">El NIT o la cédula del documento ({reading.client_nit}) no corresponde a ninguna empresa registrada. Regístrala antes de guardar el contrato.</p>
       ) : !reading.fields.company && reading.client ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-amber-900">No se identificó la empresa «{reading.client}». Elígela en la lista.</p>
       ) : null}

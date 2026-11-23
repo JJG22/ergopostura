@@ -73,7 +73,7 @@ function Detail({ company, selected, onSelect, refresh }: {
       <div className="mb-5">
         <p className="mb-1.5 text-sm font-semibold text-brand-700">Empresa cliente</p>
         <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">{company.name}</h1>
-        <Meta items={[<span className="tabular">NIT {company.nit}</span>, company.location, company.is_active ? "Activa" : "Inactiva"]} />
+        <Meta items={[company.person_type_label, <span className="tabular">{company.document_label} {company.document}</span>, company.location, company.is_active ? "Activa" : "Inactiva"]} />
       </div>
 
       <div className="mb-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-600">
@@ -233,7 +233,7 @@ function NodePanel({ company, node, onDialog }: { company: CompanyDetail; node: 
   if (node.kind === "company") {
     view = {
       kind: "Empresa", icon: "building-complex", name: company.name, path: [company.name],
-      details: [["NIT", company.nit], ["Municipio", company.municipality.name], ["Departamento", company.department.name],
+      details: [["Tipo de persona", company.person_type_label], [company.document_label, company.document], ["Municipio", company.municipality.name], ["Departamento", company.department.name],
         ["Estado", company.is_active ? "Activa" : "Inactiva"]],
       edit: { type: "company" }, add: { type: "site" }, addLabel: "Agregar sede",
     };

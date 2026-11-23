@@ -56,7 +56,7 @@ def search_companies(user, query: str = "") -> QuerySet[Company]:
     # Lo que va despues del guion es el digito de verificacion, que no se almacena.
     digits = re.sub(r"\D", "", query.split("-")[0])
     if digits:
-        condition |= Q(nit__contains=digits)
+        condition |= Q(nit__contains=digits) | Q(cedula__contains=digits)
     return companies.filter(condition)
 
 

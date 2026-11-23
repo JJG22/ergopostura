@@ -117,13 +117,18 @@ CREATE TABLE `companies_company` (
   `created_at` datetime(6) NOT NULL,
   `updated_at` datetime(6) NOT NULL,
   `name` varchar(200) NOT NULL,
-  `nit` varchar(10) NOT NULL,
+  `nit` varchar(10) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL,
   `municipality_id` bigint NOT NULL,
+  `cedula` varchar(10) DEFAULT NULL,
+  `person_type` varchar(10) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `nit` (`nit`),
+  UNIQUE KEY `cedula` (`cedula`),
   KEY `companies_company_municipality_id_71991e81_fk_geography` (`municipality_id`),
   CONSTRAINT `companies_company_municipality_id_71991e81_fk_geography` FOREIGN KEY (`municipality_id`) REFERENCES `geography_municipality` (`id`),
+  CONSTRAINT `company_cedula_format` CHECK (regexp_like(`cedula`,_utf8mb4'^[1-9][0-9]{3,9}$',_utf8mb4'c')),
+  CONSTRAINT `company_document_matches_person_type` CHECK ((((`cedula` is null) and (`nit` is not null) and (`person_type` = _utf8mb4'juridica')) or ((`cedula` is not null) and (`nit` is null) and (`person_type` = _utf8mb4'natural')))),
   CONSTRAINT `company_nit_format` CHECK (regexp_like(`nit`,_utf8mb4'^[1-9][0-9]{5,9}$',_utf8mb4'c'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -14,10 +14,19 @@ interface Located {
   location: string;
 }
 
+export type PersonType = "natural" | "juridica";
+
 export interface CompanyRow extends Located {
   id: number;
+  /** Razón social de la persona jurídica o nombre completo de la persona natural. */
   name: string;
+  person_type: PersonType;
+  person_type_label: string;
+  /** «NIT» o «Cédula», según el tipo de persona. */
+  document_label: string;
+  document: string;
   nit: string;
+  cedula: string;
   is_active: boolean;
   site_count: number | null;
 }
@@ -82,8 +91,10 @@ export interface Saved {
 }
 
 export interface CompanyInput {
+  person_type: PersonType | "";
   name: string;
   nit: string;
+  cedula: string;
   department: string;
   municipality: string;
   is_active?: boolean;

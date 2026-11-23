@@ -17,14 +17,42 @@ from apps.geography.models import Municipality
 from .nit import Nit
 
 
+CEDULA_PATTERN = r"^[1-9][0-9]{3,9}$"
+
+
 class Company(TimeStampedModel):
-    name = models.CharField("razón social", max_length=200)
+    """Cliente del servicio: una persona jurídica (con NIT) o una persona natural (con cédula).
+
+    Cada tipo usa solo su documento y el otro queda vacío (NULL). La base de datos lo
+    exige con una restricción, así un registro nunca queda con los dos documentos o sin ninguno.
+    """
+
+    class PersonType(models.TextChoices):
+        NATURAL = "natural", "Persona natural"
+        JURIDICA = "juridica", "Persona jurídica"
+
+    person_type = models.CharField(
+        "tipo de persona", max_length=10, choices=PersonType.choices, default=PersonType.JURIDICA
+    )
+    # Razón social de la persona jurídica, o nombre completo de la persona natural.
+    name = models.CharField("nombre o razón social", max_length=200)
     nit = models.CharField(
         "NIT",
         max_length=10,
         unique=True,
+        null=True,
+        blank=True,
         validators=[RegexValidator(r"^[1-9][0-9]{5,9}$", "Escribe un NIT válido.")],
         error_messages={"unique": "Ya existe una empresa con este NIT."},
+    )
+    cedula = models.CharField(
+        "cédula",
+        max_length=10,
+        unique=True,
+        null=True,
+        blank=True,
+        validators=[RegexValidator(CEDULA_PATTERN, "Escribe una cédula válida.")],
+        error_messages={"unique": "Ya existe una empresa con esta cédula."},
     )
     municipality = models.ForeignKey(
         Municipality, verbose_name="municipio", on_delete=models.PROTECT, related_name="companies"
@@ -40,14 +68,47 @@ class Company(TimeStampedModel):
                 name="company_nit_format",
                 condition=Q(nit__regex=r"^[1-9][0-9]{5,9}$"),
             ),
+            models.CheckConstraint(
+                name="company_cedula_format",
+                condition=Q(cedula__regex=CEDULA_PATTERN),
+            ),
+            models.CheckConstraint(
+                name="company_document_matches_person_type",
+                condition=(
+                    Q(person_type="juridica", nit__isnull=False, cedula__isnull=True)
+                    | Q(person_type="natural", cedula__isnull=False, nit__isnull=True)
+                ),
+                violation_error_message="Una persona jurídica se registra con NIT y una natural con cédula.",
+            ),
         ]
 
     def __str__(self):
         return self.name
 
     @property
+    def is_natural(self) -> bool:
+        return self.person_type == self.PersonType.NATURAL
+
+    @property
     def nit_display(self) -> str:
-        return str(Nit(self.nit))
+        return str(Nit(self.nit)) if self.nit else ""
+
+    @property
+    def cedula_display(self) -> str:
+        return f"{int(self.cedula):,}".replace(",", ".") if self.cedula else ""
+
+    @property
+    def document_label(self) -> str:
+        return "Cédula" if self.is_natural else "NIT"
+
+    @property
+    def document_number(self) -> str:
+        """El número guardado, sin puntos ni dígito de verificación."""
+        return (self.cedula if self.is_natural else self.nit) or ""
+
+    @property
+    def document_display(self) -> str:
+        return self.cedula_display if self.is_natural else self.nit_display
 
     @property
     def node_key(self) -> str:

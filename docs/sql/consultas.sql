@@ -2,7 +2,8 @@
 --
 -- Todas son de solo lectura (SELECT). Ejecútelas una por una.
 -- Para ver resultados use la base local con datos de demostración; la base publicada
--- arranca vacía. El NIT 900123456 corresponde a Café Montaña S.A.S. en esos datos.
+-- arranca vacía. El NIT 900123456 corresponde a Café Montaña S.A.S. en esos datos, y la
+-- cédula 1094887654 a Jorge Iván Cárdenas Ospina, el único cliente persona natural.
 --
 -- Las fechas con hora se guardan en UTC. Colombia está 5 horas atrás y no cambia de horario,
 -- por eso las consultas restan 5 horas para mostrar la hora local.
@@ -11,12 +12,16 @@
 
 -- =====================================================================================
 -- 1. Empresas registradas con su ubicación
--- Descripción: lista las empresas con su NIT, municipio, departamento y estado.
+-- Descripción: lista las empresas con su tipo de persona, su documento (NIT si es persona
+-- jurídica, cédula si es persona natural), municipio, departamento y estado.
+-- Cada empresa tiene solo uno de los dos documentos; COALESCE toma el que no es NULL.
 -- Tablas: companies_company, geography_municipality, geography_department.
 -- =====================================================================================
 SELECT
     c.name AS empresa,
-    c.nit,
+    IF(c.person_type = 'natural', 'Persona natural', 'Persona jurídica') AS tipo_persona,
+    IF(c.person_type = 'natural', 'Cédula', 'NIT') AS tipo_documento,
+    COALESCE(c.nit, c.cedula) AS documento,
     m.name AS municipio,
     d.name AS departamento,
     IF(c.is_active, 'Activa', 'Inactiva') AS estado
@@ -26,18 +31,20 @@ JOIN geography_department AS d ON d.id = m.department_id
 ORDER BY c.name;
 
 -- =====================================================================================
--- 2. Búsqueda de empresas por nombre o NIT
--- Descripción: encuentra empresas cuyo nombre o NIT contengan el texto buscado.
+-- 2. Búsqueda de empresas por nombre, NIT o cédula
+-- Descripción: encuentra empresas cuyo nombre, NIT o cédula contengan el texto buscado.
 -- Es la búsqueda del módulo de Empresas. Cambie 'caf' por el texto que desee.
 -- Tablas: companies_company.
 -- =====================================================================================
 SELECT
     c.id,
     c.name AS empresa,
-    c.nit
+    IF(c.person_type = 'natural', 'Persona natural', 'Persona jurídica') AS tipo_persona,
+    COALESCE(c.nit, c.cedula) AS documento
 FROM companies_company AS c
 WHERE c.name LIKE '%caf%'
    OR c.nit LIKE '%caf%'
+   OR c.cedula LIKE '%caf%'
 ORDER BY c.name;
 
 -- =====================================================================================

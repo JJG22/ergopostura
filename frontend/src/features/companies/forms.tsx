@@ -1,7 +1,7 @@
 import { CheckboxField, Grid, SelectField, TextAreaField, type Option } from "../../components/forms";
-import { FormModal } from "../../components/Modal";
+import { FormModal, Modal } from "../../components/Modal";
 import { useNotify } from "../../components/Page";
-import { Field } from "../../components/ui";
+import { Field, Icon } from "../../components/ui";
 import { useForm } from "../../lib/useForm";
 import { LocationFields } from "../geography/LocationFields";
 import {
@@ -9,6 +9,7 @@ import {
   type CompanyDetail,
   type CompanyInput,
   type Level,
+  type PersonType,
   type NamedInput,
   type Saved,
   type Site,
@@ -22,11 +23,45 @@ interface Done<T> {
   onSaved: (result: T) => void;
 }
 
+const PERSON_TYPES: { value: PersonType; title: string; text: string; icon: string }[] = [
+  { value: "juridica", title: "Persona jurídica", text: "Una sociedad o entidad, como una S.A.S., S.A. o Ltda. Se registra con su NIT.", icon: "building-complex" },
+  { value: "natural", title: "Persona natural", text: "Una persona que tiene el negocio a su nombre. Se registra con su cédula.", icon: "user" },
+];
+
+/** Primer paso del registro: el tipo de persona decide qué documento se pide. */
+function PersonTypeStep({ onChoose, onClose }: { onChoose: (type: PersonType) => void; onClose: () => void }) {
+  return (
+    <Modal title="Registrar empresa" onClose={onClose}>
+      <div className="px-6 pb-6 pt-2">
+        <p className="mb-4 text-ink-700">¿La empresa es persona jurídica o persona natural?</p>
+        <div className="grid gap-3">
+          {PERSON_TYPES.map((type) => (
+            <button key={type.value} type="button" onClick={() => onChoose(type.value)}
+              className="group flex items-start gap-4 border border-ink-300 p-4 text-left transition-colors hover:border-brand-700 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700">
+              <span className="grid size-10 shrink-0 place-items-center bg-ink-100 text-ink-800 group-hover:bg-brand-700 group-hover:text-white">
+                <Icon name={type.icon} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-ink-950">{type.title}</span>
+                <span className="block text-sm text-ink-600">{type.text}</span>
+              </span>
+              <Icon name="chevron-right" className="mt-2.5 size-4 text-ink-500 group-hover:text-brand-700" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 export function CompanyFormModal({ company, onClose, onSaved }: Done<{ id: number }> & { company?: CompanyDetail }) {
   const notify = useNotify();
   const form = useForm<CompanyInput>(company
-    ? { name: company.name, nit: company.nit, department: String(company.department.id), municipality: String(company.municipality.id), is_active: company.is_active }
-    : { name: "", nit: "", department: "", municipality: "" });
+    ? {
+      person_type: company.person_type, name: company.name, nit: company.nit, cedula: company.cedula,
+      department: String(company.department.id), municipality: String(company.municipality.id), is_active: company.is_active,
+    }
+    : { person_type: "", name: "", nit: "", cedula: "", department: "", municipality: "" });
   const { values, set } = form;
 
   async function save() {
@@ -37,14 +72,39 @@ export function CompanyFormModal({ company, onClose, onSaved }: Done<{ id: numbe
     }
   }
 
+  if (!values.person_type) {
+    return <PersonTypeStep onClose={onClose} onChoose={(type) => set("person_type", type)} />;
+  }
+  const natural = values.person_type === "natural";
+  const chosen = PERSON_TYPES.find((type) => type.value === values.person_type);
+
   return (
     <FormModal title={company ? "Editar empresa" : "Registrar empresa"} submitLabel={company ? "Guardar" : "Registrar empresa"}
       note={company ? undefined : "Las sedes son opcionales. Podrás agregarlas después desde el detalle de la empresa."}
       sending={form.sending} error={form.error} onClose={onClose} onSubmit={() => void save()}>
-      <Field id="name" label="Razón social" placeholder="Ej. Café Montaña S.A.S." value={values.name}
+      {company ? (
+        <SelectField id="person_type" label="Tipo de persona" value={values.person_type}
+          options={PERSON_TYPES.map((type) => ({ value: type.value, label: type.title }))}
+          onChange={(e) => set("person_type", e.target.value as PersonType)} error={form.fieldError("person_type")}
+          hint="Si lo cambias, la empresa queda con el documento del nuevo tipo." />
+      ) : (
+        <div className="mb-4 flex items-center justify-between gap-3 bg-ink-100 px-3.5 py-2.5 text-sm">
+          <span className="flex items-center gap-2 font-semibold text-ink-900"><Icon name={chosen?.icon ?? "user"} className="size-4" />{chosen?.title}</span>
+          <button type="button" onClick={() => set("person_type", "")} className="font-semibold text-brand-700 underline-offset-4 hover:underline">
+            Cambiar
+          </button>
+        </div>
+      )}
+      <Field id="name" label={natural ? "Nombre completo" : "Razón social"}
+        placeholder={natural ? "Ej. Jorge Iván Cárdenas Ospina" : "Ej. Café Montaña S.A.S."} value={values.name}
         onChange={(e) => set("name", e.target.value)} error={form.fieldError("name")} />
-      <Field id="nit" label="NIT" placeholder="Ej. 900.123.456-8" value={values.nit}
-        onChange={(e) => set("nit", e.target.value)} error={form.fieldError("nit")} />
+      {natural ? (
+        <Field id="cedula" label="Cédula de ciudadanía" placeholder="Ej. 1.094.887.654" inputMode="numeric" value={values.cedula}
+          onChange={(e) => set("cedula", e.target.value)} error={form.fieldError("cedula")} />
+      ) : (
+        <Field id="nit" label="NIT" placeholder="Ej. 900.123.456-8" value={values.nit}
+          onChange={(e) => set("nit", e.target.value)} error={form.fieldError("nit")} />
+      )}
       <Grid>
         <LocationFields department={values.department} municipality={values.municipality}
           onChange={(next) => form.setValues((current) => ({ ...current, ...next }))}

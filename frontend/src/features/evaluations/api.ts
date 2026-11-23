@@ -44,7 +44,8 @@ export interface Posture {
 }
 
 export interface EvaluationDetail extends EvaluationRow {
-  company_nit: string;
+  company_document_label: string;
+  company_document: string;
   site: string;
   evaluator: string;
   visit: { id: number; date: string };

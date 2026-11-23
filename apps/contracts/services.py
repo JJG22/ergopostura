@@ -1,10 +1,12 @@
 """Reglas de los contratos: documento valido, vigencias sin cruces y visitas cubiertas."""
 import hashlib
+import re
 from datetime import date
 
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 
+from apps.companies.models import Company
 from apps.visits.models import Visit
 
 from . import reader
@@ -131,10 +133,10 @@ def comparison(contract: Contract) -> list[dict]:
     rows = [
         ("Empresa", summary.get("client_name"), company.name, _same_text),
         (
-            "NIT",
+            company.document_label,
             summary.get("client_nit_text"),
-            company.nit_display,
-            lambda _read, _registered: summary.get("client_nit") == company.nit,
+            company.document_display,
+            lambda _read, _registered: same_document(summary, company),
         ),
         (
             "Tipo de contrato",
@@ -164,6 +166,34 @@ def comparison(contract: Contract) -> list[dict]:
     ]
 
 
-def nit_mismatch(contract: Contract) -> bool:
+def document_number_read(summary: dict) -> str | None:
+    """El numero del documento del contratante tal como lo leyo la IA, sin puntos.
+
+    Una persona natural puede aparecer con su cedula (C.C. 1.094.887.654) o con su NIT, que es
+    la misma cedula mas el digito de verificacion (1.094.887.654-3): en los dos casos el
+    numero base es el que va antes del guion.
+    """
+    text = re.sub(r"[\s.]", "", summary.get("client_nit_text") or "")
+    digits = re.sub(r"\D", "", text.split("-")[0])
+    return digits or None
+
+
+def same_document(summary: dict, company: Company) -> bool:
+    if company.is_natural:
+        return document_number_read(summary) == company.cedula
+    return summary.get("client_nit") == company.nit
+
+
+def document_mismatch(contract: Contract) -> bool:
     summary = contract.ai_summary or {}
-    return bool(summary.get("client_nit_text")) and summary.get("client_nit") != contract.company.nit
+    return bool(summary.get("client_nit_text")) and not same_document(summary, contract.company)
+
+
+def company_for_reading(summary: dict) -> Company | None:
+    """La empresa registrada cuyo NIT o cedula coincide con el documento leido."""
+    condition = Q()
+    if summary.get("client_nit"):
+        condition |= Q(nit=summary["client_nit"])
+    if number := document_number_read(summary):
+        condition |= Q(cedula=number)
+    return Company.objects.filter(condition).first() if condition else None

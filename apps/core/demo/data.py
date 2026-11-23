@@ -32,7 +32,8 @@ CONTRACT_SERVICE = (
     "nivel de riesgo y recomendaciones, y seguimiento de las acciones de mejora."
 )
 
-# NIT, razon social, municipio, departamento, activa, contacto, sedes
+# Documento, nombre o razon social, municipio, departamento, activa, contacto, sedes.
+# El documento es el NIT de una persona juridica, o "CC" y la cedula de una persona natural.
 # sede: nombre, municipio, departamento, direccion, areas
 # area: nombre, puestos; puesto: nombre, descripcion
 COMPANIES = (
@@ -107,6 +108,18 @@ COMPANIES = (
         (
             ("Planta Soledad", "Soledad", "Atlántico", "Vía 40 # 85-12", (
                 ("Producción", (("Operario de línea", "Clasifica fruta en la banda transportadora."),)),
+            )),
+        ),
+    ),
+    (
+        # Persona natural: un ebanista dueño de su taller, registrado con su cédula.
+        "CC 1094887654", "Jorge Iván Cárdenas Ospina", "Armenia", "Quindío", True, "Jorge Iván Cárdenas",
+        (
+            ("Taller La Castellana", "Armenia", "Quindío", "Barrio La Castellana", (
+                ("Carpintería", (
+                    ("Ebanista", "Corta, cepilla y ensambla piezas de madera en el banco de trabajo."),
+                    ("Lijador", "Lija y prepara las piezas antes del acabado."),
+                )),
             )),
         ),
     ),

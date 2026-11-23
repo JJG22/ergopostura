@@ -6,7 +6,7 @@ import type { Page } from "../../components/Table";
 export interface ContractRow {
   id: number;
   code: string;
-  company: { id: number; name: string; nit?: string };
+  company: { id: number; name: string; document_label?: string; document?: string };
   kind: string;
   kind_label: string;
   start_date: string;
@@ -47,7 +47,7 @@ export interface ComparisonRow {
 }
 
 export interface ContractDetail extends ContractRow {
-  company: { id: number; name: string; nit: string };
+  company: { id: number; name: string; document_label: string; document: string };
   /** El código tal como se registró (vacío si se muestra el automático CT-0000). */
   code_value: string;
   service: string;
@@ -68,7 +68,7 @@ export interface ContractDetail extends ContractRow {
   ai_model?: string;
   ai_generated_at?: string | null;
   comparison?: ComparisonRow[];
-  nit_mismatch?: boolean;
+  document_mismatch?: boolean;
   history?: ContractRow[];
 }
 

@@ -149,7 +149,9 @@ Para extender el sistema sin modificar lo que ya funciona:
 
 ## Reglas que el sistema garantiza
 
+- **Persona jurídica o natural:** al registrar una empresa primero se elige el tipo de persona. La jurídica se registra con NIT y la natural con cédula; la base de datos exige que cada una tenga solo su documento.
 - **NIT único:** se guarda solo el número base, así que `900.123.456-8`, `900123456-8` y `900123456` son la misma empresa. Se valida el dígito de verificación de la DIAN.
+- **Cédula única:** se guarda sin puntos y no se repite. Tampoco se acepta una cédula que ya esté registrada como NIT, o al revés, porque el NIT de una persona natural es su cédula.
 - **Doble protección:** el formulario da un mensaje claro y la base de datos rechaza el duplicado aunque dos personas guarden a la vez.
 - **Ubicación del catálogo oficial:** empresas y sedes eligen departamento y luego municipio, de los datos de [api-colombia.com](https://api-colombia.com). Se guarda una copia en `apps/geography/data/colombia.json` que la migración carga, así que los formularios funcionan aunque la API no responda. `sync_geography` la actualiza sin borrar nada, y un municipio en uso no se puede eliminar.
 - **Nombres sin repetir por nivel:** no puede haber dos sedes iguales en una empresa, ni dos áreas iguales en una sede, ni dos puestos iguales en un área. No distingue mayúsculas.

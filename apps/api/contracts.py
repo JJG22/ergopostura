@@ -59,7 +59,8 @@ def detail(contract, user) -> dict:
     company = contract.company
     data = {
         **row(contract, today),
-        "company": {"id": company.pk, "name": company.name, "nit": company.nit_display},
+        "company": {"id": company.pk, "name": company.name, "document_label": company.document_label,
+                    "document": company.document_display},
         "code_value": contract.code,
         "service": contract.service,
         "value": int(contract.value) if contract.value is not None else None,
@@ -81,7 +82,7 @@ def detail(contract, user) -> dict:
             ai_model=contract.ai_model,
             ai_generated_at=presenters.iso(contract.ai_generated_at),
             comparison=comparison_rows(contract),
-            nit_mismatch=services.nit_mismatch(contract),
+            document_mismatch=services.document_mismatch(contract),
             history=[row(c, today) for c in services.contracts_of(company).select_related("company")
                      .exclude(pk=contract.pk).order_by("-start_date")],
         )
@@ -219,8 +220,7 @@ class ContractReadView(APIView):
             return reader_error(error)
 
         summary = reading.summary
-        nit = summary.get("client_nit")
-        company = Company.objects.filter(nit=nit).first() if nit else None
+        company = services.company_for_reading(summary)
         return Response({
             "fields": {
                 "code": summary.get("contract_code"),

@@ -95,9 +95,9 @@ function Detail({ initial }: { initial: ContractDetail }) {
       ) : contract.status === "vencido" ? (
         <Banner tone="neutral">El contrato terminó. La empresa no puede agendar visitas nuevas hasta que haya otro vigente.</Banner>
       ) : null}
-      {contract.nit_mismatch ? (
+      {contract.document_mismatch ? (
         <Banner tone="red">
-          El NIT que aparece en el documento ({summary?.client_nit_text}) no es el de {contract.company.name} ({contract.company.nit}). Revisa que el PDF corresponda a esta empresa.
+          El documento del contratante que aparece en el PDF ({summary?.client_nit_text}) no es el de {contract.company.name} ({contract.company.document_label} {contract.company.document}). Revisa que el PDF corresponda a esta empresa.
         </Banner>
       ) : null}
 
@@ -105,7 +105,7 @@ function Detail({ initial }: { initial: ContractDetail }) {
         <Card>
           <SectionHead title="Datos registrados" />
           <dl className="divide-y divide-ink-100">
-            <Item label="Empresa">{contract.company.name} · NIT {contract.company.nit}</Item>
+            <Item label="Empresa">{contract.company.name} · {contract.company.document_label} {contract.company.document}</Item>
             <Item label="Tipo">{contract.kind_label}</Item>
             <Item label="Servicio">{contract.service}</Item>
             <Item label="Vigencia">{formatShortDate(contract.start_date)} – {formatShortDate(contract.end_date)} · {contract.duration_label}</Item>
@@ -147,7 +147,7 @@ function Detail({ initial }: { initial: ContractDetail }) {
             {summary ? <Summary contract={contract} /> : contract.ai_ready ? (
               <div className="py-6 text-center">
                 <p className="font-semibold">Aún no hay resumen</p>
-                <p className="mx-auto max-w-sm text-sm text-ink-500">La IA lee el PDF y te da la duración, el tipo de contrato, el servicio, el encargado, el NIT y lo que conviene revisar. Tarda entre 10 y 40 segundos.</p>
+                <p className="mx-auto max-w-sm text-sm text-ink-500">La IA lee el PDF y te da la duración, el tipo de contrato, el servicio, el encargado, el NIT o la cédula del contratante y lo que conviene revisar. Tarda entre 10 y 40 segundos.</p>
               </div>
             ) : (
               <p className="text-sm text-ink-500">La lectura con IA no está configurada en este servidor (falta ANTHROPIC_API_KEY). Soporte puede activarla.</p>

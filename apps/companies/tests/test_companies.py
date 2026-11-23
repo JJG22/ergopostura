@@ -6,7 +6,8 @@ from django.urls import reverse
 from apps.accounts.models import Role
 from apps.api.presenters import navigation
 from apps.companies.forms import CompanyForm
-from apps.companies.models import Site
+from apps.companies.models import Company, Site
+from apps.companies.selectors import search_companies
 from apps.core.tests.factories import (
     make_area,
     make_company,
@@ -23,7 +24,7 @@ def location(name="Armenia", department="Quindío"):
 
 
 def valid_company():
-    return {"name": "Café Montaña S.A.S.", "nit": "900.123.456-8", **location()}
+    return {"person_type": "juridica", "name": "Café Montaña S.A.S.", "nit": "900.123.456-8", **location()}
 
 
 class DatabaseIntegrityTests(TestCase):
@@ -35,6 +36,21 @@ class DatabaseIntegrityTests(TestCase):
     def test_malformed_nit_is_rejected_by_database(self):
         with self.assertRaises(IntegrityError), transaction.atomic():
             make_company(nit="90012345A")
+
+    def test_natural_person_needs_cedula_and_no_nit(self):
+        place = municipality()
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Company.objects.create(name="Jorge Cárdenas", person_type="natural", nit="900123456", municipality=place)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Company.objects.create(name="Jorge Cárdenas", person_type="natural", municipality=place)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Company.objects.create(name="Café", person_type="juridica", cedula="1094887654", municipality=place)
+
+    def test_duplicate_cedula_is_rejected_by_database(self):
+        place = municipality()
+        Company.objects.create(name="Jorge Cárdenas", person_type="natural", cedula="1094887654", municipality=place)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Company.objects.create(name="Otro", person_type="natural", cedula="1094887654", municipality=place)
 
     def test_child_names_are_unique_per_parent_ignoring_case(self):
         site = make_site()
@@ -174,3 +190,58 @@ class WorkerTests(TestCase):
 
 
 
+
+
+def natural_company(**changes):
+    return {"person_type": "natural", "name": "Jorge Iván Cárdenas", "cedula": "1.094.887.654", **location(), **changes}
+
+
+class NaturalPersonFormTests(TestCase):
+    def test_person_type_is_required(self):
+        form = CompanyForm(data={**valid_company(), "person_type": ""})
+        self.assertIn("Elige si la empresa es persona natural o jurídica.", form.errors["person_type"])
+
+    def test_natural_person_is_saved_with_cedula_only(self):
+        form = CompanyForm(data=natural_company(nit="900.123.456-8"))
+        self.assertTrue(form.is_valid(), form.errors)
+        company = form.save()
+        self.assertEqual((company.person_type, company.cedula, company.nit), ("natural", "1094887654", None))
+        self.assertEqual((company.document_label, company.document_display), ("Cédula", "1.094.887.654"))
+
+    def test_legal_person_ignores_a_cedula(self):
+        form = CompanyForm(data={**valid_company(), "cedula": "1094887654"})
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual((form.save().nit, Company.objects.get().cedula), ("900123456", None))
+
+    def test_missing_cedula(self):
+        form = CompanyForm(data=natural_company(cedula=" "))
+        self.assertIn("La cédula es obligatoria.", form.errors["cedula"])
+
+    def test_invalid_cedula(self):
+        for raw in ("12", "0123456", "10948876AB", "12345678901"):
+            form = CompanyForm(data=natural_company(cedula=raw))
+            self.assertFalse(form.is_valid(), raw)
+            self.assertIn("cedula", form.errors)
+
+    def test_duplicate_cedula_message(self):
+        CompanyForm(data=natural_company()).save()
+        form = CompanyForm(data=natural_company(name="Otra persona", cedula="1094887654"))
+        self.assertIn("Ya existe una empresa con esta cédula.", form.errors["cedula"])
+
+    def test_same_number_cannot_be_nit_and_cedula(self):
+        # El NIT de una persona natural es su cedula: seria el mismo cliente dos veces.
+        make_company(name="Café Montaña S.A.S.", nit="1094887654")
+        form = CompanyForm(data=natural_company())
+        self.assertIn("Este número ya está registrado como el NIT de Café Montaña S.A.S.", form.errors["cedula"])
+
+    def test_changing_the_person_type_keeps_only_the_new_document(self):
+        company = make_company(nit="900123456")
+        form = CompanyForm(data={**natural_company(), "is_active": "on"}, instance=company)
+        self.assertTrue(form.is_valid(), form.errors)
+        company = form.save()
+        self.assertEqual((company.person_type, company.nit, company.cedula), ("natural", None, "1094887654"))
+
+    def test_search_finds_a_natural_person_by_cedula(self):
+        CompanyForm(data=natural_company()).save()
+        engineer = make_user(role=Role.ENGINEER)
+        self.assertEqual([c.name for c in search_companies(engineer, "1.094.887")], ["Jorge Iván Cárdenas"])

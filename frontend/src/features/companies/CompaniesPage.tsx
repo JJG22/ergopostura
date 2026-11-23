@@ -33,19 +33,20 @@ export function CompaniesPage() {
     <>
       {head}
       <Card>
-        <SearchBar key={q} query={q} label="Buscar empresas" placeholder="Buscar por nombre o NIT"
+        <SearchBar key={q} query={q} label="Buscar empresas" placeholder="Buscar por nombre, NIT o cédula"
           onSearch={(text) => setParams(text ? { q: text } : {})} />
         {resource.state === "loading" ? <Spinner /> : resource.data.results.length === 0 ? (
           <EmptyState icon="building-complex" title={q ? "No hay resultados" : "Aún no hay empresas"}>
-            {q ? "Prueba con otro nombre o NIT." : "Registra la primera para organizar sus sedes, áreas y puestos."}
+            {q ? "Prueba con otro nombre, NIT o cédula." : "Registra la primera para organizar sus sedes, áreas y puestos."}
           </EmptyState>
         ) : (
           <>
-            <Table head={["Empresa", "NIT", "Ubicación", "Sedes", "Estado"]}>
+            <Table head={["Empresa", "Tipo de persona", "Documento", "Ubicación", "Sedes", "Estado"]}>
               {resource.data.results.map((company) => (
                 <tr key={company.id} className="hover:bg-ink-50">
                   <td className="px-5 py-3"><Link to={`/empresas/${company.id}`} className="font-semibold text-ink-900 hover:text-brand-700">{company.name}</Link></td>
-                  <td className="px-5 py-3 tabular-nums text-ink-600">{company.nit}</td>
+                  <td className="px-5 py-3 text-ink-600">{company.person_type_label}</td>
+                  <td className="whitespace-nowrap px-5 py-3 tabular-nums text-ink-600">{company.document_label} {company.document}</td>
                   <td className="px-5 py-3 text-ink-600">{company.location}</td>
                   <td className="px-5 py-3 tabular-nums">{company.site_count}</td>
                   <td className="px-5 py-3">{company.is_active ? <Badge tone="teal">Activa</Badge> : <Badge>Inactiva</Badge>}</td>

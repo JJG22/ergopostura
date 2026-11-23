@@ -95,7 +95,8 @@ def detail(evaluation, user) -> dict:
     return {
         **row(evaluation),
         "company": company.name,
-        "company_nit": company.nit_display,
+        "company_document_label": company.document_label,
+        "company_document": company.document_display,
         "site": position.area.site.name,
         "evaluator": str(evaluation.evaluator),
         "visit": {"id": evaluation.visit_id, "date": presenters.iso(timezone.localdate(evaluation.visit.scheduled_at))},

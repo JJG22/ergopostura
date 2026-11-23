@@ -7,10 +7,10 @@ from .models import Area, Company, Position, Site, Worker
 
 @admin.register(Company)
 class CompanyAdmin(ReadOnlyAdmin):
-    list_display = ("name", "nit_display", "municipality", "is_active")
-    list_filter = ("is_active", "municipality__department")
+    list_display = ("name", "person_type", "document_display", "municipality", "is_active")
+    list_filter = ("person_type", "is_active", "municipality__department")
     list_select_related = ("municipality__department",)
-    search_fields = ("name", "nit")
+    search_fields = ("name", "nit", "cedula")
 
 
 @admin.register(Site)
