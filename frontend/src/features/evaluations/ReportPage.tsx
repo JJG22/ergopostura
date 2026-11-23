@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router";
 
 import { usePageTitle } from "../../components/Page";
-import { Badge, Button, ErrorState, Icon, RiskBadge, Spinner } from "../../components/ui";
+import { Badge, Button, ErrorState, Icon, Logo, RiskBadge, Spinner } from "../../components/ui";
 import { formatInstantDate, formatShortDate } from "../../lib/format";
 import { useResource } from "../../lib/useResource";
 import { evaluationsApi, formatNumber, type EvaluationDetail } from "./api";
@@ -35,9 +35,8 @@ function Report({ e }: { e: EvaluationDetail }) {
         <Button onClick={() => window.print()}><Icon name="download" />Imprimir o guardar PDF</Button>
       </div>
       <article className="rounded-xl border border-ink-200 bg-white p-8 print:border-0 print:p-0">
-        <header className="mb-6 flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-xl bg-brand-700 text-white"><Icon name="activity" /></span>
-          <strong className="flex-1">ErgoPostura</strong>
+        <header className="mb-6 flex items-center justify-between gap-3 border-b-[3px] border-ink-950 pb-4">
+          <Logo />
           <Badge tone="teal">{e.code}</Badge>
         </header>
         <h1 className="font-display text-[2.25rem] leading-[1.05] text-ink-950 sm:text-5xl">Informe de evaluación ergonómica</h1>
