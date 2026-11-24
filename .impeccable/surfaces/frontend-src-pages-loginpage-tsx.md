@@ -7,7 +7,7 @@ related_targets: ["frontend/src/components/Layout.tsx","frontend/src/pages/Dashb
 
 ## Scope
 
-Portada pública `/app/ingresar` (modo Persuade, tipo de negocio: servicio) y, con el mismo mundo, las pantallas de la aplicación (modo Operate). Audiencia de la portada: empresas que aún no son clientes. Acción principal: Solicitar un diagnóstico (correo a contacto@ergopostura.example, a reemplazar). Ingresar queda en la navegación y abre el formulario de acceso.
+Portada pública `/app/ingresar` (modo Persuade, tipo de negocio: servicio) y, con el mismo mundo, las pantallas de la aplicación (modo Operate). Audiencia de la portada: empresas que aún no son clientes. Sin acción de contacto: el servicio lo prestan varios ingenieros y no hay un correo único que poner (se quitó el 2026-11-24). La única acción es Ingresar, en la navegación, que abre el formulario de acceso; en la portada, el enlace lleva a la escala RULA.
 
 Constraints: sin clientes, testimonios ni cifras inventadas; fotos de stock solo como ilustración, listadas para reemplazo; el riesgo nunca solo con color.
 
@@ -17,9 +17,9 @@ THESIS: Cada pantalla es un cartel de prevención laboral: un campo de color, un
 
 OWN-WORLD: Blanco papel, negro de imprenta y azul de señal obligatoria #0B4A8F en campos planos que ocupan regiones enteras; gris de campo #E9EAEC. Grotesca suiza pesada en tamaños de cartel, una sola familia. Esquinas rectas, reglas negras de 2 a 4 px, botones rectangulares macizos. Fotos en blanco y negro sobreimpresas en azul (multiplicación). Riesgo en verde, ámbar, naranja y rojo con trama (liso, rayado, doble rayado, cruzado) y su número.
 
-STORY: La empresa entiende en un cartel qué se vende (evaluación ergonómica RULA de cada puesto), ve cómo se mide sobre una foto de trabajo, recorre el proceso del contrato al informe y la escala 1 a 7, y escribe para pedir un diagnóstico.
+STORY: La empresa entiende en un cartel qué se vende (evaluación ergonómica RULA de cada puesto), ve cómo se mide sobre una foto de trabajo, recorre el proceso del contrato al informe y la escala 1 a 7.
 
-FIRST VIEWPORT: Campo azul a sangre en la mitad izquierda con el titular en grotesca enorme en blanco, un dato duro y el botón blanco Solicitar un diagnóstico; a la derecha, la foto de un operario en blanco y negro sobreimpresa que cruza el borde del campo; la escala RULA 1-7 como regla vertical en el borde derecho; navegación en franja blanca con regla negra.
+FIRST VIEWPORT: Campo azul a sangre en la mitad izquierda con el titular en grotesca enorme en blanco, un dato duro y el enlace a la escala RULA; a la derecha, la foto de un operario en blanco y negro sobreimpresa que cruza el borde del campo; la escala RULA 1-7 como regla vertical en el borde derecho; navegación en franja blanca con regla negra.
 
 FORM: Cartel de seguridad laboral (carteles de Suva, estilo tipográfico internacional), candidato 3 de 7 de la lista propia. seed:ab5ed8ade45fd4eb
 

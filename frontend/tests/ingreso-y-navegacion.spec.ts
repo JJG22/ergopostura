@@ -27,9 +27,8 @@ test.describe("Portada pública", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1, name: "Evaluación ergonómica para empresas" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "La escala RULA y sus cuatro niveles" })).toBeAttached();
-    const diagnostico = page.getByRole("link", { name: "Solicitar un diagnóstico" }).first();
-    await expect(diagnostico).toHaveAttribute("href", /^mailto:/);
-    await page.goto("/");
+    // La portada no ofrece un correo de contacto: el servicio lo prestan varios ingenieros.
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
     await page.locator('a[href="/app/ingresar"]').filter({ visible: true }).first().click();
     await expect(page).toHaveURL(/\/app\/ingresar/);
   });
