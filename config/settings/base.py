@@ -133,6 +133,8 @@ RULA_AI_MODEL = os.environ.get("RULA_AI_MODEL", CONTRACT_AI_MODEL)
 # los productos de Google; el plan de pago no).
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-4-hydrogen")
+# Si el modelo está saturado o agota su cupo, se prueban estos (también del plan gratis).
+GEMINI_FALLBACK_MODELS = list_env("GEMINI_FALLBACK_MODELS") or ["gemini-3.5-flash-lite"]
 # "gemini", "anthropic" o vacío: con vacío se usa Gemini si tiene clave y, si no, Claude.
 AI_PROVIDER = os.environ.get("AI_PROVIDER", "")
 

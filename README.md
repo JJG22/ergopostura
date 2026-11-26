@@ -211,7 +211,7 @@ La lectura de contratos y las recomendaciones RULA usan la IA que tenga clave en
 | `GEMINI_API_KEY` | Gemini, de Google (modelo `GEMINI_MODEL`, por defecto `gemini-4-hydrogen`) | Plan gratis de la API, con límite diario. En ese plan Google puede usar lo enviado para mejorar sus productos; el plan de pago no |
 | `ANTHROPIC_API_KEY` | Claude, de Anthropic (`CONTRACT_AI_MODEL`, `RULA_AI_MODEL`) | Pago por uso |
 
-Si hay las dos, se usa Gemini; `AI_PROVIDER=anthropic` obliga a usar Claude. Sin ninguna clave, los contratos se registran a mano y las recomendaciones salen del **catálogo por reglas** (abajo).
+Si el modelo de Gemini está saturado o agotó su cupo, se prueba enseguida el de respaldo (`GEMINI_FALLBACK_MODELS`, por defecto `gemini-3.5-flash-lite`, también gratis). Si hay las dos claves, se usa Gemini; `AI_PROVIDER=anthropic` obliga a usar Claude. Sin ninguna clave, los contratos se registran a mano y las recomendaciones salen del **catálogo por reglas** (abajo).
 
 ## Lectura de contratos con IA
 
