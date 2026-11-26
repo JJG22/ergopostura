@@ -202,6 +202,17 @@ Para extender el sistema sin modificar lo que ya funciona:
 | D9, trabajadores | Se registran por puesto y se puede indicar quién fue observado; no tienen cuenta |
 | Quién aplica RULA | El ingeniero industrial, siempre a partir de una visita realizada |
 
+## Proveedor de IA: Gemini o Claude
+
+La lectura de contratos y las recomendaciones RULA usan la IA que tenga clave en el servidor:
+
+| Variable | Proveedor | Costo |
+|---|---|---|
+| `GEMINI_API_KEY` | Gemini, de Google (modelo `GEMINI_MODEL`, por defecto `gemini-4-hydrogen`) | Plan gratis de la API, con límite diario. En ese plan Google puede usar lo enviado para mejorar sus productos; el plan de pago no |
+| `ANTHROPIC_API_KEY` | Claude, de Anthropic (`CONTRACT_AI_MODEL`, `RULA_AI_MODEL`) | Pago por uso |
+
+Si hay las dos, se usa Gemini; `AI_PROVIDER=anthropic` obliga a usar Claude. Sin ninguna clave, los contratos se registran a mano y las recomendaciones salen del **catálogo por reglas** (abajo).
+
 ## Lectura de contratos con IA
 
 En *Contratos*, la IA (Claude, de Anthropic) lee el PDF y da un resumen: tipo de contrato, servicio, empresa, NIT, encargado, vigencia y duración, valor, obligaciones, terminación, tratamiento de datos y lo que conviene revisar.
@@ -220,7 +231,8 @@ En el detalle de una evaluación en curso, cada postura ya analizada tiene el bo
 - **Recomendaciones sobre el puesto, no sobre la persona,** y siguiendo la jerarquía de controles: primero cambios de ingeniería, luego organización, formación y, al final, protección personal.
 - **Se avisa si quedan viejas:** si el análisis se repite con otro puntaje o con otra foto, el panel pide volver a generarlas.
 - **Respuesta con formato fijo:** JSON con esquema y validado otra vez en el servidor. La foto y los textos se tratan como dato, nunca como instrucción.
-- **Privacidad:** a diferencia de la sugerencia de ángulos, aquí la fotografía sí se envía a la API de Anthropic. Usa la misma `ANTHROPIC_API_KEY` que la lectura de contratos; el modelo se cambia con `RULA_AI_MODEL` (por defecto el mismo de los contratos).
+- **Privacidad:** a diferencia de la sugerencia de ángulos, aquí la fotografía sí se envía al proveedor de IA (Gemini o Claude, ver arriba).
+- **Respaldo sin IA:** si no hay clave, o la IA no responde o se acabó el límite gratuito, el panel muestra «Recomendaciones del catálogo (sin IA)»: reglas según el puntaje de cada segmento (tronco, cuello, brazo, carga, repetición…), con el motivo. Estas no se marcan como «Con apoyo de IA».
 
 ## Sugerencia de ángulos con IA
 

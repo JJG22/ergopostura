@@ -27,6 +27,10 @@ export interface AiAdvice {
   caution: string | null;
   items: AiAdviceItem[];
   model: string;
+  /** «ia» o «catalogo»: reglas según los puntajes, cuando la IA no está disponible. */
+  source: "ia" | "catalogo";
+  /** Por qué se usó el catálogo, si fue así. */
+  notice: string | null;
   generated_at: string | null;
   /** El análisis se repitió con otro puntaje o con otra foto después de pedirlas. */
   stale: boolean;

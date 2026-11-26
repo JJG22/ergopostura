@@ -281,8 +281,9 @@ const PRIORITY_TONE = { alta: "red", media: "amber", baja: "neutral" } as const;
  * recomendaciones para el puesto. Ninguna se guarda sola; el ingeniero elige cuáles usa.
  */
 function AiAdvicePanel({ posture, advice, onUse, refresh }: {
-  posture: Posture; advice: AiAdvice | null; onUse: (item: AiAdviceItem) => void; refresh: () => void;
+  posture: Posture; advice: AiAdvice | null; onUse: (item: AiAdviceItem, fromAi: boolean) => void; refresh: () => void;
 }) {
+  const fromCatalog = advice?.source === "catalogo";
   const [state, setState] = useState<{ sending: boolean; error: string | null }>({ sending: false, error: null });
   const used = new Set(posture.recommendations.map((r) => r.text));
 
@@ -306,18 +307,21 @@ function AiAdvicePanel({ posture, advice, onUse, refresh }: {
   return (
     <section aria-labelledby={`ia-${posture.id}`} className="mb-4 border-l-4 border-brand-700 bg-ink-50 px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h5 id={`ia-${posture.id}`} className="text-sm font-semibold text-ink-900">Recomendaciones de la IA</h5>
+        <h5 id={`ia-${posture.id}`} className="text-sm font-semibold text-ink-900">{fromCatalog ? "Recomendaciones del catálogo (sin IA)" : "Recomendaciones de la IA"}</h5>
         {advice ? button : null}
       </div>
       {state.sending ? <p role="status" className="mt-2 text-sm text-ink-600">Revisando la fotografía y el resultado. Tarda entre 10 y 40 segundos.</p> : null}
       {state.error ? <p role="alert" className="mt-2 text-sm font-medium text-red-700">{state.error}</p> : null}
       {!advice ? (
         <div className="mt-1">
-          <p className="mb-3 text-sm text-ink-600">La IA (Claude, de Anthropic) recibe la fotografía analizada y el resultado RULA, y propone recomendaciones para el puesto. Tú decides cuáles usar.</p>
+          <p className="mb-3 text-sm text-ink-600">La IA recibe la fotografía analizada y el resultado RULA, y propone recomendaciones para el puesto. Tú decides cuáles usar.</p>
           {button}
         </div>
       ) : (
         <>
+          {fromCatalog && advice.notice ? (
+            <p className="mt-2 border border-ink-950 bg-white px-3 py-2 text-sm text-ink-900">La IA no respondió: {advice.notice} Mientras tanto, estas recomendaciones salen de reglas según los puntajes RULA.</p>
+          ) : null}
           {advice.stale ? (
             <p className="mt-2 border border-ink-950 bg-white px-3 py-2 text-sm text-ink-900">El análisis cambió después de pedirlas. Pídelas de nuevo para que correspondan al resultado actual.</p>
           ) : null}
@@ -335,12 +339,12 @@ function AiAdvicePanel({ posture, advice, onUse, refresh }: {
                   <p>{item.text}</p>
                 </div>
                 {used.has(item.text) ? <Badge tone="teal">Agregada</Badge> : (
-                  <Button type="button" variant="ghost" onClick={() => onUse(item)}><Icon name="plus" />Usar</Button>
+                  <Button type="button" variant="ghost" onClick={() => onUse(item, !fromCatalog)}><Icon name="plus" />Usar</Button>
                 )}
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-xs text-ink-500">Sugerencias de IA ({advice.model}). Revísalas con tu criterio antes de usarlas.</p>
+          <p className="mt-2 text-xs text-ink-500">{fromCatalog ? "Recomendaciones generales por reglas, sin mirar la foto." : `Sugerencias de IA (${advice.model}).`} Revísalas con tu criterio antes de usarlas.</p>
         </>
       )}
     </section>
@@ -489,7 +493,7 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
               )}
               {canEdit ? (
                 <AiAdvicePanel posture={posture} advice={result.ai_advice} refresh={refresh}
-                  onUse={(item) => { setText(item.text); setFromAi(true); setRecError(null); recRef.current?.focus(); }} />
+                  onUse={(item, ai) => { setText(item.text); setFromAi(ai); setRecError(null); recRef.current?.focus(); }} />
               ) : null}
               {canEdit ? (
                 <form onSubmit={(ev) => void addRecommendation(ev)} className="flex flex-wrap items-end gap-2">

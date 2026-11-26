@@ -59,6 +59,9 @@ def advice_data(result) -> dict | None:
             for item in advice["items"]
         ],
         "model": advice.get("model", ""),
+        # «ia» o «catalogo» (reglas, cuando la IA no está configurada o no respondió).
+        "source": advice.get("source", "ia"),
+        "notice": advice.get("notice"),
         "generated_at": advice.get("generated_at"),
         # El análisis se repitió con otro puntaje o con otra foto después de pedirlas.
         "stale": advice.get("grand_score") != result.grand_score or advice.get("photo_id") != result.photo_id,

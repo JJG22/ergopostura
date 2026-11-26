@@ -128,6 +128,13 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 CONTRACT_AI_MODEL = os.environ.get("CONTRACT_AI_MODEL", "claude-opus-5-5")
 RULA_AI_MODEL = os.environ.get("RULA_AI_MODEL", CONTRACT_AI_MODEL)
+# Gemini (Google): si hay clave, la lectura de contratos y las recomendaciones RULA la usan.
+# El modelo por defecto está en el plan gratis de la API (que usa lo enviado para mejorar
+# los productos de Google; el plan de pago no).
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-4-hydrogen")
+# "gemini", "anthropic" o vacío: con vacío se usa Gemini si tiene clave y, si no, Claude.
+AI_PROVIDER = os.environ.get("AI_PROVIDER", "")
 
 # API REST: sesión por cookie (mismo dominio que el cliente), solo JSON y un formato único de error.
 # rest_framework no va en INSTALLED_APPS: sus traducciones cambiarían los mensajes de los formularios

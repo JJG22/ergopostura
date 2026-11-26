@@ -282,3 +282,26 @@ class ClientDocumentTests(TestCase):
         row = next(r for r in services.comparison(contract) if r["label"] == "Cédula")
         self.assertEqual((row["registered"], row["differs"]), ("1.094.887.654", False))
         self.assertFalse(services.document_mismatch(contract))
+
+
+@override_settings(GEMINI_API_KEY="clave-gemini", ANTHROPIC_API_KEY="")
+class GeminiReaderTests(SimpleTestCase):
+    def test_reads_the_pdf_with_gemini(self):
+        interaction = SimpleNamespace(status="completed", output_text=reading_json(responsible_phone="", value_cop=0))
+        create = mock.Mock(return_value=interaction)
+        client = SimpleNamespace(interactions=SimpleNamespace(create=create))
+        with mock.patch("google.genai.Client", return_value=client):
+            result = reader.read_contract(b"%PDF-1.4 contrato")
+        part = create.call_args.kwargs["input"][0]
+        self.assertEqual((part["type"], part["mime_type"]), ("document", "application/pdf"))
+        self.assertEqual(result.summary["client_nit"], "900123456")
+        # Gemini responde vacío o 0 cuando el dato no aparece: queda como «sin dato».
+        self.assertIsNone(result.summary["responsible_phone"])
+        self.assertIsNone(result.summary["value_cop"])
+
+    def test_gemini_errors_become_reading_errors(self):
+        from google.genai import errors
+
+        client = SimpleNamespace(interactions=SimpleNamespace(create=mock.Mock(side_effect=errors.ServerError(503, {}))))
+        with mock.patch("google.genai.Client", return_value=client), self.assertRaises(reader.ReadingFailed):
+            reader.read_contract(b"%PDF-1.4 contrato")

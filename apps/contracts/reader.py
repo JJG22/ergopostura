@@ -16,6 +16,8 @@ from datetime import date
 import anthropic
 from django.conf import settings
 
+from apps.core import ai
+
 from apps.companies.nit import InvalidNit, Nit
 
 from .models import Contract
@@ -115,13 +117,37 @@ class Reading:
     model: str
 
 
+# Gemini no admite campos que puedan ser null: se le pide una cadena vacía o 0.
+GEMINI_EMPTY_VALUES = """
+- Si un dato de texto no aparece en el documento, escribe una cadena vacía; si el valor no aparece, escribe 0."""
+
+
 def is_configured() -> bool:
-    return bool(settings.ANTHROPIC_API_KEY)
+    return ai.provider() is not None
 
 
 def read_contract(pdf: bytes) -> Reading:
-    if not is_configured():
+    chosen = ai.provider()
+    if chosen is None:
         raise ReaderUnavailable("La lectura con IA no está configurada.")
+    if chosen == ai.GEMINI:
+        return read_with_gemini(pdf)
+    return read_with_claude(pdf)
+
+
+def read_with_gemini(pdf: bytes) -> Reading:
+    try:
+        data, model = ai.gemini_json(
+            system=SYSTEM + GEMINI_EMPTY_VALUES,
+            parts=[ai.inline("document", pdf, "application/pdf"), {"type": "text", "text": INSTRUCTION}],
+            schema=SCHEMA,
+        )
+    except ai.GeminiFailed as error:
+        raise ReadingFailed(str(error)) from error
+    return Reading(summary=clean_summary(data), model=model)
+
+
+def read_with_claude(pdf: bytes) -> Reading:
     client = anthropic.Anthropic(
         api_key=settings.ANTHROPIC_API_KEY, timeout=TIMEOUT_SECONDS, max_retries=1
     )
@@ -239,7 +265,7 @@ def clean_summary(data) -> dict:
         "start_date": _date(data.get("start_date")),
         "end_date": _date(data.get("end_date")),
         "duration_text": _text(data.get("duration_text"), 150),
-        "value_cop": round(value) if isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value < 10**14 else None,
+        "value_cop": round(value) if isinstance(value, (int, float)) and not isinstance(value, bool) and 0 < value < 10**14 else None,
         "payment_terms": _text(data.get("payment_terms"), 500),
         "provider_obligations": _items(data.get("provider_obligations")),
         "client_obligations": _items(data.get("client_obligations")),

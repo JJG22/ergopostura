@@ -16,6 +16,8 @@ import anthropic
 from django.conf import settings
 from django.utils import timezone
 
+from apps.core import ai
+
 from .models import RulaAssessment
 
 TIMEOUT_SECONDS = 100
@@ -109,7 +111,7 @@ class Advice:
 
 
 def is_configured() -> bool:
-    return bool(settings.ANTHROPIC_API_KEY)
+    return ai.provider() is not None
 
 
 def _yes(value: bool) -> str:
@@ -158,8 +160,32 @@ def describe(assessment: RulaAssessment) -> str:
 
 
 def request_advice(assessment: RulaAssessment) -> Advice:
-    if not is_configured():
+    chosen = ai.provider()
+    if chosen is None:
         raise AdviceUnavailable("Las recomendaciones con IA no están configuradas en este servidor.")
+    if chosen == ai.GEMINI:
+        return advice_with_gemini(assessment)
+    return advice_with_claude(assessment)
+
+
+def advice_with_gemini(assessment: RulaAssessment) -> Advice:
+    photo = assessment.photo
+    try:
+        data, model = ai.gemini_json(
+            system=SYSTEM + "\n- caution: si no hay nada que advertir, escribe una cadena vacía.",
+            parts=[
+                ai.inline("image", bytes(photo.data), photo.content_type),
+                {"type": "text", "text": describe(assessment)},
+                {"type": "text", "text": INSTRUCTION},
+            ],
+            schema=SCHEMA,
+        )
+    except ai.GeminiFailed as error:
+        raise AdviceFailed(str(error)) from error
+    return Advice(data=clean_advice(data), model=model)
+
+
+def advice_with_claude(assessment: RulaAssessment) -> Advice:
     photo = assessment.photo
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=TIMEOUT_SECONDS, max_retries=1)
     try:
@@ -250,11 +276,86 @@ def clean_advice(data) -> dict:
     }
 
 
+# --- Respaldo sin IA: catalogo por reglas ----------------------------------------------
+
+CATALOG_MODEL = "Catálogo ErgoPostura (sin IA)"
+
+
+def catalog_advice(assessment: RulaAssessment) -> Advice:
+    """Recomendaciones por reglas a partir de los puntajes RULA, cuando la IA no está disponible.
+
+    Cada regla mira el puntaje parcial de un segmento o factor: lo que más suma al riesgo
+    recibe una recomendación de prioridad más alta.
+    """
+    scores = assessment.partial_scores or {}
+    get = lambda key: int(scores.get(key) or 0)  # noqa: E731
+    level = assessment.action_level
+    items = []
+
+    def add(text, focus, kind, priority):
+        items.append({"text": text, "focus": focus, "kind": kind, "priority": priority})
+
+    if get("trunk") >= 3:
+        add("Elevar o acercar la superficie de trabajo para que el tronco no se flexione; si la tarea es "
+            "sentada, dar una silla con respaldo regulable.", "tronco", "ingenieria", "alta" if get("trunk") >= 4 else "media")
+    if get("neck") >= 3:
+        add("Ubicar la tarea, la pantalla o el material a la altura de los ojos para no flexionar ni girar el cuello.",
+            "cuello", "ingenieria", "alta" if get("neck") >= 4 else "media")
+    if get("upper_arm") >= 3:
+        add("Acercar al cuerpo los objetos y controles de uso frecuente y bajar la altura de trabajo para que el brazo "
+            "no se eleve por encima del hombro.", "brazo", "ingenieria", "alta" if get("upper_arm") >= 4 else "media")
+    if max(get("load_a"), get("load_b")) >= 2:
+        add("Reducir la carga con ayudas mecánicas (carretilla, mesa elevadora) o dividirla en cargas más livianas.",
+            "carga", "ingenieria", "alta")
+    if get("lower_arm") >= 2:
+        add("Ajustar la altura de la superficie para que el codo trabaje cerca de 90° y el antebrazo no cruce el cuerpo.",
+            "antebrazo", "ingenieria", "media")
+    if get("wrist") >= 3 or get("wrist_twist") >= 2:
+        add("Usar herramientas con mango que mantenga la muñeca recta y evitar giros repetidos de la muñeca.",
+            "muneca", "ingenieria", "media")
+    if get("legs") >= 2:
+        add("Dar apoyo estable a pies y piernas (reposapiés o piso nivelado) y repartir el peso en ambos pies.",
+            "piernas", "ingenieria", "media")
+    if max(get("muscle_a"), get("muscle_b")) >= 1:
+        add("Programar pausas activas y rotación de tareas para cortar la postura estática o repetitiva.",
+            "repeticion", "administrativa", "media")
+    if level >= 3:
+        add("Capacitar al personal del puesto en posturas neutras y en el uso de las ayudas disponibles.",
+            "general", "formacion", "baja")
+    if level == 1 or not items:
+        add("Mantener la postura actual y volver a evaluar si cambia la tarea o aparecen molestias.",
+            "general", "administrativa", "baja")
+
+    order = {priority: index for index, priority in enumerate(PRIORITIES)}
+    items.sort(key=lambda item: order[item["priority"]])
+    return Advice(
+        data={
+            "observations": "Recomendaciones generales según los puntajes RULA de cada segmento. "
+                            "No se analizó la fotografía.",
+            "items": items[:MAX_ITEMS],
+            "caution": None,
+        },
+        model=CATALOG_MODEL,
+    )
+
+
 def advise(assessment: RulaAssessment) -> RulaAssessment:
-    """Pide las recomendaciones y las guarda junto al analisis, con el puntaje y la foto usados."""
-    advice = request_advice(assessment)
+    """Pide las recomendaciones y las guarda junto al analisis, con el puntaje y la foto usados.
+
+    Si la IA no está configurada o no responde, se usan las del catálogo, con el motivo.
+    """
+    notice = None
+    try:
+        advice = request_advice(assessment)
+        source = "ia"
+    except (AdviceUnavailable, AdviceFailed) as error:
+        advice = catalog_advice(assessment)
+        source = "catalogo"
+        notice = str(error)
     assessment.ai_recommendations = {
         **advice.data,
+        "source": source,
+        "notice": notice,
         "model": advice.model,
         "generated_at": timezone.now().isoformat(),
         "grand_score": assessment.grand_score,

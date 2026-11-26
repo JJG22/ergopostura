@@ -223,24 +223,65 @@ class AiAdviceApiTests(ApiTestCase):
         detail = self.client.get(f"/api/v1/evaluations/{self.evaluation.pk}/").json()
         self.assertTrue(detail["postures"][0]["recommendations"][0]["from_ai"])
 
-    def test_errors_and_permissions(self):
+    def test_without_ai_the_catalog_answers_and_says_why(self):
         headers = self.as_engineer()
         patcher, _ = fake_advisor(stop_reason="refusal")
         with patcher:
             response = self.client.post(self.url, format="json", **headers)
-        self.assertEqual((response.status_code, response.json()["error"]["code"]), (502, "ai_failed"))
-        patcher, _ = fake_advisor(text=advice_json(recommendations=[]))
-        with patcher:
-            self.assertEqual(self.client.post(self.url, format="json", **headers).status_code, 502)
-        with override_settings(ANTHROPIC_API_KEY=""):
-            response = self.client.post(self.url, format="json", **headers)
-        self.assertEqual((response.status_code, response.json()["error"]["code"]), (503, "ai_unavailable"))
-        # Otro ingeniero o la empresa no pueden pedirla sobre esta evaluación.
+        self.assertEqual(response.status_code, 200, response.content)
+        advice = response.json()["result"]["ai_advice"]
+        self.assertEqual(advice["source"], "catalogo")
+        self.assertIn("no pudo procesar", advice["notice"])
+        self.assertTrue(advice["items"])
+        with override_settings(ANTHROPIC_API_KEY="", GEMINI_API_KEY=""):
+            advice = self.client.post(self.url, format="json", **headers).json()["result"]["ai_advice"]
+        self.assertEqual((advice["source"], advice["model"]), ("catalogo", advisor.CATALOG_MODEL))
+
+    def test_only_the_author_can_ask(self):
         other = make_user(role=Role.ENGINEER, email="otro@ergopostura.test")
         self.login(other.email)
         self.assertEqual(self.client.post(self.url, format="json", **self.csrf()).status_code, 404)
 
 
+def fake_gemini(text=None, status="completed", error=None):
+    interaction = SimpleNamespace(status=status, output_text=text if text is not None else advice_json())
+    create = mock.Mock(return_value=interaction, side_effect=error)
+    client = SimpleNamespace(interactions=SimpleNamespace(create=create))
+    return mock.patch("google.genai.Client", return_value=client), create
+
+
+@override_settings(GEMINI_API_KEY="clave-gemini", ANTHROPIC_API_KEY="", GEMINI_MODEL="gemini-4-hydrogen")
+class GeminiAdviceTests(ApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.engineer = make_user(role=Role.ENGINEER, email="ing@ergopostura.test")
+        self.posture = make_posture(make_evaluation(self.engineer))
+        self.assessment = make_assessment(self.posture)
+        self.url = f"/api/v1/evaluations/postures/{self.posture.pk}/ai-recommendations/"
+        self.login(self.engineer.email)
+        self.headers = self.csrf()
+
+    def test_sends_the_photo_to_gemini_without_storing_it(self):
+        patcher, create = fake_gemini()
+        with patcher:
+            response = self.client.post(self.url, format="json", **self.headers)
+        self.assertEqual(response.status_code, 200, response.content)
+        kwargs = create.call_args.kwargs
+        self.assertEqual((kwargs["model"], kwargs["store"]), ("gemini-4-hydrogen", False))
+        self.assertEqual((kwargs["input"][0]["type"], kwargs["input"][0]["mime_type"]), ("image", "image/jpeg"))
+        # Gemini no admite anyOf con null: el esquema llega con el tipo simple.
+        self.assertEqual(kwargs["response_format"]["schema"]["properties"]["caution"], {"type": "string"})
+        advice = response.json()["result"]["ai_advice"]
+        self.assertEqual((advice["source"], advice["model"]), ("ia", "gemini-4-hydrogen"))
+
+    def test_quota_exhausted_falls_back_to_the_catalog(self):
+        from google.genai import errors
+
+        patcher, _ = fake_gemini(error=errors.ClientError(429, {"error": {"message": "quota"}}))
+        with patcher:
+            advice = self.client.post(self.url, format="json", **self.headers).json()["result"]["ai_advice"]
+        self.assertEqual(advice["source"], "catalogo")
+        self.assertIn("límite gratuito", advice["notice"])
 class AdviceCleaningTests(TestCase):
     def test_invalid_values_are_normalized_and_capped(self):
         items = [{"text": f"  Recomendación   {i} ", "focus": "oreja", "kind": "magia", "priority": "urgente"} for i in range(9)]
@@ -248,3 +289,13 @@ class AdviceCleaningTests(TestCase):
         self.assertEqual(len(cleaned["items"]), advisor.MAX_ITEMS)
         self.assertEqual(cleaned["items"][0], {"text": "Recomendación 0", "focus": "general", "kind": "ingenieria", "priority": "media"})
         self.assertIsNone(cleaned["caution"])
+
+
+class CatalogTests(TestCase):
+    def test_the_highest_scores_get_the_first_recommendations(self):
+        engineer = make_user(role=Role.ENGINEER)
+        assessment = make_assessment(make_posture(make_evaluation(engineer)), trunk_angle="70", neck_angle="30")
+        items = advisor.catalog_advice(assessment).data["items"]
+        self.assertEqual(items[0]["priority"], "alta")
+        self.assertIn("tronco", {item["focus"] for item in items})
+        self.assertLessEqual(len(items), advisor.MAX_ITEMS)

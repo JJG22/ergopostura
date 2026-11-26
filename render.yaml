@@ -23,3 +23,6 @@ services:
       # funcionan pero sin resumen automático.
       - key: ANTHROPIC_API_KEY
         sync: false
+      # Alternativa gratis: con GEMINI_API_KEY (Google AI Studio) la IA usa Gemini.
+      - key: GEMINI_API_KEY
+        sync: false
