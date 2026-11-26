@@ -9,7 +9,7 @@ import { Badge, Button, Card, ErrorState, Field, Icon, linkButtonClass, Meta, Ri
 import { formatShortDate } from "../../lib/format";
 import { useForm } from "../../lib/useForm";
 import { useResource } from "../../lib/useResource";
-import { evaluationsApi, formatNumber, type EvaluationDetail, type Posture, type PostureInput, type PostureResult } from "./api";
+import { evaluationsApi, formatNumber, type AiAdvice, type AiAdviceItem, type EvaluationDetail, type Posture, type PostureInput, type PostureResult } from "./api";
 import { EvaluationFormModal } from "./EvaluationsPage";
 
 export function EvaluationDetailPage() {
@@ -274,6 +274,79 @@ export function AiTrace({ result }: { result: PostureResult }) {
   );
 }
 
+const PRIORITY_TONE = { alta: "red", media: "amber", baja: "neutral" } as const;
+
+/**
+ * Segunda opinión de la IA: mira la fotografía analizada y el resultado RULA y propone
+ * recomendaciones para el puesto. Ninguna se guarda sola; el ingeniero elige cuáles usa.
+ */
+function AiAdvicePanel({ posture, advice, onUse, refresh }: {
+  posture: Posture; advice: AiAdvice | null; onUse: (item: AiAdviceItem) => void; refresh: () => void;
+}) {
+  const [state, setState] = useState<{ sending: boolean; error: string | null }>({ sending: false, error: null });
+  const used = new Set(posture.recommendations.map((r) => r.text));
+
+  async function ask() {
+    setState({ sending: true, error: null });
+    try {
+      await evaluationsApi.requestAdvice(posture.id);
+      setState({ sending: false, error: null });
+      refresh();
+    } catch (cause) {
+      setState({ sending: false, error: toApiError(cause).message });
+    }
+  }
+
+  const button = (
+    <Button type="button" variant={advice ? "ghost" : "secondary"} disabled={state.sending} onClick={() => void ask()}>
+      <Icon name="activity" />{state.sending ? "La IA está revisando…" : advice ? "Pedir de nuevo" : "Pedir recomendaciones a la IA"}
+    </Button>
+  );
+
+  return (
+    <section aria-labelledby={`ia-${posture.id}`} className="mb-4 border-l-4 border-brand-700 bg-ink-50 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h5 id={`ia-${posture.id}`} className="text-sm font-semibold text-ink-900">Recomendaciones de la IA</h5>
+        {advice ? button : null}
+      </div>
+      {state.sending ? <p role="status" className="mt-2 text-sm text-ink-600">Revisando la fotografía y el resultado. Tarda entre 10 y 40 segundos.</p> : null}
+      {state.error ? <p role="alert" className="mt-2 text-sm font-medium text-red-700">{state.error}</p> : null}
+      {!advice ? (
+        <div className="mt-1">
+          <p className="mb-3 text-sm text-ink-600">La IA (Claude, de Anthropic) recibe la fotografía analizada y el resultado RULA, y propone recomendaciones para el puesto. Tú decides cuáles usar.</p>
+          {button}
+        </div>
+      ) : (
+        <>
+          {advice.stale ? (
+            <p className="mt-2 border border-ink-950 bg-white px-3 py-2 text-sm text-ink-900">El análisis cambió después de pedirlas. Pídelas de nuevo para que correspondan al resultado actual.</p>
+          ) : null}
+          {advice.observations ? <p className="mt-2 text-sm text-ink-700">{advice.observations}</p> : null}
+          {advice.caution ? <p className="mt-2 text-sm font-medium text-ink-900">Ojo: {advice.caution}</p> : null}
+          <ul className="mt-3 space-y-2">
+            {advice.items.map((item, index) => (
+              <li key={index} className="flex flex-wrap items-start gap-3 bg-white px-3 py-2.5 text-sm ring-1 ring-ink-500/10">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-wrap gap-1.5">
+                    <Badge tone={PRIORITY_TONE[item.priority]}>Prioridad {item.priority}</Badge>
+                    <Badge>{item.kind_label}</Badge>
+                    <Badge>{item.focus_label}</Badge>
+                  </div>
+                  <p>{item.text}</p>
+                </div>
+                {used.has(item.text) ? <Badge tone="teal">Agregada</Badge> : (
+                  <Button type="button" variant="ghost" onClick={() => onUse(item)}><Icon name="plus" />Usar</Button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-ink-500">Sugerencias de IA ({advice.model}). Revísalas con tu criterio antes de usarlas.</p>
+        </>
+      )}
+    </section>
+  );
+}
+
 function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
   number: number; posture: Posture; canEdit: boolean; refresh: () => void; onEdit: () => void; onDelete: () => void;
 }) {
@@ -282,6 +355,8 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
   const [upload, setUpload] = useState<{ sending: boolean; error: string | null }>({ sending: false, error: null });
   const [pickerKey, setPickerKey] = useState(0);
   const [text, setText] = useState("");
+  const [fromAi, setFromAi] = useState(false);
+  const recRef = useRef<HTMLTextAreaElement>(null);
   const [recError, setRecError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const result = posture.result;
@@ -318,8 +393,9 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
     event.preventDefault();
     setRecError(null);
     try {
-      await evaluationsApi.addRecommendation(posture.id, text);
+      await evaluationsApi.addRecommendation(posture.id, text, fromAi);
       setText("");
+      setFromAi(false);
       notify("Recomendación agregada");
       refresh();
     } catch (cause) {
@@ -401,6 +477,7 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
                   {posture.recommendations.map((r, i) => (
                     <li key={r.id} className="flex items-start gap-3 rounded-2xl bg-ink-500/[0.05] px-4 py-3 text-sm">
                       <b className="tabular text-brand-700">{i + 1}</b><p className="flex-1">{r.text}</p>
+                      {r.from_ai ? <Badge>Con apoyo de IA</Badge> : null}
                       {r.attended ? <Badge tone="teal">Atendida</Badge> : null}
                       {canEdit ? (
                         <button type="button" aria-label="Eliminar recomendación" onClick={() => void removeRecommendation(r.id)}
@@ -411,10 +488,14 @@ function PostureCard({ number, posture, canEdit, refresh, onEdit, onDelete }: {
                 </ol>
               )}
               {canEdit ? (
+                <AiAdvicePanel posture={posture} advice={result.ai_advice} refresh={refresh}
+                  onUse={(item) => { setText(item.text); setFromAi(true); setRecError(null); recRef.current?.focus(); }} />
+              ) : null}
+              {canEdit ? (
                 <form onSubmit={(ev) => void addRecommendation(ev)} className="flex flex-wrap items-end gap-2">
                   <label className="min-w-56 flex-1 text-sm">
-                    <span className="mb-1 block font-medium text-ink-700">Nueva recomendación</span>
-                    <textarea rows={2} value={text} onChange={(ev) => setText(ev.target.value)} placeholder="Qué mejorar en el puesto, según lo observado"
+                    <span className="mb-1 block font-medium text-ink-700">{fromAi ? "Nueva recomendación (tomada de la IA; ajústala si hace falta)" : "Nueva recomendación"}</span>
+                    <textarea ref={recRef} rows={2} value={text} onChange={(ev) => { setText(ev.target.value); if (!ev.target.value.trim()) setFromAi(false); }} placeholder="Qué mejorar en el puesto, según lo observado"
                       aria-invalid={recError ? true : undefined} className={`py-2 ${controlClass(recError ?? undefined)}`} />
                   </label>
                   <Button type="submit" variant="secondary"><Icon name="plus" />Agregar</Button>

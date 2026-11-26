@@ -217,6 +217,9 @@ class RulaAssessment(TimeStampedModel):
     # Lo que propuso la deteccion de pose sobre la fotografia, si el evaluador la pidio.
     # Se conserva aparte de los angulos registrados para saber que confirmo o corrigio el.
     ai_suggestion = models.JSONField("sugerencia de la IA", default=dict, blank=True, editable=False)
+    # Recomendaciones que propuso la IA al ver la fotografia y el resultado, con el puntaje y la
+    # foto para los que se pidieron. Son una segunda opinion: el evaluador decide cuales usa.
+    ai_recommendations = models.JSONField("recomendaciones de la IA", default=dict, blank=True, editable=False)
 
     partial_scores = models.JSONField("puntajes parciales", default=dict, editable=False)
     grand_score = models.PositiveSmallIntegerField(
@@ -288,6 +291,8 @@ class Recommendation(TimeStampedModel):
 
     posture = models.ForeignKey(Posture, on_delete=models.CASCADE, related_name="recommendations")
     text = models.TextField("recomendación")
+    # Tomada de lo que sugirió la IA (y revisada por el evaluador antes de guardarla).
+    from_ai = models.BooleanField("sugerida por la IA", default=False)
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="recommendations", editable=False
     )

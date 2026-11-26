@@ -246,7 +246,7 @@ class RulaAssessmentForm(forms.ModelForm):
 class RecommendationForm(forms.ModelForm):
     class Meta:
         model = Recommendation
-        fields = ["text"]
+        fields = ["text", "from_ai"]
         widgets = {
             "text": forms.Textarea(
                 attrs={"rows": 2, "placeholder": "Qué mejorar en el puesto, según lo observado"}

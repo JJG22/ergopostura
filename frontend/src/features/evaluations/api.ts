@@ -12,7 +12,28 @@ export interface AiTraceRow {
   changed: boolean;
 }
 
+export interface AiAdviceItem {
+  text: string;
+  focus: string;
+  focus_label: string;
+  kind: string;
+  kind_label: string;
+  priority: "alta" | "media" | "baja";
+}
+
+/** Recomendaciones que propuso la IA al ver la foto y el resultado. El ingeniero decide cuáles usa. */
+export interface AiAdvice {
+  observations: string;
+  caution: string | null;
+  items: AiAdviceItem[];
+  model: string;
+  generated_at: string | null;
+  /** El análisis se repitió con otro puntaje o con otra foto después de pedirlas. */
+  stale: boolean;
+}
+
 export interface PostureResult {
+  ai_advice: AiAdvice | null;
   photo_id: number;
   grand_score: number;
   action_level: number;
@@ -40,7 +61,7 @@ export interface Posture {
   duration_unit_label: string;
   photos: Photo[];
   result: PostureResult | null;
-  recommendations: { id: number; text: string; attended: boolean }[];
+  recommendations: { id: number; text: string; attended: boolean; from_ai: boolean }[];
 }
 
 export interface EvaluationDetail extends EvaluationRow {
@@ -147,8 +168,10 @@ export const evaluationsApi = {
   assessment: (postureId: number, signal: AbortSignal) => api<AssessmentForm>(`/evaluations/postures/${postureId}/assessment/`, { signal }),
   saveAssessment: (postureId: number, values: { values: AssessmentValues; photo: number; ai_suggestion: AiSuggestion | null }) =>
     api<{ evaluation_id: number; result: PostureResult }>(`/evaluations/postures/${postureId}/assessment/`, { method: "PUT", body: { ...values.values, photo: values.photo, ai_suggestion: values.ai_suggestion } }),
-  addRecommendation: (postureId: number, text: string) =>
-    api<{ id: number }>(`/evaluations/postures/${postureId}/recommendations/`, { method: "POST", body: { text } }),
+  addRecommendation: (postureId: number, text: string, fromAi = false) =>
+    api<{ id: number }>(`/evaluations/postures/${postureId}/recommendations/`, { method: "POST", body: { text, from_ai: fromAi } }),
+  requestAdvice: (postureId: number) =>
+    api<{ result: PostureResult }>(`/evaluations/postures/${postureId}/ai-recommendations/`, { method: "POST" }),
   deleteRecommendation: (id: number) => api<void>(`/evaluations/recommendations/${id}/`, { method: "DELETE" }),
 };
 

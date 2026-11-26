@@ -1,3 +1,9 @@
+import json
+from types import SimpleNamespace
+from unittest import mock
+
+from django.test import TestCase, override_settings
+
 from apps.accounts.models import Role
 from apps.core.tests.factories import (
     completed_visit,
@@ -6,7 +12,7 @@ from apps.core.tests.factories import (
     make_visit,
     make_worker,
 )
-from apps.evaluations import services
+from apps.evaluations import advisor, services
 from apps.evaluations.models import Evaluation, Recommendation
 from apps.evaluations.tests.test_evaluations import (
     make_assessment,
@@ -137,3 +143,108 @@ class EvaluationsApiTests(ApiTestCase):
         response = self.client.post(f"/api/v1/evaluations/postures/{posture.pk}/recommendations/", {"text": "x"}, format="json", **headers)
         self.assertEqual(response.status_code, 409)
 
+
+
+def advice_json(**changes):
+    data = {
+        "observations": "La mesa queda baja y obliga a flexionar el tronco y el cuello.",
+        "recommendations": [
+            {"text": "Rotar la tarea cada dos horas.", "focus": "general", "kind": "administrativa", "priority": "media"},
+            {"text": "Subir la superficie de trabajo hasta la altura de los codos.", "focus": "tronco",
+             "kind": "ingenieria", "priority": "alta"},
+        ],
+        "caution": None,
+    }
+    data.update(changes)
+    return json.dumps(data)
+
+
+def fake_advisor(text=None, stop_reason="end_turn", error=None):
+    response = SimpleNamespace(stop_reason=stop_reason, model="claude-opus-5-5",
+                               content=[SimpleNamespace(type="text", text=text if text is not None else advice_json())])
+    create = mock.Mock(return_value=response, side_effect=error)
+    client = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(create=create)))
+    return mock.patch.object(advisor.anthropic, "Anthropic", return_value=client), create
+
+
+@override_settings(ANTHROPIC_API_KEY="clave-de-prueba")
+class AiAdviceApiTests(ApiTestCase):
+    """Recomendaciones de la IA: una segunda opinión que el ingeniero decide si usa."""
+
+    def setUp(self):
+        super().setUp()
+        self.engineer = make_user(role=Role.ENGINEER, email="ing@ergopostura.test")
+        self.evaluation = make_evaluation(self.engineer)
+        self.posture = make_posture(self.evaluation)
+        self.assessment = make_assessment(self.posture)
+        self.url = f"/api/v1/evaluations/postures/{self.posture.pk}/ai-recommendations/"
+
+    def as_engineer(self):
+        self.login(self.engineer.email)
+        return self.csrf()
+
+    def test_sends_the_photo_and_the_result_and_keeps_the_advice(self):
+        headers = self.as_engineer()
+        patcher, create = fake_advisor()
+        with patcher:
+            response = self.client.post(self.url, format="json", **headers)
+        self.assertEqual(response.status_code, 200, response.content)
+        content = create.call_args.kwargs["messages"][0]["content"]
+        self.assertEqual((content[0]["type"], content[0]["source"]["media_type"]), ("image", "image/jpeg"))
+        self.assertIn("Puntaje final RULA: 6 de 7", content[1]["text"])
+        advice = response.json()["result"]["ai_advice"]
+        # Ordenadas por prioridad, con etiquetas en español.
+        self.assertEqual([item["priority"] for item in advice["items"]], ["alta", "media"])
+        self.assertEqual(advice["items"][0]["kind_label"], "Cambio en el puesto")
+        self.assertFalse(advice["stale"])
+        # No crea recomendaciones: el ingeniero decide cuáles usa.
+        self.assertFalse(Recommendation.objects.exists())
+        self.assessment.refresh_from_db()
+        self.assertEqual(self.assessment.ai_recommendations["grand_score"], 6)
+
+    def test_advice_is_marked_stale_when_the_analysis_changes(self):
+        headers = self.as_engineer()
+        patcher, _ = fake_advisor()
+        with patcher:
+            self.client.post(self.url, format="json", **headers)
+        response = self.client.put(f"/api/v1/evaluations/postures/{self.posture.pk}/assessment/",
+                                   {**ASSESSMENT, "photo": self.assessment.photo_id, "trunk_angle": 70, "neck_angle": 30,
+                                    "arm_load": "HEAVY_STATIC_OR_REPEATED", "body_load": "HEAVY_STATIC_OR_REPEATED"}, format="json", **headers)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["result"]["grand_score"], 7)
+        self.assertTrue(response.json()["result"]["ai_advice"]["stale"])
+
+    def test_a_recommendation_taken_from_the_ai_is_marked(self):
+        headers = self.as_engineer()
+        response = self.client.post(f"/api/v1/evaluations/postures/{self.posture.pk}/recommendations/",
+                                    {"text": "Subir la superficie de trabajo.", "from_ai": True}, format="json", **headers)
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertTrue(Recommendation.objects.get().from_ai)
+        detail = self.client.get(f"/api/v1/evaluations/{self.evaluation.pk}/").json()
+        self.assertTrue(detail["postures"][0]["recommendations"][0]["from_ai"])
+
+    def test_errors_and_permissions(self):
+        headers = self.as_engineer()
+        patcher, _ = fake_advisor(stop_reason="refusal")
+        with patcher:
+            response = self.client.post(self.url, format="json", **headers)
+        self.assertEqual((response.status_code, response.json()["error"]["code"]), (502, "ai_failed"))
+        patcher, _ = fake_advisor(text=advice_json(recommendations=[]))
+        with patcher:
+            self.assertEqual(self.client.post(self.url, format="json", **headers).status_code, 502)
+        with override_settings(ANTHROPIC_API_KEY=""):
+            response = self.client.post(self.url, format="json", **headers)
+        self.assertEqual((response.status_code, response.json()["error"]["code"]), (503, "ai_unavailable"))
+        # Otro ingeniero o la empresa no pueden pedirla sobre esta evaluación.
+        other = make_user(role=Role.ENGINEER, email="otro@ergopostura.test")
+        self.login(other.email)
+        self.assertEqual(self.client.post(self.url, format="json", **self.csrf()).status_code, 404)
+
+
+class AdviceCleaningTests(TestCase):
+    def test_invalid_values_are_normalized_and_capped(self):
+        items = [{"text": f"  Recomendación   {i} ", "focus": "oreja", "kind": "magia", "priority": "urgente"} for i in range(9)]
+        cleaned = advisor.clean_advice({"observations": "x", "recommendations": items, "caution": 3})
+        self.assertEqual(len(cleaned["items"]), advisor.MAX_ITEMS)
+        self.assertEqual(cleaned["items"][0], {"text": "Recomendación 0", "focus": "general", "kind": "ingenieria", "priority": "media"})
+        self.assertIsNone(cleaned["caution"])

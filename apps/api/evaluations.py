@@ -18,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import Capability, has_capability
-from apps.evaluations import selectors, services
+from apps.evaluations import advisor, selectors, services
 from apps.evaluations.forms import EvaluationForm, PostureForm, RecommendationForm, RulaAssessmentForm
 from apps.evaluations.models import Evaluation, Posture, PosturePhoto, Recommendation, RulaAssessment
 from apps.evaluations.photos import InvalidPhoto
@@ -42,12 +42,36 @@ def number(value):
     return float(value) if value is not None else None
 
 
+def advice_data(result) -> dict | None:
+    """Las recomendaciones que propuso la IA, con etiquetas, y si quedaron desactualizadas."""
+    advice = result.ai_recommendations or {}
+    if not advice.get("items"):
+        return None
+    return {
+        "observations": advice.get("observations", ""),
+        "caution": advice.get("caution"),
+        "items": [
+            {
+                **item,
+                "focus_label": advisor.FOCUS_LABELS.get(item["focus"], "General"),
+                "kind_label": advisor.KIND_LABELS.get(item["kind"], ""),
+            }
+            for item in advice["items"]
+        ],
+        "model": advice.get("model", ""),
+        "generated_at": advice.get("generated_at"),
+        # El análisis se repitió con otro puntaje o con otra foto después de pedirlas.
+        "stale": advice.get("grand_score") != result.grand_score or advice.get("photo_id") != result.photo_id,
+    }
+
+
 def result_data(result) -> dict | None:
     if result is None:
         return None
     action = result.action
     suggestion = result.ai_suggestion or {}
     return {
+        "ai_advice": advice_data(result),
         "photo_id": result.photo_id,
         "grand_score": result.grand_score,
         "action_level": result.action_level,
@@ -76,7 +100,8 @@ def posture_data(posture) -> dict:
         "photos": [{"id": p.pk, "url": photo_url(p.pk), "width": p.width, "height": p.height} for p in posture.photos.all()],
         "result": result_data(posture.result),
         "recommendations": [
-            {"id": r.pk, "text": r.text, "attended": r.attended_at is not None} for r in posture.recommendations.all()
+            {"id": r.pk, "text": r.text, "attended": r.attended_at is not None, "from_ai": r.from_ai}
+            for r in posture.recommendations.all()
         ],
     }
 
@@ -356,6 +381,25 @@ class AssessmentView(APIView):
         return Response({"evaluation_id": posture.evaluation_id, "result": result_data(saved)})
 
 
+class AdviceView(APIView):
+    """Pide a la IA recomendaciones para una postura ya analizada. No guarda ninguna recomendación."""
+
+    permission_classes = [IsAuthenticated, HasCapability]
+    required_capabilities = MANAGE
+
+    def post(self, request, pk):
+        posture = get_object_or_404(selectors.editable_postures(request.user).select_related("assessment__photo"), pk=pk)
+        if posture.result is None:
+            return error_response("conflict", "Primero haz el análisis RULA de esta postura.", status.HTTP_409_CONFLICT)
+        try:
+            assessment = advisor.advise(posture.result)
+        except advisor.AdviceUnavailable as error:
+            return error_response("ai_unavailable", str(error), status.HTTP_503_SERVICE_UNAVAILABLE)
+        except advisor.AdviceFailed as error:
+            return error_response("ai_failed", str(error), status.HTTP_502_BAD_GATEWAY)
+        return Response({"result": result_data(assessment)})
+
+
 class RecommendationView(APIView):
     permission_classes = [IsAuthenticated, HasCapability]
     required_capabilities = MANAGE
@@ -371,7 +415,8 @@ class RecommendationView(APIView):
         form.instance.posture = posture
         form.instance.author = request.user
         recommendation = form.save()
-        return Response({"id": recommendation.pk, "text": recommendation.text, "attended": False}, status=status.HTTP_201_CREATED)
+        return Response({"id": recommendation.pk, "text": recommendation.text, "attended": False,
+                         "from_ai": recommendation.from_ai}, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         recommendation = get_object_or_404(

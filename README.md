@@ -212,6 +212,16 @@ En *Contratos*, la IA (Claude, de Anthropic) lee el PDF y da un resumen: tipo de
 - **Respuesta con formato fijo:** se pide un JSON con esquema (salida estructurada) y cada campo se valida otra vez en el servidor. El texto del contrato se trata como dato, nunca como instrucción.
 - **Privacidad:** el PDF se envía a la API de Anthropic para leerlo. Se activa con `ANTHROPIC_API_KEY`; el modelo se cambia con `CONTRACT_AI_MODEL` (por defecto `claude-opus-5-5`).
 
+## Recomendaciones con IA
+
+En el detalle de una evaluación en curso, cada postura ya analizada tiene el botón **Pedir recomendaciones a la IA**. Claude, de Anthropic, recibe la fotografía analizada y el resultado RULA (ángulos, ajustes, cargas y puntajes) y propone entre dos y seis recomendaciones para el puesto, con su prioridad y su tipo: cambio en el puesto, organización del trabajo, formación o elemento de protección.
+
+- **Es una segunda opinión.** Ninguna recomendación se guarda sola: el ingeniero pulsa *Usar*, la revisa o la ajusta, y la agrega. Las que salen de la IA quedan marcadas «Con apoyo de IA» en el detalle y en el informe.
+- **Recomendaciones sobre el puesto, no sobre la persona,** y siguiendo la jerarquía de controles: primero cambios de ingeniería, luego organización, formación y, al final, protección personal.
+- **Se avisa si quedan viejas:** si el análisis se repite con otro puntaje o con otra foto, el panel pide volver a generarlas.
+- **Respuesta con formato fijo:** JSON con esquema y validado otra vez en el servidor. La foto y los textos se tratan como dato, nunca como instrucción.
+- **Privacidad:** a diferencia de la sugerencia de ángulos, aquí la fotografía sí se envía a la API de Anthropic. Usa la misma `ANTHROPIC_API_KEY` que la lectura de contratos; el modelo se cambia con `RULA_AI_MODEL` (por defecto el mismo de los contratos).
+
 ## Sugerencia de ángulos con IA
 
 En la pantalla de análisis RULA, el botón **Sugerir** detecta el cuerpo en la fotografía con [MediaPipe Pose](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker) y propone los cinco ángulos del lado evaluado.

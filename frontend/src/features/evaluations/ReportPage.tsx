@@ -89,7 +89,7 @@ function Report({ e }: { e: EvaluationDetail }) {
               </div>
               <h3 className="mb-1 mt-4 font-semibold">Recomendaciones</h3>
               {posture.recommendations.length ? (
-                <ol className="ml-5 list-decimal text-sm">{posture.recommendations.map((r) => <li key={r.id}>{r.text}</li>)}</ol>
+                <ol className="ml-5 list-decimal text-sm">{posture.recommendations.map((r) => <li key={r.id}>{r.text}{r.from_ai ? <span className="text-ink-500"> (con apoyo de IA)</span> : null}</li>)}</ol>
               ) : <p className="text-sm text-ink-600">Sin recomendaciones: la postura es aceptable si no se mantiene ni se repite durante periodos largos.</p>}
             </section>
           );

@@ -127,6 +127,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Lectura de contratos con Claude. Sin la clave, el modulo de contratos funciona sin IA.
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 CONTRACT_AI_MODEL = os.environ.get("CONTRACT_AI_MODEL", "claude-opus-5-5")
+RULA_AI_MODEL = os.environ.get("RULA_AI_MODEL", CONTRACT_AI_MODEL)
 
 # API REST: sesión por cookie (mismo dominio que el cliente), solo JSON y un formato único de error.
 # rest_framework no va en INSTALLED_APPS: sus traducciones cambiarían los mensajes de los formularios

@@ -49,6 +49,7 @@ urlpatterns = [
     path("evaluations/postures/<int:pk>/", evaluations.PostureView.as_view(), name="posture"),
     path("evaluations/postures/<int:pk>/photos/", evaluations.PhotoUploadView.as_view(), name="photo_upload"),
     path("evaluations/postures/<int:pk>/assessment/", evaluations.AssessmentView.as_view(), name="assessment"),
+    path("evaluations/postures/<int:pk>/ai-recommendations/", evaluations.AdviceView.as_view(), name="posture_advice"),
     path("evaluations/postures/<int:pk>/recommendations/", evaluations.RecommendationView.as_view(), name="recommendation_create"),
     path("evaluations/photos/<int:pk>/", evaluations.PhotoView.as_view(), name="photo"),
     path("evaluations/recommendations/<int:pk>/", evaluations.RecommendationView.as_view(), name="recommendation"),

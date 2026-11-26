@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useSearchParams } from "react-router";
 
 import { toApiError, type ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
-import assemblyLine from "../assets/linea-ensamble.jpg";
+import handlingTraining from "../assets/capacitacion-cargas.jpg";
 import { Button, Field, FormError, FullPageSpinner, Icon, Logo } from "../components/ui";
 import { legacyUrl } from "../lib/format";
 
@@ -54,14 +54,14 @@ export function LoginPage() {
     <div className="grid min-h-screen bg-white lg:grid-cols-[1fr_minmax(440px,0.8fr)]">
       {/* El cartel: la foto en blanco y negro impresa sobre el campo azul, con el nombre del servicio. */}
       <section className="print-blue relative hidden overflow-hidden lg:block" aria-hidden="true">
-        <img src={assemblyLine} alt="" className="absolute inset-0 size-full object-cover object-[40%_50%]" />
+        <img src={handlingTraining} alt="" className="absolute inset-0 size-full object-cover object-[30%_60%]" />
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <Logo tone="light" />
           <p className="max-w-xl font-display text-6xl leading-[0.98] xl:text-7xl">Evaluación ergonómica para empresas</p>
         </div>
       </section>
       <section className="print-blue relative overflow-hidden lg:hidden" aria-hidden="true">
-        <img src={assemblyLine} alt="" className="absolute inset-0 size-full object-cover object-[40%_50%]" />
+        <img src={handlingTraining} alt="" className="absolute inset-0 size-full object-cover object-[30%_60%]" />
         <div className="relative flex min-h-56 flex-col justify-between gap-8 p-6 text-white">
           <Logo tone="light" />
           <p className="max-w-xs font-display text-[2.4rem] leading-[0.98]">Evaluación ergonómica para empresas</p>
