@@ -87,6 +87,7 @@ Con `docker compose up` corriendo, crea una conexión con host `127.0.0.1`, puer
 
 - [docs/sql/esquema.sql](docs/sql/esquema.sql): estructura completa de la base en MySQL.
 - [docs/sql/consultas.sql](docs/sql/consultas.sql): consultas principales con nombre y descripción.
+- [docs/sql/demostracion.sql](docs/sql/demostracion.sql): guion para la exposición: estructura, restricciones, migraciones, datos, seguridad y reglas que la base rechaza.
 - [docs/modelo-entidad-relacion.png](docs/modelo-entidad-relacion.png): modelo entidad-relación.
 - [docs/diagrama-navegacion.png](docs/diagrama-navegacion.png): pantallas y navegación por rol, con el código del mockup de cada pantalla.
 - [docs/mockups/](docs/mockups/): mockups M01 a M22 de las pantallas.
